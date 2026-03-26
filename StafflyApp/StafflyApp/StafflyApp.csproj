@@ -9,16 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Page Remove="Views\App.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ApplicationDefinition Include="Views\App.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Models\" />
-    <Folder Include="ViewModels\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MaterialDesignColors" Version="5.3.1" />
+    <PackageReference Include="MaterialDesignThemes" Version="5.3.1" />
+    <PackageReference Include="MaterialDesignThemes.MahApps" Version="5.3.1" />
+    <PackageReference Include="MaterialDesignThemes.Wpf" Version="1.0.1" />
   </ItemGroup>
 
 </Project>
