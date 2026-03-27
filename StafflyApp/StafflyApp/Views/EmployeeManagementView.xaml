@@ -3,10 +3,161 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:StafflyApp.Views"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+             d:DesignHeight="700" d:DesignWidth="1050"
+             Background="Transparent" FontFamily="Segoe UI">
+
+    <Border Background="White" CornerRadius="12" Padding="30" Margin="10">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" Color="#DDDDDD" ShadowDepth="2" Opacity="0.5"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="15"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <TextBlock Text="COMPANY EMPLOYEES" FontSize="15" FontWeight="Bold" Foreground="#333333" VerticalAlignment="Center" />
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Employees" Style="{StaticResource MaterialDesignOutlinedButton}" BorderBrush="#E0E0E0" Foreground="#624BFF" FontWeight="Bold" Height="36" BorderThickness="1,1,0,1" materialDesign:ButtonAssist.CornerRadius="4,0,0,4"/>
+                    <Button Content="Live View" Style="{StaticResource MaterialDesignOutlinedButton}" BorderBrush="#E0E0E0" Foreground="#757575" Height="36" BorderThickness="1,1,0,1" materialDesign:ButtonAssist.CornerRadius="0"/>
+                    <Button Content="Org Chart" Style="{StaticResource MaterialDesignOutlinedButton}" BorderBrush="#E0E0E0" Foreground="#757575" Height="36" materialDesign:ButtonAssist.CornerRadius="0,4,4,0"/>
+                </StackPanel>
+            </Grid>
+
+            <Border Grid.Row="1" BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Margin="0,15,0,14"/>
+
+            <Grid Grid.Row="2">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBox Style="{StaticResource MaterialDesignOutlinedTextBox}" Width="250" Height="40" materialDesign:HintAssist.Hint="Search Employee..." Padding="10,0" Margin="0,0,15,0">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding SearchCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+
+                    <ComboBox Style="{StaticResource MaterialDesignOutlinedComboBox}" Width="150" Height="40" SelectedIndex="0" Padding="10,0">
+                        <ComboBoxItem Content="Active"/>
+                        <ComboBoxItem Content="Archived"/>
+                        <ComboBoxItem Content="On Leave"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Import Employees" Style="{StaticResource MaterialDesignOutlinedButton}" Foreground="#757575" BorderBrush="#E0E0E0" Height="40" Margin="0,0,15,0" materialDesign:ButtonAssist.CornerRadius="4"/>
+                    <Button Content="Add Employees" Background="#624BFF" Foreground="White" BorderThickness="0" Height="40" materialDesign:ButtonAssist.CornerRadius="4"/>
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="4" Margin="10,0,20,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="280"/>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="60"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="ID" FontWeight="Bold" Foreground="#1A1A1A" FontSize="13"/>
+                <TextBlock Grid.Column="1" Text="Name" FontWeight="Bold" Foreground="#1A1A1A" FontSize="13"/>
+                <TextBlock Grid.Column="2" Text="Department" FontWeight="Bold" Foreground="#1A1A1A" FontSize="13"/>
+                <TextBlock Grid.Column="3" Text="Contact" FontWeight="Bold" Foreground="#1A1A1A" FontSize="13"/>
+                <TextBlock Grid.Column="4" Text="Requests" FontWeight="Bold" Foreground="#1A1A1A" FontSize="13" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Column="5" Text="Hire Date" FontWeight="Bold" Foreground="#1A1A1A" FontSize="13"/>
+                <TextBlock Grid.Column="6" Text="Actions" FontWeight="Bold" Foreground="#1A1A1A" FontSize="13" HorizontalAlignment="Center"/>
+            </Grid>
+
+            <ScrollViewer Grid.Row="6" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+
+                    <Border BorderBrush="#F5F5F5" BorderThickness="0,0,0,1" Padding="10,15,20,15">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="280"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="250"/>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="60"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="1" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#333"/>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Border Width="40" Height="40" CornerRadius="20" Background="#E8EAF6" Margin="0,0,15,0">
+                                    <TextBlock Text="EA" Foreground="#624BFF" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                                </Border>
+                                <TextBlock Text="Ethan Antonio" VerticalAlignment="Center" Foreground="#624BFF" FontWeight="SemiBold" FontSize="14" Cursor="Hand"/>
+                            </StackPanel>
+
+                            <TextBlock Grid.Column="2" Text="Admin" VerticalAlignment="Center" Foreground="#555" FontWeight="Medium"/>
+
+                            <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                                <TextBlock Text="+1 404-233-7961" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,2"/>
+                                <TextBlock Text="admin@centrova.com" Foreground="#888" FontSize="12"/>
+                            </StackPanel>
+
+                            <Border Grid.Column="4" Background="#7CD87A" CornerRadius="4" Width="26" Height="26" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="1" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+
+                            <TextBlock Grid.Column="5" Text="2019-06-06" VerticalAlignment="Center" Foreground="#333" FontWeight="Medium"/>
+
+                            <Button Grid.Column="6" Style="{StaticResource MaterialDesignIconForegroundButton}" Width="35" Height="35" HorizontalAlignment="Center">
+                                <materialDesign:PackIcon Kind="DotsVertical" Foreground="#999" Width="20" Height="20"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <Border BorderBrush="#F5F5F5" BorderThickness="0,0,0,1" Padding="10,15,20,15">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="280"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="250"/>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="60"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="2" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#333"/>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Border Width="40" Height="40" CornerRadius="20" Background="#E3F2FD" Margin="0,0,15,0">
+                                    <TextBlock Text="LB" Foreground="#1976D2" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                                </Border>
+                                <TextBlock Text="Louis B. Kimble" VerticalAlignment="Center" Foreground="#624BFF" FontWeight="SemiBold" FontSize="14" Cursor="Hand"/>
+                            </StackPanel>
+
+                            <TextBlock Grid.Column="2" Text="Hardware" VerticalAlignment="Center" Foreground="#555" FontWeight="Medium"/>
+
+                            <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                                <TextBlock Text="+1 404-233-7962" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,2"/>
+                                <TextBlock Text="louis@centrova.com" Foreground="#888" FontSize="12"/>
+                            </StackPanel>
+
+                            <TextBlock Grid.Column="5" Text="2019-01-01" VerticalAlignment="Center" Foreground="#333" FontWeight="Medium"/>
+
+                            <Button Grid.Column="6" Style="{StaticResource MaterialDesignIconForegroundButton}" Width="35" Height="35" HorizontalAlignment="Center">
+                                <materialDesign:PackIcon Kind="DotsVertical" Foreground="#999" Width="20" Height="20"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Border>
 </UserControl>
