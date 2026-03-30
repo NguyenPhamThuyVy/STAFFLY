@@ -1,39 +1,35 @@
-﻿using System;
-using Microsoft.Data.SqlClient;
+﻿using System.Linq;
 using StafflyApp.Models;
+using StafflyApp.Data;
 
 namespace StafflyApp.Data
 {
     public class UserRepository
     {
+        private readonly StafflyDbContext _context;
+
+        public UserRepository(StafflyDbContext context)
+        {
+            _context = context;
+        }
+
         public User? AuthenticateUser(string username, string password)
         {
-            using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
+            // Kiểm tra: Khớp Username, Khớp Password và IsActive phải là true
+            return _context.Users
+                .FirstOrDefault(u => u.Username == username
+                                && u.Password == password
+                                && u.IsActive == true);
+        }
+
+        public Employee? GetEmployeeByUserId(int userId)
+        {
+            var user = _context.Users.Find(userId);
+            if (user != null && user.EmployeeID.HasValue)
             {
-                conn.Open();
-                // Truy vấn tìm User khớp cả tên và mật khẩu
-                string query = "SELECT * FROM Users WHERE Username = @user AND Password = @pass";
-
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@user", username);
-                    cmd.Parameters.AddWithValue("@pass", password);
-
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            return new User
-                            {
-                                UserID = Convert.ToInt32(reader["UserID"]),
-                                Username = reader["Username"].ToString() ?? string.Empty,
-                                RoleID = reader["RoleID"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["RoleID"])
-                            };
-                        }
-                    }
-                }
+                return _context.Employees.Find(user.EmployeeID.Value);
             }
-            return null; // Trả về null nếu không tìm thấy (sai tài khoản/mật khẩu)
+            return null;
         }
     }
 }
