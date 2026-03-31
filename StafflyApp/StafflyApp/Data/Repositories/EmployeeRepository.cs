@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
+using StafflyApp.Data.Interfaces;
 using StafflyApp.Models;
 
-namespace StafflyApp.Data
+namespace StafflyApp.Data.Repositories
 {
-    public class EmployeeRepository
+    public class EmployeeRepository : IEmployeeRepository
     {
         // 1. Hàm lấy danh sách tất cả nhân viên
         public List<Employee> GetAllEmployees()

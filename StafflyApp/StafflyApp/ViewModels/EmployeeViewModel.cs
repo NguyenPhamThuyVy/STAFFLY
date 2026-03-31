@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StafflyApp.Models;
 using StafflyApp.Data;
+using StafflyApp.Data.Repositories;
 
 namespace StafflyApp.ViewModels
 {
