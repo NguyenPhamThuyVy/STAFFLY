@@ -1,47 +1,64 @@
-﻿//using CommunityToolkit.Mvvm.ComponentModel;
-//using CommunityToolkit.Mvvm.Input;
-//using StafflyApp.Data;
-//using StafflyApp.Models;
-//using System.Windows;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using StafflyApp.Data;
+using StafflyApp.Models;
+using StafflyApp.Helpers; 
+using StafflyApp.Views;   
+using System.Windows;
+using System.Windows.Controls;
 
-//namespace StafflyApp.ViewModels
-//{
-//    // 1. Phải có partial và kế thừa ObservableObject
-//    public partial class LoginViewModel : ObservableObject
-//    {
-//        private readonly UserRepository _userRepository;
+namespace StafflyApp.ViewModels
+{
+    public partial class LoginViewModel : ObservableObject
+    {
+        [ObservableProperty]
+        private string _username = string.Empty;
 
-//        [ObservableProperty]
-//        private string _username = string.Empty;
+        [ObservableProperty]
+        private string _errorMessage = string.Empty;
 
-//        [ObservableProperty]
-//        private string _password = string.Empty;
+        [RelayCommand]
+        private void Login(object parameter)
+        {
+            // Lấy PasswordBox từ parameter truyền sang
+            var passwordBox = parameter as PasswordBox;
+            if (passwordBox == null) return;
 
-//        public LoginViewModel()
-//        {
-//            _userRepository = new UserRepository();
-//        }
+            // Lấy mật khẩu thực tế
+            string password = passwordBox.Password;
 
-//        // 2. Hàm Login nằm TRONG ngoặc nhọn của class
-//        [RelayCommand]
-//        private void Login()
-//        {
-//            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-//            {
-//                MessageBox.Show("Vui lòng nhập đầy đủ tài khoản và mật khẩu!");
-//                return;
-//            }
+            // 1. Kiểm tra đầu vào
+            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(password))
+            {
+                ErrorMessage = "All fields need to be filled!";
+                return;
+            }
+            // 2. Giả lập kiểm tra Database, sau này sẽ kết nối Database thật
+            if (Username == "admin" && password =="123")
+            {
+                // Lưu thông tin vào UserSession 
+                UserSession.UserID = 1;
+                UserSession.Username = "Nguyễn Phạm Thúy Vy";
+                UserSession.RoleID = 1; // 1 là Admin
+                UserSession.RoleName = "Admin";
 
-//            User? authenticatedUser = _userRepository.AuthenticateUser(Username, Password);
+                // 3. Xử lý chuyển cửa sổ
+                // Tìm cửa sổ chứa cái PasswordBox này
+                Window currentWindow = Window.GetWindow(passwordBox);
+                if (currentWindow != null)
+                {
+                    // Mở MainWindow
+                    MainWindow main = new MainWindow();
+                    main.Show();
 
-//            if (authenticatedUser != null)
-//            {
-//                MessageBox.Show($"Đăng nhập thành công! Chào mừng {authenticatedUser.Username}");
-//            }
-//            else
-//            {
-//                MessageBox.Show("Tài khoản hoặc mật khẩu không chính xác!");
-//            }
-//        }
-//    } // Đóng class
-//} // Đóng namespace
+                    // Đóng cửa sổ Login hiện tại
+                    currentWindow.Close();
+                }
+                else
+                {
+                    ErrorMessage = "Incorrect username or password!";
+                }
+            }
+        }
+    }
+}
