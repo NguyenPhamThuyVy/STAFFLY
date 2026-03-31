@@ -5,14 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:StafflyApp.Views"
-             xmlns:viewmodels="clr-namespace:StafflyApp.ViewModels"
              mc:Ignorable="d" 
-             d:DesignHeight="700" d:DesignWidth="1050"
+             d:DesignHeight="700" d:DesignWidth="1000"
              Background="Transparent" FontFamily="Segoe UI">
 
-  
-
-    <Border Background="White" CornerRadius="12" Padding="30" Margin="10">
+    <Border Background="White" CornerRadius="12" Padding="25" Margin="10">
         <Border.Effect>
             <DropShadowEffect BlurRadius="15" Color="#DDDDDD" ShadowDepth="2" Opacity="0.5"/>
         </Border.Effect>
@@ -20,64 +17,68 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="30"/>
+                <RowDefinition Height="20"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="30"/>
+                <RowDefinition Height="20"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="15"/>
+                <RowDefinition Height="10"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0">
-                <TextBlock Text="COMPANY EMPLOYEES" FontSize="15" FontWeight="Bold" Foreground="#333333" VerticalAlignment="Center" />
+                <TextBlock Text="COMPANY EMPLOYEES" FontSize="16" FontWeight="Bold" Foreground="#333333" VerticalAlignment="Center" />
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="Employees" Style="{StaticResource MaterialDesignOutlinedButton}" BorderBrush="#E0E0E0" Foreground="#FF2945FF" FontWeight="Bold" Height="36" materialDesign:ButtonAssist.CornerRadius="4,0,0,4"/>
-                    <Button Content="Live View" Style="{StaticResource MaterialDesignOutlinedButton}" BorderBrush="#E0E0E0" Foreground="#757575" Height="36" materialDesign:ButtonAssist.CornerRadius="0"/>
-                    <Button Content="Org Chart" Style="{StaticResource MaterialDesignOutlinedButton}" BorderBrush="#E0E0E0" Foreground="#757575" Height="36" materialDesign:ButtonAssist.CornerRadius="0,4,4,0"/>
+                    <Button Content="Employees" Style="{StaticResource MaterialDesignOutlinedButton}" Foreground="#624BFF" FontWeight="Bold" Height="36" BorderThickness="1,1,0,1" materialDesign:ButtonAssist.CornerRadius="4,0,0,4"/>
+                    <Button Content="Live View" Style="{StaticResource MaterialDesignOutlinedButton}" Foreground="#757575" Height="36" BorderThickness="1,1,0,1" materialDesign:ButtonAssist.CornerRadius="0"/>
+                    <Button Content="Org Chart" Style="{StaticResource MaterialDesignOutlinedButton}" Foreground="#757575" Height="36" materialDesign:ButtonAssist.CornerRadius="0,4,4,0"/>
                 </StackPanel>
             </Grid>
 
-            <Border Grid.Row="1" BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Margin="0,15,0,14"/>
+            <Border Grid.Row="1" BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Margin="0,10"/>
 
             <Grid Grid.Row="2">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <TextBox Style="{StaticResource MaterialDesignOutlinedTextBox}" 
-                             Width="250" Height="40" 
-                             materialDesign:HintAssist.Hint="Search Employee..." 
                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="10,0" Margin="0,0,15,0">
+                             materialDesign:HintAssist.Hint="Tìm kiếm nhân viên..." 
+                             Width="280" Height="40" Margin="0,0,10,0">
                         <TextBox.InputBindings>
                             <KeyBinding Key="Enter" Command="{Binding SearchCommand}"/>
                         </TextBox.InputBindings>
                     </TextBox>
 
-                    <ComboBox Style="{StaticResource MaterialDesignOutlinedComboBox}" 
-                              Width="150" Height="40" 
-                              ItemsSource="{Binding Departments}"
-                              DisplayMemberPath="DepartmentName"
-                              SelectedIndex="0" Padding="10,0">
-                    </ComboBox>
+                    <Button Command="{Binding SearchCommand}" 
+                            Style="{StaticResource MaterialDesignIconButton}" 
+                            ToolTip="Tìm kiếm" Foreground="#624BFF" Margin="0,0,5,0" Width="40" Height="40">
+                        <materialDesign:PackIcon Kind="Magnify" Width="24" Height="24"/>
+                    </Button>
+
+                    <Button Command="{Binding RefreshCommand}" 
+                            Style="{StaticResource MaterialDesignIconButton}" 
+                            ToolTip="Làm mới" Foreground="#757575" Width="40" Height="40">
+                        <materialDesign:PackIcon Kind="Refresh" Width="24" Height="24"/>
+                    </Button>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="Refresh" Command="{Binding RefreshCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" Foreground="#757575" Margin="0,0,15,0"/>
-                    <Button Content="Add Employees" Command="{Binding AddNewEmployeeCommand}" Background="#FF2945FF" Foreground="White" BorderThickness="0" Height="40" materialDesign:ButtonAssist.CornerRadius="4"/>
+                    <Button Content="Import" Style="{StaticResource MaterialDesignOutlinedButton}" Foreground="#757575" Height="40" Margin="0,0,10,0"/>
+                    <Button Content="+ Add Employee" Background="#624BFF" Foreground="White" Height="40" materialDesign:ButtonAssist.CornerRadius="4"/>
                 </StackPanel>
             </Grid>
 
-            <Grid Grid.Row="4" Margin="10,0,20,0">
+            <Grid Grid.Row="4" Margin="5,0,25,0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="280"/>
-                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="50"/>
                     <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="200"/>
                     <ColumnDefinition Width="120"/>
                     <ColumnDefinition Width="60"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="ID" FontWeight="Bold" Foreground="#1A1A1A"/>
                 <TextBlock Grid.Column="1" Text="Name" FontWeight="Bold" Foreground="#1A1A1A"/>
-                <TextBlock Grid.Column="2" Text="Dept ID" FontWeight="Bold" Foreground="#1A1A1A"/>
-                <TextBlock Grid.Column="3" Text="Email" FontWeight="Bold" Foreground="#1A1A1A"/>
+                <TextBlock Grid.Column="2" Text="Department" FontWeight="Bold" Foreground="#1A1A1A"/>
+                <TextBlock Grid.Column="3" Text="Contact" FontWeight="Bold" Foreground="#1A1A1A"/>
                 <TextBlock Grid.Column="4" Text="Hire Date" FontWeight="Bold" Foreground="#1A1A1A"/>
                 <TextBlock Grid.Column="5" Text="Action" FontWeight="Bold" Foreground="#1A1A1A" HorizontalAlignment="Center"/>
             </Grid>
@@ -86,13 +87,13 @@
                 <ItemsControl ItemsSource="{Binding Employees}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border BorderBrush="#F5F5F5" BorderThickness="0,0,0,1" Padding="10,15,20,15">
+                            <Border BorderBrush="#F5F5F5" BorderThickness="0,0,0,1" Padding="5,15,5,15">
                                 <Grid VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="60"/>
-                                        <ColumnDefinition Width="280"/>
-                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="50"/>
                                         <ColumnDefinition Width="250"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="200"/>
                                         <ColumnDefinition Width="120"/>
                                         <ColumnDefinition Width="60"/>
                                     </Grid.ColumnDefinitions>
@@ -100,22 +101,27 @@
                                     <TextBlock Grid.Column="0" Text="{Binding EmployeeID}" VerticalAlignment="Center" FontWeight="SemiBold"/>
 
                                     <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                        <Border Width="35" Height="35" CornerRadius="17.5" Background="#E8EAF6" Margin="0,0,12,0">
-                                            <TextBlock Text="EMP" FontSize="10" Foreground="#624BFF" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                                        <Border Width="35" Height="35" CornerRadius="18" Background="#E8EAF6" Margin="0,0,12,0">
+                                            <TextBlock Text="{Binding FullName[0], FallbackValue='?'}" Foreground="#624BFF" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
                                         </Border>
                                         <TextBlock Text="{Binding FullName}" VerticalAlignment="Center" Foreground="#624BFF" FontWeight="SemiBold"/>
                                     </StackPanel>
 
-                                    <TextBlock Grid.Column="2" Text="{Binding DepartmentID}" VerticalAlignment="Center" Foreground="#555"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Department}" VerticalAlignment="Center" Foreground="#555"/>
 
-                                    <TextBlock Grid.Column="3" Text="{Binding Email}" VerticalAlignment="Center" Foreground="#333"/>
+                                    <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding PhoneNumber}" FontWeight="SemiBold" Foreground="#333"/>
+                                        <TextBlock Text="{Binding Email}" Foreground="#888" FontSize="11"/>
+                                    </StackPanel>
 
-                                    <TextBlock Grid.Column="4" Text="{Binding DateOfBirth, StringFormat='{}{0:dd/MM/yyyy}'}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding HireDate, StringFormat='dd/MM/yyyy'}" VerticalAlignment="Center"/>
 
-                                    <Button Grid.Column="5" Content="DEL" FontSize="10" Padding="0" Foreground="Red" 
-                                            Style="{StaticResource MaterialDesignFlatButton}"
-                                            Command="{Binding DataContext.DeleteSelectedCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}"/>
+                                    <Button Grid.Column="5" 
+                                            Command="{Binding DataContext.DeleteSelectedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconForegroundButton}" Width="30" Height="30" HorizontalAlignment="Center">
+                                        <materialDesign:PackIcon Kind="TrashCan" Foreground="#E53935" Width="18" Height="18"/>
+                                    </Button>
                                 </Grid>
                             </Border>
                         </DataTemplate>
