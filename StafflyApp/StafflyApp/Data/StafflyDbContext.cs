@@ -17,7 +17,7 @@ namespace StafflyApp.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Data Source=MSI\\LNKV;Initial Catalog=StafflyDB;Integrated Security=True;TrustServerCertificate=True;");
+                optionsBuilder.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=StafflyDB;Integrated Security=True;TrustServerCertificate=True;");
             }
         }
 
