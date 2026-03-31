@@ -17,10 +17,11 @@ namespace StafflyApp.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Data Source=MSI\\LNKV;Initial Catalog=StafflyDB;Integrated Security=True;TrustServerCertificate=True;");
+                // Thay MSI\LNKV bằng QTHINK\THINK (tên máy của Thịnh)
+                // Thay Catalog=QLNS (nếu có) bằng StafflyDB cho đúng file Snapshot
+                optionsBuilder.UseSqlServer(@"Data Source=QTHINK\THINK;Initial Catalog=StafflyDB;Integrated Security=True;TrustServerCertificate=True;");
             }
         }
-
         public DbSet<Employee> Employees { get; set; }
         public DbSet<User> Users { get; set; }
 

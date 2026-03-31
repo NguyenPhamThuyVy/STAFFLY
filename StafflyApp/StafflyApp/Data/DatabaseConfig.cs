@@ -2,6 +2,6 @@
 {
     public class DatabaseConfig
     {
-        public static string ConnectionString = @"Server=.;Database=QLNS;Trusted_Connection=True;TrustServerCertificate=True;";
+        public static string ConnectionString = @"Server=QTHINK\THINK;Database=QLNS;Trusted_Connection=True;TrustServerCertificate=True;";
     }
 }

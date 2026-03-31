@@ -40,5 +40,16 @@ namespace StafflyApp.Views
                 DragMove();
             }
         }
+        private void SwitchToSignUp_Click(object sender, MouseButtonEventArgs e)
+        {
+            LoginPanel.Visibility = Visibility.Collapsed;
+            SignUpPanel.Visibility = Visibility.Visible;
+        }
+
+        private void SwitchToLogin_Click(object sender, MouseButtonEventArgs e)
+        {
+            SignUpPanel.Visibility = Visibility.Collapsed;
+            LoginPanel.Visibility = Visibility.Visible;
+        }
     }
 }

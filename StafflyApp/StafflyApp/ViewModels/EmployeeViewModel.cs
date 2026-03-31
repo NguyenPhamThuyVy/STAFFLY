@@ -1,55 +1,94 @@
-﻿//using System;
-//using System.Collections.ObjectModel;
-//using CommunityToolkit.Mvvm.ComponentModel;
-//using CommunityToolkit.Mvvm.Input;
-//using StafflyApp.Models;
-//using StafflyApp.Data;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using StafflyApp.Models;
+using StafflyApp.Data;
 
-//namespace StafflyApp.ViewModels
-//{
-//    public partial class EmployeeViewModel : ObservableObject
-//    {
-//        private readonly EmployeeRepository _repository;
-//        [ObservableProperty]
-//        private ObservableCollection<Employee> _employees = new();
+namespace StafflyApp.ViewModels
+{
+    public partial class EmployeeViewModel : ObservableObject
+    {
+        private readonly EmployeeRepository _repository;
+        private readonly DepartmentRepository _deptRepository;
 
-//        [ObservableProperty]
-//        private Employee? _selectedEmployee;
-//        private readonly DepartmentRepository _deptRepository = new();
-//        [ObservableProperty]
-//        private ObservableCollection<Department> _departments = new();
-//        public EmployeeViewModel()
-//        {
-//            _repository = new EmployeeRepository();
-//            LoadData();
-//        }
+        [ObservableProperty]
+        private ObservableCollection<Employee> _employees = new();
 
-//        [RelayCommand]
-//        private void LoadData()
-//        {
-//            var list = _repository.GetAllEmployees();
-//            Employees = new ObservableCollection<Employee>(list);
-//            var deptList = _deptRepository.GetAllDepartments();
-//            Departments = new ObservableCollection<Department>(deptList);
-//        }
+        [ObservableProperty]
+        private ObservableCollection<Department> _departments = new();
 
-//        [RelayCommand]
-//        private void AddNewEmployee()
-//        {
-//            // Logic BE: tạm thời gọi LoadData để refresh
-//            LoadData();
-//        }
+        [ObservableProperty]
+        private Employee? _selectedEmployee;
 
-//        [RelayCommand]
-//        private void DeleteSelected()
-//        {
-//            if (SelectedEmployee != null)
-//            {
-//                if (_repository.DeleteEmployee(SelectedEmployee.EmployeeID))
-//                {
-//                    LoadData();
-//                }
-//            }
-//        }
-//    }
-////}
+        [ObservableProperty]
+        private string _searchText = string.Empty;
+
+        public EmployeeViewModel()
+        {
+            _repository = new EmployeeRepository();
+            _deptRepository = new DepartmentRepository();
+            LoadData();
+        }
+
+        [RelayCommand]
+        private void LoadData()
+        {
+            try
+            {
+                using (var context = new StafflyDbContext())
+                {
+                    // EF Core sẽ tự mở kết nối và lấy 15 người cho bạn
+                    var list = context.Employees.ToList();
+                    Employees = new ObservableCollection<Employee>(list);
+
+                    // Tương tự cho phòng ban (nếu KVy có làm bảng Departments)
+                    // var deptList = context.Departments.ToList();
+                    // Departments = new ObservableCollection<Department>(deptList);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Nếu vẫn lỗi, nó sẽ hiện thông báo cho Thịnh biết tại sao
+                System.Windows.MessageBox.Show("Lỗi kết nối: " + ex.Message);
+            }
+        }
+        [RelayCommand]
+        private void Search()
+        {
+            if (string.IsNullOrWhiteSpace(SearchText))
+            {
+                LoadData();
+                return;
+            }
+
+            // Đã sửa thành FullName và Email khớp với Model của KVy
+            var filtered = _repository.GetAllEmployees()
+                .Where(e => (e.FullName != null && e.FullName.Contains(SearchText, StringComparison.OrdinalIgnoreCase)) ||
+                            (e.Email != null && e.Email.Contains(SearchText, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+            Employees = new ObservableCollection<Employee>(filtered);
+        }
+
+        [RelayCommand]
+        private void Refresh()
+        {
+            SearchText = string.Empty;
+            LoadData();
+        }
+
+        [RelayCommand]
+        private void DeleteSelected(Employee emp)
+        {
+            if (emp != null)
+            {
+                if (_repository.DeleteEmployee(emp.EmployeeID))
+                {
+                    LoadData();
+                }
+            }
+        }
+    }
+}
