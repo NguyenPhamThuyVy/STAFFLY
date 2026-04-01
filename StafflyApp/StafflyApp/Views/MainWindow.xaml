@@ -26,10 +26,16 @@
 
                     <StackPanel Grid.Row="0" Margin="30,50,20,40">
                         <Border Width="80" Height="80" CornerRadius="40" Background="White" HorizontalAlignment="Left" Margin="0,0,0,15">
-                            <materialDesign:PackIcon Kind="UserTie" Width="50" Height="50" Foreground="#624BFF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Image Source="/Assets/Images/staffly_logo.png" 
+                                   Width="55" Height="55" 
+                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                   Stretch="Uniform"
+                                   VerticalAlignment="Center" 
+                                   HorizontalAlignment="Center"/>
                         </Border>
-                        <TextBlock Text="STAFFLY" FontSize="24" FontWeight="Bold" Foreground="White"/>
-                        <TextBlock Text="HR Staff Portal" FontSize="14" Foreground="#D1C4E9" Margin="0,5,0,0"/>
+
+                        <TextBlock Text="STAFFLY" FontSize="26" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock Text="Intelligent HR Portal" FontSize="13" Foreground="#D1C4E9" Margin="0,2,0,0" Opacity="0.8"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Margin="20,0,20,0">

@@ -28,21 +28,38 @@
                     <Ellipse Width="200" Height="200" Fill="White" Opacity="0.1" Margin="0,0,-50,-50" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
 
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <materialDesign:PackIcon Kind="AccountGroup" Width="80" Height="80" Foreground="White" HorizontalAlignment="Center"/>
-                        <TextBlock Text="STAFFLY" FontSize="40" FontWeight="Bold" Foreground="White"/>
-                        <TextBlock Text="Intelligent HR Management" FontSize="14" Foreground="#D1C4E9" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+
+                        <Image Source="/Assets/Images/staffly_logo_white.png" 
+                               Width="104" Height="97" 
+                               Margin="0,0,0,0
+                               " 
+                               RenderOptions.BitmapScalingMode="HighQuality"
+                               Stretch="Uniform"
+                               HorizontalAlignment="Center"/>
+
+                        <TextBlock Text="STAFFLY" 
+                                   FontSize="40" 
+                                   FontWeight="Bold" 
+                                   Foreground="White" 
+                                   HorizontalAlignment="Center"/>
+
+                        <TextBlock Text="Intelligent HR Management" 
+                                   FontSize="14" 
+                                   Foreground="#D1C4E9" 
+                                   HorizontalAlignment="Center" 
+                                   Margin="0,5,0,0"/>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <Grid Grid.Column="1" Margin="40">
+            <Grid Grid.Column="1" Margin="30,16,20,40">
                 <Button HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" Click="CloseButton_Click" Cursor="Hand">
                     <materialDesign:PackIcon Kind="Close" Foreground="#757575" Width="20" Height="20"/>
                 </Button>
 
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Sign In" FontSize="30" FontWeight="Bold" Foreground="#1A237E" Margin="0,0,0,0"/>
-                    <TextBlock Text="Welcome back! Please enter your details." FontSize="14" Foreground="#888" Margin="0,5,0,30"/>
+                    <TextBlock Text="Sign In" FontSize="30" FontWeight="Bold" Foreground="#1A237E" Margin="0,0,0,0" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Welcome back! Please enter your details." FontSize="14" Foreground="#888" Margin="0,5,0,30" HorizontalAlignment="Center"/>
 
                     <TextBox Style="{StaticResource MaterialDesignOutlinedTextBox}" 
                              materialDesign:HintAssist.Hint="Email / Username" 
