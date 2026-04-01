@@ -55,7 +55,9 @@ namespace StafflyApp.Data
 
             // Seed Data cho User (để test chức năng Login)
             modelBuilder.Entity<User>().HasData(
-                new User { UserID = 1, Username = "admin", Password = "123", RoleID = 1, EmployeeID = 1, IsActive = true }
+                new User { UserID = 1, Username = "admin", Password = "123", RoleID = 1, EmployeeID = 1, IsActive = true },
+                new User { UserID = 2, Username = "manager", Password = "123", RoleID = 2, EmployeeID = 2, IsActive = true },
+                new User { UserID = 3, Username = "staff", Password = "123", RoleID = 3, EmployeeID = 3, IsActive = true }
             );
         }
     }
