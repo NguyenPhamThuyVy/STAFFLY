@@ -89,4 +89,30 @@ public class EmployeeRepository
             Status = reader["Status"]?.ToString()
         };
     }
+
+    public List<Employee> SearchEmployees(string keyword)
+    {
+        List<Employee> employees = new List<Employee>();
+        using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
+        {
+            string query = @"SELECT * FROM Employees 
+                        WHERE FullName LIKE @Keyword 
+                        AND (Status != 'Resigned' OR Status IS NULL)";
+
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@Keyword", "%" + keyword + "%");
+                conn.Open();
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        employees.Add(MapReaderToEmployee(reader));
+                    }
+                }
+            }
+        }
+        return employees;
+    }
 }
