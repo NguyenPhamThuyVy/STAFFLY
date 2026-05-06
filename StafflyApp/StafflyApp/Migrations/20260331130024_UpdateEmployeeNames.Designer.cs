@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StafflyApp.Data;
 
@@ -11,9 +12,11 @@ using StafflyApp.Data;
 namespace StafflyApp.Migrations
 {
     [DbContext(typeof(StafflyDbContext))]
-    partial class StafflyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260331130024_UpdateEmployeeNames")]
+    partial class UpdateEmployeeNames
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -251,24 +254,6 @@ namespace StafflyApp.Migrations
                             Password = "123",
                             RoleID = 1,
                             Username = "admin"
-                        },
-                        new
-                        {
-                            UserID = 2,
-                            EmployeeID = 2,
-                            IsActive = true,
-                            Password = "123",
-                            RoleID = 2,
-                            Username = "manager"
-                        },
-                        new
-                        {
-                            UserID = 3,
-                            EmployeeID = 3,
-                            IsActive = true,
-                            Password = "123",
-                            RoleID = 3,
-                            Username = "staff"
                         });
                 });
 #pragma warning restore 612, 618

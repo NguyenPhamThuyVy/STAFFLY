@@ -4,8 +4,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StafflyApp.Models;
-using StafflyApp.Data;
-using StafflyApp.Data.Repositories;
+using StafflyApp.Data.Repositories; // Đảm bảo dùng đúng namespace Repository
 
 namespace StafflyApp.ViewModels
 {
@@ -28,6 +27,7 @@ namespace StafflyApp.ViewModels
 
         public EmployeeViewModel()
         {
+            // Khởi tạo các repository đã gộp ở bước trước
             _repository = new EmployeeRepository();
             _deptRepository = new DepartmentRepository();
             LoadData();
@@ -38,23 +38,20 @@ namespace StafflyApp.ViewModels
         {
             try
             {
-                using (var context = new StafflyDbContext())
-                {
-                    // EF Core sẽ tự mở kết nối và lấy 15 người cho bạn
-                    var list = context.Employees.ToList();
-                    Employees = new ObservableCollection<Employee>(list);
+                // Dùng Repository thay vì gọi DbContext trực tiếp để đúng mô hình MVVM
+                var list = _repository.GetAllEmployees();
+                Employees = new ObservableCollection<Employee>(list);
 
-                    // Tương tự cho phòng ban (nếu KVy có làm bảng Departments)
-                    // var deptList = context.Departments.ToList();
-                    // Departments = new ObservableCollection<Department>(deptList);
-                }
+                var deptList = _deptRepository.GetAllDepartments();
+                Departments = new ObservableCollection<Department>(deptList);
             }
             catch (Exception ex)
             {
-                // Nếu vẫn lỗi, nó sẽ hiện thông báo cho Thịnh biết tại sao
-                System.Windows.MessageBox.Show("Lỗi kết nối: " + ex.Message);
+                // Giữ lại phần thông báo lỗi của Current để dễ debug
+                System.Windows.MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
             }
         }
+
         [RelayCommand]
         private void Search()
         {
@@ -64,12 +61,8 @@ namespace StafflyApp.ViewModels
                 return;
             }
 
-            // Đã sửa thành FullName và Email khớp với Model của KVy
-            var filtered = _repository.GetAllEmployees()
-                .Where(e => (e.FullName != null && e.FullName.Contains(SearchText, StringComparison.OrdinalIgnoreCase)) ||
-                            (e.Email != null && e.Email.Contains(SearchText, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
-
+            // Sử dụng hàm SearchEmployees xịn mà Vy vừa thêm vào Repository lúc nãy
+            var filtered = _repository.SearchEmployees(SearchText);
             Employees = new ObservableCollection<Employee>(filtered);
         }
 
@@ -81,11 +74,20 @@ namespace StafflyApp.ViewModels
         }
 
         [RelayCommand]
+        private void AddNewEmployee()
+        {
+            // Logic refresh sau khi thêm (giữ từ Incoming)
+            LoadData();
+        }
+
+        [RelayCommand]
         private void DeleteSelected(Employee emp)
         {
-            if (emp != null)
+            // Ưu tiên dùng tham số emp truyền từ UI vào cho chính xác
+            var target = emp ?? SelectedEmployee;
+            if (target != null)
             {
-                if (_repository.DeleteEmployee(emp.EmployeeID))
+                if (_repository.DeleteEmployee(target.EmployeeID))
                 {
                     LoadData();
                 }
