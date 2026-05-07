@@ -6,7 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using StafflyApp.Models;
 using StafflyApp.Data;
 using System.Windows;
-
+using StafflyApp.Data.Repositories;
 namespace StafflyApp.ViewModels
 {
     // Sử dụng partial class để Source Generator của CommunityToolkit có thể tự sinh code
