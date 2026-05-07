@@ -1,129 +1,110 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StafflyApp.Models;
 using StafflyApp.Data;
 using System.Windows;
 using StafflyApp.Data.Repositories;
+
 namespace StafflyApp.ViewModels
 {
-    // Sử dụng partial class để Source Generator của CommunityToolkit có thể tự sinh code
     public partial class EmployeeViewModel : ObservableObject
     {
         private readonly EmployeeRepository _repository;
-        // private readonly DepartmentRepository _deptRepository; // Mở ra nếu cần dùng sau này
 
-        // Property cho danh sách nhân viên hiển thị trên UI
         [ObservableProperty]
         private ObservableCollection<Employee> _employees = new();
 
-        // Property cho nhân viên đang được chọn (nếu có)
-        [ObservableProperty]
-        private Employee? _selectedEmployee;
-
-        // Property cho nội dung ô tìm kiếm
         [ObservableProperty]
         private string _searchText = string.Empty;
 
+        [ObservableProperty]
+        private bool _isDialogOpen = false;
+
+        [ObservableProperty]
+        private Employee _editingEmployee = new();
+
+        [ObservableProperty]
+        private string _formTitle = "THÊM NHÂN VIÊN";
+
+        private bool _isEditMode = false;
+
         public EmployeeViewModel()
         {
-            // Khởi tạo các Repository
             _repository = new EmployeeRepository();
-            // _deptRepository = new DepartmentRepository();
-
-            // Tải dữ liệu lần đầu khi mở trang
             LoadData();
         }
 
-        // --- COMMANDS ---
-
         [RelayCommand]
-        private void LoadData()
+        public void LoadData()
         {
             try
             {
-                using (var context = new StafflyDbContext())
-                {
-                    // Lấy danh sách từ database thông qua EF Core
-                    var list = context.Employees.ToList();
-
-                    // Cập nhật lên UI
-                    Employees = new ObservableCollection<Employee>(list);
-                }
+                var list = _repository.GetAllEmployees();
+                Employees = new ObservableCollection<Employee>(list);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi tải dữ liệu từ Database: {ex.Message}", "Lỗi Hệ Thống", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Lỗi: " + ex.Message);
             }
         }
 
         [RelayCommand]
-        private void Search()
+        private void OpenAddDialog()
         {
-            // Nếu không nhập gì, hiện lại toàn bộ danh sách
-            if (string.IsNullOrWhiteSpace(SearchText))
-            {
-                LoadData();
-                return;
-            }
-
-            try
-            {
-                string searchLower = SearchText.ToLower();
-
-                // Lấy toàn bộ danh sách từ Repository và lọc
-                // Lưu ý: FullName và Email phải khớp với Model trong Database của bạn
-                var filtered = _repository.GetAllEmployees()
-                    .Where(e => (e.FullName != null && e.FullName.ToLower().Contains(searchLower)) ||
-                                (e.Email != null && e.Email.ToLower().Contains(searchLower)))
-                    .ToList();
-
-                Employees = new ObservableCollection<Employee>(filtered);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Lỗi khi tìm kiếm: {ex.Message}");
-            }
+            EditingEmployee = new Employee();
+            FormTitle = "THÊM NHÂN VIÊN MỚI";
+            _isEditMode = false;
+            IsDialogOpen = true;
         }
 
         [RelayCommand]
-        private void Refresh()
-        {
-            SearchText = string.Empty; // Xóa trắng ô tìm kiếm
-            LoadData();               // Tải lại dữ liệu mới nhất
-        }
-
-        [RelayCommand]
-        private void DeleteSelected(Employee emp)
+        private void OpenEditDialog(Employee emp)
         {
             if (emp == null) return;
-
-            // Hiển thị xác nhận trước khi xóa (An toàn hơn cho User)
-            var result = MessageBox.Show($"Bạn có chắc chắn muốn xóa nhân viên {emp.FullName}?",
-                                       "Xác nhận xóa",
-                                       MessageBoxButton.YesNo,
-                                       MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.Yes)
+            // Tạo bản sao để tránh sửa trực tiếp lên List khi chưa bấm Lưu
+            EditingEmployee = new Employee
             {
-                try
-                {
-                    if (_repository.DeleteEmployee(emp.EmployeeID))
-                    {
-                        // Xóa thành công thì tải lại bảng
-                        LoadData();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Không thể xóa nhân viên này. Vui lòng kiểm tra lại.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Lỗi khi xóa: {ex.Message}");
-                }
+                EmployeeID = emp.EmployeeID,
+                FullName = emp.FullName,
+                Email = emp.Email,
+                Phone = emp.Phone,
+                Status = emp.Status,
+                DepartmentID = emp.DepartmentID
+            };
+            FormTitle = "CẬP NHẬT THÔNG TIN";
+            _isEditMode = true;
+            IsDialogOpen = true;
+        }
+
+        [RelayCommand]
+        private void SaveEmployee()
+        {
+            bool success = _isEditMode ?
+                _repository.UpdateEmployee(EditingEmployee) :
+                _repository.AddEmployee(EditingEmployee);
+
+            if (success)
+            {
+                IsDialogOpen = false;
+                LoadData();
+            }
+            else
+            {
+                MessageBox.Show("Thao tác thất bại!");
+            }
+        }
+
+        [RelayCommand]
+        private void DeleteEmployee(Employee emp)
+        {
+            if (emp == null) return;
+            if (MessageBox.Show($"Xóa {emp.FullName}?", "Xác nhận", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                if (_repository.DeleteEmployee(emp.EmployeeID)) LoadData();
             }
         }
     }
