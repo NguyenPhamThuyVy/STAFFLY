@@ -51,7 +51,7 @@ namespace StafflyApp.ViewModels
                 // 3. Lưu thông tin vào UserSession (Lấy từ dữ liệu thật trong DB)
                 UserSession.UserID = authenticatedUser.UserID;
                 UserSession.Username = authenticatedUser.Username;
-                UserSession.RoleID = authenticatedUser.RoleID;
+                UserSession.RoleID = authenticatedUser.RoleID ?? 0;
                 UserSession.RoleName = authenticatedUser.RoleName;
 
                 // 4. Xử lý chuyển cửa sổ
