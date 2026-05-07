@@ -1,0 +1,8 @@
+# Các file build của Visual Studio
+bin/
+obj/
+.vs/
+
+# File cấu hình nhạy cảm
+appsettings.json
+StafflyApp/StafflyApp/appsettings.json
