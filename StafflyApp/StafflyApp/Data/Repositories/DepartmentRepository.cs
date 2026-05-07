@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
+using StafflyApp.Data.Interfaces;
 using StafflyApp.Models;
 
-namespace StafflyApp.Data
+namespace StafflyApp.Data.Repositories
 {
-    public class DepartmentRepository
+    public class DepartmentRepository : IDepartmentRepository
     {
         public List<Department> GetAllDepartments()
         {

@@ -14,31 +14,33 @@ namespace StafflyApp.Views
             InitializeComponent();
         }
 
-        // Hàm này giúp Thịnh có thể nắm chuột kéo cửa sổ di chuyển (vì mình để WindowStyle="None")
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        private void LoginButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
+            // Bước 1: Gọi cửa sổ MainWindow ra
+            MainWindow mainWin = new MainWindow();
+
+            // Bước 2: Cho nó hiển thị lên màn hình
+            mainWin.Show();
+
+            // Bước 3: Đóng cửa sổ Đăng nhập hiện tại lại
+            this.Close();
+        }
+
+        // Xử lý nút X (Tắt ứng dụng) trên form Login
+        private void CloseButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        // Xử lý kéo thả cửa sổ khi click giữ vào khoảng trống
+        private void Window_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
             {
                 DragMove();
             }
         }
 
-        // Hàm xử lý khi bấm nút X để đóng app
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
 
-        // Tạm thời thêm hàm cho nút Đăng nhập để test
-        private void LoginButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Sau này Uyên và Vy làm xong DB thì mình sẽ viết logic check tài khoản ở đây
-            MessageBox.Show("Đăng nhập thành công!");
-
-            // Ví dụ: Mở MainWindow sau khi đăng nhập thành công
-            // MainWindow main = new MainWindow();
-            // main.Show();
-            // this.Close();
-        }
     }
 }

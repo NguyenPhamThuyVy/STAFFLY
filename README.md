@@ -1,2 +1,2 @@
 # STAFFLY
-STAFFLY: An Intelligent Human Resource Management System
+STAFFLY: A Human Resource Management System

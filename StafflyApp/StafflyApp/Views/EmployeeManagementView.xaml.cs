@@ -1,28 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows.Controls;
+using StafflyApp.ViewModels; // Nhớ phải có dòng này trên cùng
 
 namespace StafflyApp.Views
 {
-    /// <summary>
-    /// Interaction logic for EmployeeManagementView.xaml
-    /// </summary>
     public partial class EmployeeManagementView : UserControl
     {
+        // Đây là hàm khởi tạo (Constructor)
         public EmployeeManagementView()
         {
+            // Lệnh này do máy tự sinh ra, bắt buộc phải có mặt đầu tiên
             InitializeComponent();
+
+            // Dòng code của mình phải nằm BÊN TRONG hàm này, DƯỚI dòng InitializeComponent()
+            this.DataContext = new EmployeeViewModel();
         }
     }
 }

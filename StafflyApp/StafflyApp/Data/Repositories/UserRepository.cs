@@ -1,10 +1,10 @@
-﻿using System.Linq;
+﻿using StafflyApp.Data.Interfaces;
 using StafflyApp.Models;
-using StafflyApp.Data;
+using System.Linq;
 
-namespace StafflyApp.Data
+namespace StafflyApp.Data.Repositories
 {
-    public class UserRepository
+    public class UserRepository : IUserRepository
     {
         private readonly StafflyDbContext _context;
 

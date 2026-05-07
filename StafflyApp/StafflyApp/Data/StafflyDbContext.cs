@@ -1,5 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using StafflyApp.Models; 
+using Microsoft.Extensions.Configuration;
+using StafflyApp.Models;
+using Microsoft.Extensions.Configuration; // thêm thư viện
+using System.IO;
 
 namespace StafflyApp.Data
 {
@@ -17,10 +20,18 @@ namespace StafflyApp.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Data Source=MSI\\LNKV;Initial Catalog=StafflyDB;Integrated Security=True;TrustServerCertificate=True;");
+                // Khởi tạo cấu hình để đọc từ file appsettings.json
+                IConfigurationRoot configuration = new ConfigurationBuilder()
+                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+
+                // Lấy chuỗi kết nối từ file json
+                var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+                optionsBuilder.UseSqlServer(connectionString);
             }
         }
-
         public DbSet<Employee> Employees { get; set; }
         public DbSet<User> Users { get; set; }
 
