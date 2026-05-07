@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\Images\staffly_logo_white.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="EPPlus" Version="8.5.1" />
     <PackageReference Include="MaterialDesignColors" Version="5.3.1" />
@@ -32,6 +36,11 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Images\staffly_logo.png" />
+    <Resource Include="Assets\Images\staffly_logo_white.png" />
   </ItemGroup>
 
 </Project>
