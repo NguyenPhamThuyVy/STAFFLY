@@ -25,7 +25,7 @@ namespace StafflyApp.ViewModels
         }
 
         [RelayCommand]
-        private void LoadData()
+        public void LoadData()
         {
             var list = _repository.GetAllEmployees();
             employees = new ObservableCollection<Employee>(list);

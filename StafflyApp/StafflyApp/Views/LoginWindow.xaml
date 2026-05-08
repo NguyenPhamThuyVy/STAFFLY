@@ -23,44 +23,41 @@
         <vm:LoginViewModel />
     </Window.DataContext>
 
-    <Border CornerRadius="20" Background="White" BorderBrush="#DDDDDD" BorderThickness="1">
+    <Border CornerRadius="30" Background="#F0F4F8" BorderBrush="#E0E0E0" BorderThickness="1">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.2*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" CornerRadius="20,0,0,20" ClipToBounds="True">
+            <Border Grid.Column="0" CornerRadius="30,0,0,30" ClipToBounds="True">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#1A237E" Offset="0"/>
-                        <GradientStop Color="#FF2945FF" Offset="1"/>
+                        <GradientStop Color="#1954D1" Offset="0"/>
+                        <GradientStop Color="#4A90E2" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
 
                 <Grid>
-                    <Ellipse Width="300" Height="300" Fill="White" Opacity="0.1" Margin="-100,-100,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-                    <Ellipse Width="200" Height="200" Fill="White" Opacity="0.1" Margin="0,0,-50,-50" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                    <Ellipse Width="300" Height="300" Fill="White" Opacity="0.05" Margin="-100,-100,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <Ellipse Width="200" Height="200" Fill="White" Opacity="0.05" Margin="0,0,-50,-50" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
 
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-
                         <Image Source="/Assets/Images/staffly_logo_white.png" 
                                Width="104" Height="97" 
-                               Margin="0,0,0,0
-                               " 
                                RenderOptions.BitmapScalingMode="HighQuality"
                                Stretch="Uniform"
                                HorizontalAlignment="Center"/>
 
                         <TextBlock Text="STAFFLY" 
                                    FontSize="40" 
-                                   FontWeight="Bold" 
+                                   FontWeight="ExtraBold" 
                                    Foreground="White" 
                                    HorizontalAlignment="Center"/>
 
                         <TextBlock Text="Intelligent HR Management" 
                                    FontSize="14" 
-                                   Foreground="#D1C4E9" 
+                                   Foreground="#BFDBFE" 
                                    HorizontalAlignment="Center" 
                                    Margin="0,5,0,0"/>
                     </StackPanel>
@@ -69,30 +66,38 @@
 
             <Grid Grid.Column="1" Margin="30,16,20,40">
                 <Button HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" Click="CloseButton_Click" Cursor="Hand">
-                    <materialDesign:PackIcon Kind="Close" Foreground="#757575" Width="20" Height="20"/>
+                    <materialDesign:PackIcon Kind="Close" Foreground="#6B7280" Width="20" Height="20"/>
                 </Button>
 
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Sign In" FontSize="30" FontWeight="Bold" Foreground="#1A237E" Margin="0,0,0,0" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Welcome back! Please enter your details." FontSize="14" Foreground="#888" Margin="0,5,0,30" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Sign In" FontSize="32" FontWeight="ExtraBold" Foreground="#1954D1" Margin="0,0,0,0" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Welcome back! Please enter your details." FontSize="14" Foreground="#6B7280" Margin="0,5,0,30" HorizontalAlignment="Center"/>
 
                     <TextBox Style="{StaticResource MaterialDesignOutlinedTextBox}" 
                              materialDesign:HintAssist.Hint="Email / Username" 
-                             Margin="0,0,0,20" FontSize="15" BorderThickness="2"
-                             BorderBrush="#1A237E" materialDesign:TextFieldAssist.TextFieldCornerRadius="10"
-                             materialDesign:HintAssist.Foreground="#1A237E"/>
+                             Margin="0,0,0,20" FontSize="15" BorderThickness="1.5"
+                             BorderBrush="#1954D1" materialDesign:TextFieldAssist.TextFieldCornerRadius="12"
+                             materialDesign:HintAssist.Foreground="#1954D1"
+                             Background="White"/>
 
                     <PasswordBox Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}" 
                                  materialDesign:HintAssist.Hint="Password" 
-                                 Margin="0,0,0,10" FontSize="15" BorderThickness="2"
-                                 BorderBrush="#1A237E" materialDesign:TextFieldAssist.TextFieldCornerRadius="10"
-                                 materialDesign:HintAssist.Foreground="#1A237E"/>
+                                 Margin="0,0,0,10" FontSize="15" BorderThickness="1.5"
+                                 BorderBrush="#1954D1" materialDesign:TextFieldAssist.TextFieldCornerRadius="12"
+                                 materialDesign:HintAssist.Foreground="#1954D1" 
+                                 CaretBrush="#1954D1" SelectionBrush="#1954D1"
+                                 Background="White"/>
 
-                    <TextBlock Text="Forgot password?" HorizontalAlignment="Right" Foreground="#757575" 
-                               Cursor="Hand" TextDecorations="Underline" Margin="0,0,0,35"/>
+                    <TextBlock Text="Forgot password?" HorizontalAlignment="Right" Foreground="#6B7280" 
+                               Cursor="Hand" TextDecorations="Underline" Margin="0,0,0,35" FontSize="13"/>
 
-                    <Button Content="SIGN IN" Foreground="White" Height="45" Click="LoginButton_Click" 
-                            materialDesign:ButtonAssist.CornerRadius="22" FontWeight="Bold" Background="#FF203495"/>
+                    <Button Content="SIGN IN" Foreground="White" Height="50" Click="LoginButton_Click" 
+                            materialDesign:ButtonAssist.CornerRadius="25" FontWeight="Bold" 
+                            Background="#1954D1" BorderThickness="0">
+                        <Button.Effect>
+                            <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.2" Color="#1954D1"/>
+                        </Button.Effect>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Grid>
