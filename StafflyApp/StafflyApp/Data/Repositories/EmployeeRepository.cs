@@ -1,10 +1,11 @@
 ﻿using Microsoft.Data.SqlClient;
 using StafflyApp.Data;
+using StafflyApp.Data.Interfaces;
 using StafflyApp.Models;
 using System;
 using System.Collections.Generic;
 
-public class EmployeeRepository
+public class EmployeeRepository : IEmployeeRepository
 {
     // 1. Lấy danh sách (Soft Delete)
     public List<Employee> GetAllEmployees()

@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StafflyApp.Data;
+using StafflyApp.Data.Repositories;
 using StafflyApp.Models;
 using System.Windows;
 
