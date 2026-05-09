@@ -1,8 +1,9 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using StafflyApp.Views; // Đảm bảo gọi đúng nơi chứa các UserControl (DashboardView, EmployeeManagementView...)
+using StafflyApp.Views; // Đảm bảo folder Views chứa PayrollView, EmployeeManagementView...
 
 namespace StafflyApp
 {
@@ -21,40 +22,23 @@ namespace StafflyApp
         {
             // 1. Xóa màu tất cả các Tab về trạng thái mặc định (Nền trong suốt, Chữ xám)
             var transparentBrush = new SolidColorBrush(Colors.Transparent);
-            var grayTextBrush = new BrushConverter().ConvertFrom("#6B7280") as SolidColorBrush;
+            var grayTextBrush = (SolidColorBrush)new BrushConverter().ConvertFrom("#6B7280");
 
-            // Xóa nền
-            TabDashboard.Background = transparentBrush;
-            TabEmployees.Background = transparentBrush;
-            TabDepartments.Background = transparentBrush;
-            TabAttendance.Background = transparentBrush;
-            TabPayroll.Background = transparentBrush;
-            TabRecruitment.Background = transparentBrush;
-            TabContracts.Background = transparentBrush;
-            TabSystem.Background = transparentBrush;
+            Border[] allBorders = { TabDashboard, TabEmployees, TabDepartments, TabAttendance, TabPayroll, TabRecruitment, TabContracts, TabSystem };
+            TextBlock[] allTexts = { TextDashboard, TextEmployees, TextDepartments, TextAttendance, TextPayroll, TextRecruitment, TextContracts, TextSystem };
 
-            // Đổi chữ về màu xám
-            TextDashboard.Foreground = grayTextBrush;
-            TextDashboard.FontWeight = FontWeights.Medium;
-            TextEmployees.Foreground = grayTextBrush;
-            TextEmployees.FontWeight = FontWeights.Medium;
-            TextDepartments.Foreground = grayTextBrush;
-            TextDepartments.FontWeight = FontWeights.Medium;
-            TextAttendance.Foreground = grayTextBrush;
-            TextAttendance.FontWeight = FontWeights.Medium;
-            TextPayroll.Foreground = grayTextBrush;
-            TextPayroll.FontWeight = FontWeights.Medium;
-            TextRecruitment.Foreground = grayTextBrush;
-            TextRecruitment.FontWeight = FontWeights.Medium;
-            TextContracts.Foreground = grayTextBrush;
-            TextContracts.FontWeight = FontWeights.Medium;
+            foreach (var border in allBorders) border.Background = transparentBrush;
+            foreach (var text in allTexts)
+            {
+                text.Foreground = grayTextBrush;
+                text.FontWeight = FontWeights.Medium;
+            }
 
             // Riêng chữ của nút System màu đỏ nhạt khi chưa được chọn
-            TextSystem.Foreground = new BrushConverter().ConvertFrom("#E53935") as SolidColorBrush;
-            TextSystem.FontWeight = FontWeights.Medium;
+            TextSystem.Foreground = (SolidColorBrush)new BrushConverter().ConvertFrom("#E53935");
 
-            // 2. Kích hoạt Tab vừa được Click (Nền xanh dương, Chữ trắng, In đậm)
-            var activeBgBrush = new BrushConverter().ConvertFrom("#1954D1") as SolidColorBrush;
+            // 2. Kích hoạt Tab vừa được Click (Nền xanh dương #1954D1, Chữ trắng, In đậm)
+            var activeBgBrush = (SolidColorBrush)new BrushConverter().ConvertFrom("#1954D1");
             var activeTextBrush = new SolidColorBrush(Colors.White);
 
             activeBorder.Background = activeBgBrush;
@@ -79,7 +63,6 @@ namespace StafflyApp
         private void TabDepartments_Click(object sender, MouseButtonEventArgs e)
         {
             SetActiveTab(TabDepartments, TextDepartments);
-            // Bỏ comment dòng dưới khi bạn đã tạo file DepartmentView.xaml
             // MainContentArea.Content = new DepartmentView(); 
         }
 
@@ -92,7 +75,8 @@ namespace StafflyApp
         private void TabPayroll_Click(object sender, MouseButtonEventArgs e)
         {
             SetActiveTab(TabPayroll, TextPayroll);
-            // MainContentArea.Content = new PayrollView(); 
+            // ĐÃ MỞ KẾT NỐI:
+            MainContentArea.Content = new PayrollView();
         }
 
         private void TabRecruitment_Click(object sender, MouseButtonEventArgs e)
@@ -110,20 +94,18 @@ namespace StafflyApp
         private void TabSystem_Click(object sender, MouseButtonEventArgs e)
         {
             SetActiveTab(TabSystem, TextSystem);
-            // Khi chọn tab System, nếu muốn bạn có thể tô nền nó màu Đỏ thay vì xanh dương cho nổi bật bằng lệnh dưới:
-            TabSystem.Background = new BrushConverter().ConvertFrom("#D32F2F") as SolidColorBrush;
+            // Khi chọn tab System, dùng màu đỏ đặc trưng
+            TabSystem.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#D32F2F");
             // MainContentArea.Content = new SystemAdminView(); 
         }
 
         // ================= XỬ LÝ HỆ THỐNG =================
 
-        // Tắt ứng dụng
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
         }
 
-        // Cho phép dùng chuột kéo thả cửa sổ (vì WindowStyle="None")
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)

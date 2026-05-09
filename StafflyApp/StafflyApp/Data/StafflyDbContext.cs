@@ -11,7 +11,7 @@ namespace StafflyApp.Data
         // Trong file StafflyDbContext.cs
 
         public StafflyDbContext() { } // Thêm dòng này
-
+        public DbSet<Department> Departments { get; set; }
         public StafflyDbContext(DbContextOptions<StafflyDbContext> options) : base(options)
         {
         }
