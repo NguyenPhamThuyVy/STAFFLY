@@ -16,17 +16,13 @@ using System.Windows.Shapes;
 namespace StafflyApp.Views
 {
     /// <summary>
-    /// Interaction logic for PayrollView.xaml
+    /// Interaction logic for DepartmentView.xaml
     /// </summary>
-    public partial class PayrollView : UserControl
+    public partial class DepartmentView : UserControl
     {
-        public PayrollView()
+        public DepartmentView()
         {
             InitializeComponent();
-            // Dòng này cực kỳ quan trọng để các nút bấm hoạt động
-            this.DataContext = new StafflyApp.ViewModels.PayrollViewModel();
         }
-
-
     }
 }

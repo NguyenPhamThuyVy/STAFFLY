@@ -1,13 +1,12 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using StafflyApp.Data;
+using StafflyApp.Data.Repositories;
+using StafflyApp.Models;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using StafflyApp.Models;
-using StafflyApp.Data;
-using System.Windows;
-using StafflyApp.Data.Repositories;
 
 namespace StafflyApp.ViewModels
 {
@@ -19,16 +18,25 @@ namespace StafflyApp.ViewModels
         private ObservableCollection<Employee> _employees = new();
 
         [ObservableProperty]
+        private ObservableCollection<Department> _departments = new();
+
+        [ObservableProperty]
         private string _searchText = string.Empty;
 
         [ObservableProperty]
         private bool _isDialogOpen = false;
 
         [ObservableProperty]
+        private bool _isTransferMode = false;
+
+        [ObservableProperty]
         private Employee _editingEmployee = new();
 
         [ObservableProperty]
-        private string _formTitle = "THÊM NHÂN VIÊN";
+        private Department? _selectedTargetDept;
+
+        [ObservableProperty]
+        private string _formTitle = "ADD EMPLOYEE";
 
         private bool _isEditMode = false;
 
@@ -45,18 +53,24 @@ namespace StafflyApp.ViewModels
             {
                 var list = _repository.GetAllEmployees();
                 Employees = new ObservableCollection<Employee>(list);
+
+                using (var db = new StafflyDbContext())
+                {
+                    Departments = new ObservableCollection<Department>(db.Departments.ToList());
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi: " + ex.Message);
+                MessageBox.Show("Error loading data: " + ex.Message);
             }
         }
 
         [RelayCommand]
         private void OpenAddDialog()
         {
+            IsTransferMode = false;
             EditingEmployee = new Employee();
-            FormTitle = "THÊM NHÂN VIÊN MỚI";
+            FormTitle = "ADD NEW EMPLOYEE";
             _isEditMode = false;
             IsDialogOpen = true;
         }
@@ -65,7 +79,7 @@ namespace StafflyApp.ViewModels
         private void OpenEditDialog(Employee emp)
         {
             if (emp == null) return;
-            // Tạo bản sao để tránh sửa trực tiếp lên List khi chưa bấm Lưu
+            IsTransferMode = false;
             EditingEmployee = new Employee
             {
                 EmployeeID = emp.EmployeeID,
@@ -75,12 +89,29 @@ namespace StafflyApp.ViewModels
                 Status = emp.Status,
                 DepartmentID = emp.DepartmentID
             };
-            FormTitle = "CẬP NHẬT THÔNG TIN";
+            FormTitle = "UPDATE INFORMATION";
             _isEditMode = true;
             IsDialogOpen = true;
         }
 
         [RelayCommand]
+        private void OpenTransferDialog(Employee emp)
+        {
+            if (emp == null) return;
+            EditingEmployee = emp;
+            SelectedTargetDept = null;
+            IsTransferMode = true;
+            FormTitle = "EMPLOYEE TRANSFER";
+            IsDialogOpen = true;
+        }
+
+        [RelayCommand]
+        private void ConfirmAction()
+        {
+            if (IsTransferMode) ExecuteTransfer();
+            else SaveEmployee();
+        }
+
         private void SaveEmployee()
         {
             bool success = _isEditMode ?
@@ -92,17 +123,42 @@ namespace StafflyApp.ViewModels
                 IsDialogOpen = false;
                 LoadData();
             }
-            else
+            else MessageBox.Show("Operation failed!");
+        }
+
+        private void ExecuteTransfer()
+        {
+            if (SelectedTargetDept == null) return;
+
+            if (SelectedTargetDept.CurrentStaffCount >= SelectedTargetDept.HeadcountLimit)
             {
-                MessageBox.Show("Thao tác thất bại!");
+                MessageBox.Show($"Transfer Denied: {SelectedTargetDept.DepartmentName} is full.",
+                                "Limit Exceeded", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
+
+            try
+            {
+                using (var db = new StafflyDbContext())
+                {
+                    var emp = db.Employees.Find(EditingEmployee.EmployeeID);
+                    if (emp != null)
+                    {
+                        emp.DepartmentID = SelectedTargetDept.DepartmentID;
+                        db.SaveChanges();
+                        IsDialogOpen = false;
+                        LoadData();
+                    }
+                }
+            }
+            catch (Exception ex) { MessageBox.Show("Error: " + ex.Message); }
         }
 
         [RelayCommand]
         private void DeleteEmployee(Employee emp)
         {
             if (emp == null) return;
-            if (MessageBox.Show($"Xóa {emp.FullName}?", "Xác nhận", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            if (MessageBox.Show($"Delete {emp.FullName}?", "Confirm", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 if (_repository.DeleteEmployee(emp.EmployeeID)) LoadData();
             }
