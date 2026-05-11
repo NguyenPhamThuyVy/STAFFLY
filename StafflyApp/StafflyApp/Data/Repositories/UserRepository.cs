@@ -67,10 +67,7 @@ namespace StafflyApp.Data.Repositories
                                 RoleID = reader["RoleID"] as int?
                                 // ... map thêm các trường khác nếu cần
                             };
-                            // --- GỌI LOG: Ghi lại sự kiện login thành công ---
-                            LogAction(user.UserID, "LOGIN", $"User {user.Username} logged in successfully.");
-
-                            return user;
+                           
                         }
                     }
                 }
