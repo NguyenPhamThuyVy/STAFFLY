@@ -7,7 +7,9 @@
         WindowStartupLocation="CenterScreen"
         Background="Transparent" AllowsTransparency="True"
         MouseDown="Window_MouseDown" FontFamily="Segoe UI">
-
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Window.Resources>
     <Border CornerRadius="30" Background="#F0F4F8" BorderThickness="1" BorderBrush="#E0E0E0" Padding="30">
         <Grid>
             <Grid.RowDefinitions>
@@ -42,11 +44,13 @@
                         <TextBlock x:Name="TextAttendance" Text="Attendance" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
                     </Border>
 
-                    <Border x:Name="TabPayroll" Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabPayroll_Click">
+                    <Border x:Name="TabPayroll"  Visibility="{Binding IsHR, Converter={StaticResource BoolToVis}}"
+                            Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabPayroll_Click">
                         <TextBlock x:Name="TextPayroll" Text="Payroll" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
                     </Border>
 
-                    <Border x:Name="TabRecruitment" Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabRecruitment_Click">
+                    <Border x:Name="TabRecruitment" Visibility="{Binding IsHR, Converter={StaticResource BoolToVis}}"
+                            Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabRecruitment_Click">
                         <TextBlock x:Name="TextRecruitment" Text="Recruitment" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
                     </Border>
 
@@ -54,7 +58,8 @@
                         <TextBlock x:Name="TextContracts" Text="Contracts" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
                     </Border>
 
-                    <Border x:Name="TabSystem" Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabSystem_Click">
+                    <Border x:Name="TabSystem" Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"
+                            Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabSystem_Click">
                         <TextBlock x:Name="TextSystem" Text="System" Foreground="#FF6B7280" FontSize="14" FontWeight="Medium"/>
                     </Border>
 

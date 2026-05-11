@@ -82,3 +82,26 @@ CREATE TABLE Payroll (
     ApprovedBy INT FOREIGN KEY REFERENCES Users(UserID), 
     ApprovalDate DATETIME 
 );
+
+USE QLNS;
+GO
+
+CREATE TRIGGER trg_Employees_Update
+ON Employees
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    INSERT INTO AuditLogs (UserID, Action, Detail, Timestamp)
+    SELECT 
+        -- Lưu ý: Chỗ này tạm thời để NULL nếu chưa truyền UserID từ App vào context, 
+        -- nhưng thường sẽ ghi 'System Update' hoặc lấy từ context sau.
+        NULL, 
+        N'UPDATE_EMPLOYEE',
+        N'Updated EmployeeID: ' + CAST(i.EmployeeID AS NVARCHAR(10)) + 
+        N'. Name: ' + i.FullName,
+        GETDATE()
+    FROM inserted i;
+END;
+GO

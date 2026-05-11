@@ -14,7 +14,33 @@ namespace StafflyApp.Data.Repositories
         {
             _context = context;
         }
+        // Ghi Audit Logs
+        public void LogAction(int? userId, string action, string detail)
+        {
+            try
+            {
+                using (var conn = new SqlConnection(DatabaseConfig.ConnectionString))
+                {
+                    string query = @"INSERT INTO AuditLogs (UserID, Action, Detail, Timestamp) 
+                                   VALUES (@UserID, @Action, @Detail, @Timestamp)";
 
+                    var cmd = new SqlCommand(query, conn);
+                    // Dùng object vì UserID có thể null nếu chưa login
+                    cmd.Parameters.AddWithValue("@UserID", (object)userId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Action", action);
+                    cmd.Parameters.AddWithValue("@Detail", detail);
+                    cmd.Parameters.AddWithValue("@Timestamp", DateTime.Now);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi ra console hoặc file nếu không lưu được vào DB
+                System.Diagnostics.Debug.WriteLine("LogAction Error: " + ex.Message);
+            }
+        }
         public User? AuthenticateUser(string username, string password)
         {
             using (var conn = new SqlConnection(DatabaseConfig.ConnectionString))
@@ -34,13 +60,17 @@ namespace StafflyApp.Data.Repositories
                         // Dùng Helper để so khớp mật khẩu
                         if (PasswordHelper.VerifyPassword(password, hashedPasswordInDb))
                         {
-                            return new User
+                            var user = new User
                             {
                                 UserID = (int)reader["UserID"],
                                 Username = reader["Username"].ToString(),
                                 RoleID = reader["RoleID"] as int?
                                 // ... map thêm các trường khác nếu cần
                             };
+                            // --- GỌI LOG: Ghi lại sự kiện login thành công ---
+                            LogAction(user.UserID, "LOGIN", $"User {user.Username} logged in successfully.");
+
+                            return user;
                         }
                     }
                 }
