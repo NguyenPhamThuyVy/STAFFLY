@@ -63,7 +63,16 @@ namespace StafflyApp.Data
                 new Employee { EmployeeID = 14, FullName = "Xu Guang Han", Email = "xgh@staffly.com", Phone = "0918899001", Address = "Bến Tre", Status = "Active", DepartmentID = 1 },
                 new Employee { EmployeeID = 15, FullName = "Zhang Ruo Nan", Email = "zrn@staffly.com", Phone = "0919900112", Address = "TP.HCM", Status = "Active", DepartmentID = 4 }
             );
+            // 2.5 Seed Data: Chèn 5 phòng ban mẫu TRƯỚC khi chèn nhân viên
+            modelBuilder.Entity<Department>().HasData(
+                new Department { DepartmentID = 1, DepartmentName = "Ban Giám Đốc", HeadcountLimit = 5 },
+                new Department { DepartmentID = 2, DepartmentName = "Phòng IT & Công Nghệ", HeadcountLimit = 20 },
+                new Department { DepartmentID = 3, DepartmentName = "Phòng Nhân Sự (HR)", HeadcountLimit = 15 },
+                new Department { DepartmentID = 4, DepartmentName = "Phòng Marketing", HeadcountLimit = 25 },
+                new Department { DepartmentID = 5, DepartmentName = "Phòng Kế Toán", HeadcountLimit = 10 }
+            );
 
+            // (Đoạn code modelBuilder.Entity<Employee>().HasData(...) của bạn giữ nguyên ở bên dưới đoạn này)
             // Seed Data cho User (để test chức năng Login)
             modelBuilder.Entity<User>().HasData(
                 new User { UserID = 1, Username = "admin", Password = "123", RoleID = 1, EmployeeID = 1, IsActive = true }

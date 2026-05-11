@@ -61,7 +61,11 @@ namespace StafflyApp.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading data: " + ex.Message);
+                // Đổi Invoke thành BeginInvoke và bọc trong new Action
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message, "Lỗi Hệ Thống", MessageBoxButton.OK, MessageBoxImage.Error);
+                }));
             }
         }
 
