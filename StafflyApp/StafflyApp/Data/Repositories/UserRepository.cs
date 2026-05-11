@@ -67,7 +67,10 @@ namespace StafflyApp.Data.Repositories
                                 RoleID = reader["RoleID"] as int?
                                 // ... map thêm các trường khác nếu cần
                             };
-                           
+                            // --- GỌI LOG: Ghi lại sự kiện login thành công ---
+                            LogAction(user.UserID, "LOGIN", $"User {user.Username} logged in successfully.");
+
+                            return user;
                         }
                     }
                 }
@@ -84,5 +87,41 @@ namespace StafflyApp.Data.Repositories
             }
             return null;
         }
+        // Tạo mới tài khoản với mật khẩu được mã hóa
+        public bool AddUser(User newUser, string plainPassword)
+        {
+            try
+            {
+                using (var conn = new SqlConnection(DatabaseConfig.ConnectionString))
+                {
+                    // QUAN TRỌNG: Mã hóa mật khẩu trước khi lưu
+                    string hashedPassword = PasswordHelper.HashPassword(plainPassword);
+
+                    string query = @"INSERT INTO Users (Username, Password, RoleID, EmployeeID, IsActive) 
+                             VALUES (@Username, @Password, @RoleID, @EmployeeID, 1)";
+
+                    var cmd = new SqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@Username", newUser.Username);
+                    cmd.Parameters.AddWithValue("@Password", hashedPassword); // Lưu chuỗi đã băm
+                    cmd.Parameters.AddWithValue("@RoleID", (object)newUser.RoleID ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@EmployeeID", (object)newUser.EmployeeID ?? DBNull.Value);
+
+                    conn.Open();
+                    int rows = cmd.ExecuteNonQuery();
+
+                    if (rows > 0)
+                    {
+                        LogAction(UserSession.Instance.UserID, "CREATE_USER", $"Created user: {newUser.Username}");
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("AddUser Error: " + ex.Message);
+            }
+            return false;
+        }
     }
 }
+
