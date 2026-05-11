@@ -1,8 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using StafflyApp.Models;
-using Microsoft.Extensions.Configuration; // thêm thư viện
-using System.IO;
+using Microsoft.Extensions.Configuration; 
 
 namespace StafflyApp.Data
 {
@@ -10,7 +9,7 @@ namespace StafflyApp.Data
     {
         // Trong file StafflyDbContext.cs
 
-        public StafflyDbContext() { } // Thêm dòng này
+        public StafflyDbContext() { } 
 
         public StafflyDbContext(DbContextOptions<StafflyDbContext> options) : base(options)
         {
