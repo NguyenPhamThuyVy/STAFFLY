@@ -85,9 +85,9 @@ namespace StafflyApp.ViewModels
         }
 
         [RelayCommand]
-        private void OpenEditDialog(Employee emp)
+        private void OpenEditDialog(Employee target)
         {
-            if (emp == null) return;
+            if (target == null) return;
             IsTransferMode = false;
             EditingEmployee = new Employee
             {
@@ -166,10 +166,10 @@ namespace StafflyApp.ViewModels
         }
 
         [RelayCommand]
-        private void DeleteEmployee(Employee emp)
+        private void DeleteEmployee(Employee target)
         {
-            if (emp == null) return;
-            if (MessageBox.Show($"Delete {emp.FullName}?", "Confirm", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            if (target == null) return;
+            if (MessageBox.Show($"Delete {target.FullName}?", "Confirm", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 if (_repository.DeleteEmployee(target.EmployeeID))
                     LoadData();
