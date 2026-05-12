@@ -17,10 +17,70 @@ namespace StafflyApp.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "8.0.25")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("StafflyApp.Models.Department", b =>
+                {
+                    b.Property<int>("DepartmentID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DepartmentID"));
+
+                    b.Property<int>("CurrentStaffCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DepartmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HeadcountLimit")
+                        .HasColumnType("int");
+
+                    b.HasKey("DepartmentID");
+
+                    b.ToTable("Departments");
+
+                    b.HasData(
+                        new
+                        {
+                            DepartmentID = 1,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Ban Giám Đốc",
+                            HeadcountLimit = 5
+                        },
+                        new
+                        {
+                            DepartmentID = 2,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Phòng IT & Công Nghệ",
+                            HeadcountLimit = 20
+                        },
+                        new
+                        {
+                            DepartmentID = 3,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Phòng Nhân Sự (HR)",
+                            HeadcountLimit = 15
+                        },
+                        new
+                        {
+                            DepartmentID = 4,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Phòng Marketing",
+                            HeadcountLimit = 25
+                        },
+                        new
+                        {
+                            DepartmentID = 5,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Phòng Kế Toán",
+                            HeadcountLimit = 10
+                        });
+                });
 
             modelBuilder.Entity("StafflyApp.Models.Employee", b =>
                 {
@@ -57,6 +117,8 @@ namespace StafflyApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("EmployeeID");
+
+                    b.HasIndex("DepartmentID");
 
                     b.ToTable("Employees");
 
@@ -228,14 +290,12 @@ namespace StafflyApp.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Password")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("RoleID")
                         .HasColumnType("int");
 
                     b.Property<string>("Username")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserID");
@@ -270,6 +330,18 @@ namespace StafflyApp.Migrations
                             RoleID = 3,
                             Username = "staff"
                         });
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.Employee", b =>
+                {
+                    b.HasOne("StafflyApp.Models.Department", null)
+                        .WithMany("Employees")
+                        .HasForeignKey("DepartmentID");
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.Department", b =>
+                {
+                    b.Navigation("Employees");
                 });
 #pragma warning restore 612, 618
         }

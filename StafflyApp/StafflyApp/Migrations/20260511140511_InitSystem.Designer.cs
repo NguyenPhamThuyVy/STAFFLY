@@ -12,18 +12,78 @@ using StafflyApp.Data;
 namespace StafflyApp.Migrations
 {
     [DbContext(typeof(StafflyDbContext))]
-    [Migration("20260330045421_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260511140511_InitSystem")]
+    partial class InitSystem
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "8.0.25")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("StafflyApp.Models.Department", b =>
+                {
+                    b.Property<int>("DepartmentID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DepartmentID"));
+
+                    b.Property<int>("CurrentStaffCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DepartmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HeadcountLimit")
+                        .HasColumnType("int");
+
+                    b.HasKey("DepartmentID");
+
+                    b.ToTable("Departments");
+
+                    b.HasData(
+                        new
+                        {
+                            DepartmentID = 1,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Ban Giám Đốc",
+                            HeadcountLimit = 5
+                        },
+                        new
+                        {
+                            DepartmentID = 2,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Phòng IT & Công Nghệ",
+                            HeadcountLimit = 20
+                        },
+                        new
+                        {
+                            DepartmentID = 3,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Phòng Nhân Sự (HR)",
+                            HeadcountLimit = 15
+                        },
+                        new
+                        {
+                            DepartmentID = 4,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Phòng Marketing",
+                            HeadcountLimit = 25
+                        },
+                        new
+                        {
+                            DepartmentID = 5,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Phòng Kế Toán",
+                            HeadcountLimit = 10
+                        });
+                });
 
             modelBuilder.Entity("StafflyApp.Models.Employee", b =>
                 {
@@ -61,6 +121,8 @@ namespace StafflyApp.Migrations
 
                     b.HasKey("EmployeeID");
 
+                    b.HasIndex("DepartmentID");
+
                     b.ToTable("Employees");
 
                     b.HasData(
@@ -79,8 +141,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 2,
                             Address = "Hà Nội",
                             DepartmentID = 1,
-                            Email = "a.tv@staffly.com",
-                            FullName = "Trần Văn A",
+                            Email = "tvy1611@staffly.com",
+                            FullName = "Nguyễn Phạm Thúy Vy",
                             Phone = "0901112223",
                             Status = "Active"
                         },
@@ -89,8 +151,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 3,
                             Address = "Đà Nẵng",
                             DepartmentID = 2,
-                            Email = "b.lt@staffly.com",
-                            FullName = "Lê Thị B",
+                            Email = "qthink1006@staffly.com",
+                            FullName = "Nguyễn Huỳnh Quốc Thịnh",
                             Phone = "0903334445",
                             Status = "Active"
                         },
@@ -99,8 +161,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 4,
                             Address = "Cần Thơ",
                             DepartmentID = 2,
-                            Email = "c.pv@staffly.com",
-                            FullName = "Phạm Văn C",
+                            Email = "thaouyen@staffly.com",
+                            FullName = "Hoàng Thị Thảo Uyên",
                             Phone = "0905556667",
                             Status = "Active"
                         },
@@ -109,8 +171,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 5,
                             Address = "TP.HCM",
                             DepartmentID = 3,
-                            Email = "d.ht@staffly.com",
-                            FullName = "Hoàng Thị D",
+                            Email = "taha0302@staffly.com",
+                            FullName = "Lý Thái Hòa",
                             Phone = "0907778889",
                             Status = "Inactive"
                         },
@@ -119,8 +181,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 6,
                             Address = "Bình Dương",
                             DepartmentID = 1,
-                            Email = "e.dv@staffly.com",
-                            FullName = "Đỗ Văn E",
+                            Email = "bvi0610@staffly.com",
+                            FullName = "Võ Thị Bảo Vy",
                             Phone = "0909990001",
                             Status = "Active"
                         },
@@ -129,8 +191,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 7,
                             Address = "Đồng Nai",
                             DepartmentID = 2,
-                            Email = "f.bt@staffly.com",
-                            FullName = "Bùi Thị F",
+                            Email = "vminhtien@staffly.com",
+                            FullName = "Vương Minh Tiến",
                             Phone = "0911223344",
                             Status = "Active"
                         },
@@ -139,8 +201,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 8,
                             Address = "Long An",
                             DepartmentID = 4,
-                            Email = "g.vv@staffly.com",
-                            FullName = "Vũ Văn G",
+                            Email = "diva@staffly.com",
+                            FullName = "Lady Gaga",
                             Phone = "0912233445",
                             Status = "Active"
                         },
@@ -149,8 +211,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 9,
                             Address = "Vũng Tàu",
                             DepartmentID = 3,
-                            Email = "h.pt@staffly.com",
-                            FullName = "Phan Thị H",
+                            Email = "jack@staffly.com",
+                            FullName = "Leonardo Dicaprio",
                             Phone = "0913344556",
                             Status = "Active"
                         },
@@ -159,8 +221,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 10,
                             Address = "Tiền Giang",
                             DepartmentID = 5,
-                            Email = "i.lv@staffly.com",
-                            FullName = "Lý Văn I",
+                            Email = "katty@staffly.com",
+                            FullName = "Katty Perry",
                             Phone = "0914455667",
                             Status = "Active"
                         },
@@ -169,8 +231,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 11,
                             Address = "Kiên Giang",
                             DepartmentID = 1,
-                            Email = "k.tt@staffly.com",
-                            FullName = "Trịnh Thị K",
+                            Email = "thv@staffly.com",
+                            FullName = "Kim TaeHyung",
                             Phone = "0915566778",
                             Status = "Active"
                         },
@@ -179,8 +241,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 12,
                             Address = "An Giang",
                             DepartmentID = 1,
-                            Email = "l.lv@staffly.com",
-                            FullName = "Lưu Văn L",
+                            Email = "jk97@staffly.com",
+                            FullName = "Jeon JungKook",
                             Phone = "0916677889",
                             Status = "Active"
                         },
@@ -189,8 +251,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 13,
                             Address = "TP.HCM",
                             DepartmentID = 2,
-                            Email = "m.mt@staffly.com",
-                            FullName = "Mai Thị M",
+                            Email = "yoonjunggo@staffly.com",
+                            FullName = "Go Yoon Jung",
                             Phone = "0917788990",
                             Status = "Active"
                         },
@@ -199,8 +261,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 14,
                             Address = "Bến Tre",
                             DepartmentID = 1,
-                            Email = "n.dv@staffly.com",
-                            FullName = "Đào Văn N",
+                            Email = "xgh@staffly.com",
+                            FullName = "Xu Guang Han",
                             Phone = "0918899001",
                             Status = "Active"
                         },
@@ -209,8 +271,8 @@ namespace StafflyApp.Migrations
                             EmployeeID = 15,
                             Address = "TP.HCM",
                             DepartmentID = 4,
-                            Email = "o.dt@staffly.com",
-                            FullName = "Đặng Thị O",
+                            Email = "zrn@staffly.com",
+                            FullName = "Zhang Ruo Nan",
                             Phone = "0919900112",
                             Status = "Active"
                         });
@@ -231,14 +293,12 @@ namespace StafflyApp.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Password")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("RoleID")
                         .HasColumnType("int");
 
                     b.Property<string>("Username")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserID");
@@ -255,6 +315,18 @@ namespace StafflyApp.Migrations
                             RoleID = 1,
                             Username = "admin"
                         });
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.Employee", b =>
+                {
+                    b.HasOne("StafflyApp.Models.Department", null)
+                        .WithMany("Employees")
+                        .HasForeignKey("DepartmentID");
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.Department", b =>
+                {
+                    b.Navigation("Employees");
                 });
 #pragma warning restore 612, 618
         }
