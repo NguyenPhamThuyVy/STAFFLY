@@ -21,9 +21,9 @@
                                 </Style.Triggers>
                             </Style>
                         </StackPanel.Style>
-                        <TextBox materialDesign:HintAssist.Hint="Họ tên" Text="{Binding EditingEmployee.FullName}" Margin="0,10" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                        <TextBox materialDesign:HintAssist.Hint="Email" Text="{Binding EditingEmployee.Email}" Margin="0,10" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                        <TextBox materialDesign:HintAssist.Hint="Số điện thoại" Text="{Binding EditingEmployee.Phone}" Margin="0,10" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                        <TextBox materialDesign:HintAssist.Hint="Full Name" Text="{Binding EditingEmployee.FullName}" Margin="0,10" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                        <TextBox materialDesign:HintAssist.Hint="Email Address" Text="{Binding EditingEmployee.Email}" Margin="0,10" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                        <TextBox materialDesign:HintAssist.Hint="Phone Number" Text="{Binding EditingEmployee.Phone}" Margin="0,10" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
                     </StackPanel>
 
                     <StackPanel>
@@ -37,17 +37,17 @@
                                 </Style.Triggers>
                             </Style>
                         </StackPanel.Style>
-                        <TextBlock Text="Chọn phòng ban đích cho nhân viên:" Margin="0,0,0,10" Foreground="#6B7280"/>
-                        <ComboBox materialDesign:HintAssist.Hint="Phòng ban" 
-                          ItemsSource="{Binding Departments}" 
-                          DisplayMemberPath="DepartmentName"
-                          SelectedItem="{Binding SelectedTargetDept}"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,10"/>
+                        <TextBlock Text="Select target department for employee:" Margin="0,0,0,10" Foreground="#6B7280"/>
+                        <ComboBox materialDesign:HintAssist.Hint="Department" 
+                                  ItemsSource="{Binding Departments}" 
+                                  DisplayMemberPath="DepartmentName"
+                                  SelectedItem="{Binding SelectedTargetDept}"
+                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,10"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                        <Button Content="HỦY" Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" Style="{StaticResource MaterialDesignFlatButton}"/>
-                        <Button Content="XÁC NHẬN" Command="{Binding ConfirmActionCommand}" Margin="10,0,0,0" Background="#1954D1" Foreground="White"/>
+                        <Button Content="CANCEL" Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" Style="{StaticResource MaterialDesignFlatButton}"/>
+                        <Button Content="CONFIRM" Command="{Binding ConfirmActionCommand}" Margin="10,0,0,0" Background="#1954D1" Foreground="White"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -56,6 +56,7 @@
         <Border Background="White" CornerRadius="25" Padding="25" Margin="10">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
@@ -69,7 +70,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBox Width="300" HorizontalAlignment="Left" materialDesign:HintAssist.Hint="Tìm kiếm nhân viên..." 
+                    <TextBox Width="300" HorizontalAlignment="Left" materialDesign:HintAssist.Hint="Search employees..." 
                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
 
@@ -78,11 +79,29 @@
                             materialDesign:ButtonAssist.CornerRadius="10"/>
                 </Grid>
 
-                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                <Border Grid.Row="2" Background="#F9FAFB" CornerRadius="8" Padding="15,12" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="1.5*"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="1.2*"/>
+                            <ColumnDefinition Width="130"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="ID" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="EMPLOYEE" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="EMAIL" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="3" Text="DEPARTMENT" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="4" Text="ACTIONS" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,35,0"/>
+                    </Grid>
+                </Border>
+
+                <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding Employees}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border BorderBrush="#F3F4F6" BorderThickness="0,0,0,1" Padding="15,10">
+                                <Border BorderBrush="#F3F4F6" BorderThickness="0,0,0,1" Padding="15,12">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="50"/>
@@ -92,11 +111,11 @@
                                             <ColumnDefinition Width="130"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <TextBlock Text="{Binding EmployeeID}" VerticalAlignment="Center" Foreground="#6B7280"/>
+                                        <TextBlock Text="{Binding EmployeeID}" VerticalAlignment="Center" Foreground="#6B7280" FontWeight="Medium"/>
 
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding FullName}" Foreground="#1A1C29" FontWeight="Bold"/>
-                                            <TextBlock Text="{Binding Status}" FontSize="11" Foreground="#10B981"/>
+                                            <TextBlock Text="{Binding FullName}" Foreground="#1A1C29" FontWeight="Bold" FontSize="14"/>
+                                            <TextBlock Text="{Binding Status}" FontSize="12" Foreground="#10B981" Margin="0,2,0,0"/>
                                         </StackPanel>
 
                                         <TextBlock Grid.Column="2" Text="{Binding Email}" VerticalAlignment="Center" Foreground="#4B5563"/>
@@ -105,19 +124,21 @@
 
                                         <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right">
                                             <Button Style="{StaticResource MaterialDesignIconButton}" 
-                                                    ToolTip="Điều chuyển phòng ban"
+                                                    ToolTip="Transfer Department" Height="32" Width="32" Padding="0"
                                                     Command="{Binding DataContext.OpenTransferDialogCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" 
                                                     CommandParameter="{Binding}">
                                                 <materialDesign:PackIcon Kind="SwapHorizontal" Foreground="#1954D1"/>
                                             </Button>
 
                                             <Button Style="{StaticResource MaterialDesignIconButton}" 
+                                                    ToolTip="Edit Employee" Height="32" Width="32" Padding="0" Margin="4,0"
                                                     Command="{Binding DataContext.OpenEditDialogCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" 
                                                     CommandParameter="{Binding}">
-                                                <materialDesign:PackIcon Kind="PencilOutline" Foreground="Gray"/>
+                                                <materialDesign:PackIcon Kind="PencilOutline" Foreground="#6B7280"/>
                                             </Button>
 
                                             <Button Style="{StaticResource MaterialDesignIconButton}" 
+                                                    ToolTip="Delete Employee" Height="32" Width="32" Padding="0"
                                                     Command="{Binding DataContext.DeleteEmployeeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" 
                                                     CommandParameter="{Binding}">
                                                 <materialDesign:PackIcon Kind="DeleteOutline" Foreground="#EF4444"/>
