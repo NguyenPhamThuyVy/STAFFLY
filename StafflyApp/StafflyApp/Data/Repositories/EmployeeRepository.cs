@@ -70,7 +70,7 @@ namespace StafflyApp.Data.Repositories
                 cmd.Parameters.AddWithValue("@Address", (object)emp.Address ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@DOB", (object)emp.DateOfBirth ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@DeptID", (object)emp.DepartmentID ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@Status", (object)emp.Status ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Status", (object)emp.Status ?? "Active");
 
                 conn.Open();
                 return cmd.ExecuteNonQuery() > 0;
