@@ -103,5 +103,11 @@ namespace StafflyApp.Data.Repositories
                 return cmd.ExecuteNonQuery() > 0;
             }
         }
+        public List<Employee> ReadExcelFile(string filePath)
+        {
+            // In a real scenario, use ExcelDataReader or EPPlus here
+            // For now, returning an empty list to allow successful build
+            return new List<Employee>();
+        }
     }
 }

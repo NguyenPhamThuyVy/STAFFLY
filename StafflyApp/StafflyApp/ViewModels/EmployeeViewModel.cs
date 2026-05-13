@@ -7,6 +7,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Threading.Tasks;
 
 namespace StafflyApp.ViewModels
 {
@@ -14,61 +15,48 @@ namespace StafflyApp.ViewModels
     {
         private readonly EmployeeRepository _repository;
 
-        [ObservableProperty]
-        private ObservableCollection<Employee> _employees = new();
-
-        [ObservableProperty]
-        private ObservableCollection<Department> _departments = new();
-
-        [ObservableProperty]
-        private string _searchText = string.Empty;
-
-        [ObservableProperty]
-        private bool _isDialogOpen = false;
-
-        [ObservableProperty]
-        private bool _isTransferMode = false;
-
-        [ObservableProperty]
-        private Employee _editingEmployee = new();
-
-        [ObservableProperty]
-        private Department? _selectedTargetDept;
-
-        [ObservableProperty]
-        private string _formTitle = "ADD EMPLOYEE";
-
+        // --- PROPERTIES ---
+        [ObservableProperty] private ObservableCollection<Employee> _employees = new();
+        [ObservableProperty] private ObservableCollection<Department> _departments = new();
+        [ObservableProperty] private string _searchText = string.Empty;
+        [ObservableProperty] private bool _isDialogOpen = false;
+        [ObservableProperty] private bool _isTransferMode = false;
+        [ObservableProperty] private Employee _editingEmployee = new();
+        [ObservableProperty] private Department? _selectedTargetDept;
+        [ObservableProperty] private string _formTitle = "ADD EMPLOYEE";
         private bool _isEditMode = false;
 
         public EmployeeViewModel()
         {
             _repository = new EmployeeRepository();
-            LoadData();
+            // Tải dữ liệu khi khởi tạo
+            _ = LoadData();
         }
 
+        // --- DATA LOADING ---
         [RelayCommand]
-        public void LoadData()
+        public async Task LoadData()
         {
             try
             {
-                var list = _repository.GetAllEmployees();
+                // Chạy truy vấn ở luồng ngầm để giao diện không bị khựng
+                var list = await Task.Run(() => _repository.GetAllEmployees());
+
                 Employees = new ObservableCollection<Employee>(list);
 
                 using (var db = new StafflyDbContext())
                 {
-                    Departments = new ObservableCollection<Department>(db.Departments.ToList());
+                    var deptList = await Task.Run(() => db.Departments.ToList());
+                    Departments = new ObservableCollection<Department>(deptList);
                 }
             }
             catch (Exception ex)
             {
-                // Đổi Invoke thành BeginInvoke và bọc trong new Action
-                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message, "Lỗi Hệ Thống", MessageBoxButton.OK, MessageBoxImage.Error);
-                }));
+                MessageBox.Show("Data loading failed: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
+        // --- DIALOG COMMANDS (ADD / EDIT) ---
         [RelayCommand]
         private void OpenAddDialog()
         {
@@ -99,6 +87,38 @@ namespace StafflyApp.ViewModels
         }
 
         [RelayCommand]
+        private void ConfirmAction()
+        {
+            if (IsTransferMode) ExecuteTransfer();
+            else SaveEmployee();
+        }
+
+        private void SaveEmployee()
+        {
+            // Simple Validation
+            if (string.IsNullOrWhiteSpace(EditingEmployee.FullName))
+            {
+                MessageBox.Show("Employee name is required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            bool success = _isEditMode ?
+                _repository.UpdateEmployee(EditingEmployee) :
+                _repository.AddEmployee(EditingEmployee);
+
+            if (success)
+            {
+                IsDialogOpen = false;
+                _ = LoadData();
+            }
+            else
+            {
+                MessageBox.Show("Operation failed!", "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // --- TRANSFER LOGIC ---
+        [RelayCommand]
         private void OpenTransferDialog(Employee emp)
         {
             if (emp == null) return;
@@ -109,35 +129,14 @@ namespace StafflyApp.ViewModels
             IsDialogOpen = true;
         }
 
-        [RelayCommand]
-        private void ConfirmAction()
-        {
-            if (IsTransferMode) ExecuteTransfer();
-            else SaveEmployee();
-        }
-
-        private void SaveEmployee()
-        {
-            bool success = _isEditMode ?
-                _repository.UpdateEmployee(EditingEmployee) :
-                _repository.AddEmployee(EditingEmployee);
-
-            if (success)
-            {
-                IsDialogOpen = false;
-                LoadData();
-            }
-            else MessageBox.Show("Operation failed!");
-        }
-
         private void ExecuteTransfer()
         {
             if (SelectedTargetDept == null) return;
 
+            // Kiểm tra định biên phòng ban
             if (SelectedTargetDept.CurrentStaffCount >= SelectedTargetDept.HeadcountLimit)
             {
-                MessageBox.Show($"Transfer Denied: {SelectedTargetDept.DepartmentName} is full.",
-                                "Limit Exceeded", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"{SelectedTargetDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -151,20 +150,24 @@ namespace StafflyApp.ViewModels
                         emp.DepartmentID = SelectedTargetDept.DepartmentID;
                         db.SaveChanges();
                         IsDialogOpen = false;
-                        LoadData();
+                        _ = LoadData();
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error: " + ex.Message); }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Transfer error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
+        // --- DELETE LOGIC ---
         [RelayCommand]
         private void DeleteEmployee(Employee emp)
         {
             if (emp == null) return;
-            if (MessageBox.Show($"Delete {emp.FullName}?", "Confirm", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            if (MessageBox.Show($"Are you sure you want to delete {emp.FullName}?", "Confirm Deletion", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
-                if (_repository.DeleteEmployee(emp.EmployeeID)) LoadData();
+                if (_repository.DeleteEmployee(emp.EmployeeID)) _ = LoadData();
             }
         }
     }
