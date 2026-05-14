@@ -88,7 +88,11 @@
                     </StackPanel>
                 </Grid>
 
-                <ContentControl Content="{Binding CurrentView}" Grid.Row="1" Focusable="False" />
+                <materialDesign:TransitioningContent Content="{Binding CurrentView}" Grid.Row="1" Focusable="False">
+                    <materialDesign:TransitioningContent.OpeningEffect>
+                        <materialDesign:TransitionEffect Kind="FadeIn" Duration="0:0:0.3"/>
+                    </materialDesign:TransitioningContent.OpeningEffect>
+                </materialDesign:TransitioningContent>
             </Grid>
         </Border>
     </materialDesign:DialogHost>

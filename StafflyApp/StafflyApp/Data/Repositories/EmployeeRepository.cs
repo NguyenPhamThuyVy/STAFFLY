@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using StafflyApp.Data.Interfaces;
 using StafflyApp.Models;
+using System;
+using System.Collections.Generic;
+using System.Windows;
 
 namespace StafflyApp.Data.Repositories
 {
@@ -46,23 +47,27 @@ namespace StafflyApp.Data.Repositories
         // 2. Thêm nhân viên mới
         public bool AddEmployee(Employee emp)
         {
-            using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
-            {
-                string query = @"INSERT INTO Employees (FullName, Email, Phone, Address, DateOfBirth, DepartmentID, Status) 
+    
+         
+                using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
+                {
+                    string query = @"INSERT INTO Employees (FullName, Email, Phone, Address, DateOfBirth, DepartmentID, Status) 
                                 VALUES (@Name, @Email, @Phone, @Address, @DOB, @DeptID, @Status)";
 
-                SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@Name", emp.FullName);
-                cmd.Parameters.AddWithValue("@Email", (object)emp.Email ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@Phone", (object)emp.Phone ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@Address", (object)emp.Address ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@DOB", (object)emp.DateOfBirth ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@DeptID", (object)emp.DepartmentID ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@Status", (object)emp.Status ?? "Active");
+                    SqlCommand cmd = new SqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@Name", emp.FullName);
+                    cmd.Parameters.AddWithValue("@Email", (object)emp.Email ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Phone", (object)emp.Phone ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Address", (object)emp.Address ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@DOB", (object)emp.DateOfBirth ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@DeptID", (object)emp.DepartmentID ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Status", (object)emp.Status ?? "Active");
 
-                conn.Open();
-                return cmd.ExecuteNonQuery() > 0;
-            }
+                    conn.Open();
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            
+  
         }
 
         // 3. Cập nhật thông tin
