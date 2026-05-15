@@ -13,7 +13,7 @@ namespace StafflyApp
             this.DataContext = new MainWindowViewModel();
         }
 
-        // --- NHÓM HÀM ĐIỀU HƯỚNG TAB (Sửa lỗi CS1061) ---
+        // --- NHÓM HÀM ĐIỀU HƯỚNG TAB  ---
 
         private void TabDashboard_Click(object sender, RoutedEventArgs e)
         {
@@ -45,6 +45,22 @@ namespace StafflyApp
             {
                 vm.NavigateCommand.Execute("Payroll");
             }
+        }
+        private void TabAttendance_Click(object sender, MouseButtonEventArgs e)
+        {
+            
+        }
+
+        private void TabRecruitment_Click(object sender, MouseButtonEventArgs e)
+        {
+        }
+
+        private void TabContracts_Click(object sender, MouseButtonEventArgs e)
+        {
+        }
+
+        private void TabSystem_Click(object sender, RoutedEventArgs e)
+        {
         }
 
         // --- CÁC HÀM HỆ THỐNG ---
