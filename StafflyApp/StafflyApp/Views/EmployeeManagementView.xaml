@@ -34,6 +34,11 @@
                         </StackPanel.Style>
 
                         <TextBox materialDesign:HintAssist.Hint="Full Name" Text="{Binding EditingEmployee.FullName, UpdateSourceTrigger=PropertyChanged}" Margin="0,8" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+
+                        <DatePicker materialDesign:HintAssist.Hint="Date of Birth" 
+                                    SelectedDate="{Binding EditingEmployee.DateOfBirth, UpdateSourceTrigger=PropertyChanged}" 
+                                    Style="{StaticResource MaterialDesignOutlinedDatePicker}" Margin="0,8"/>
+
                         <TextBox materialDesign:HintAssist.Hint="Email Address" Text="{Binding EditingEmployee.Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,8" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
                         <TextBox materialDesign:HintAssist.Hint="Phone Number" Text="{Binding EditingEmployee.Phone, UpdateSourceTrigger=PropertyChanged}" Margin="0,8" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
 
@@ -45,8 +50,7 @@
                                   Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,8"/>
 
                         <ComboBox materialDesign:HintAssist.Hint="Status" 
-                                  SelectedValuePath="Content"
-                                  SelectedValue="{Binding EditingEmployee.Status, UpdateSourceTrigger=PropertyChanged}"
+                                  Text="{Binding EditingEmployee.Status, UpdateSourceTrigger=PropertyChanged}"
                                   Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,8">
                             <ComboBoxItem Content="Active"/>
                             <ComboBoxItem Content="Probation"/>

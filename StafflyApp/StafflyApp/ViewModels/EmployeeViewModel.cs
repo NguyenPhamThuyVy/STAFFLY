@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace StafflyApp.ViewModels
 {
@@ -40,20 +41,19 @@ namespace StafflyApp.ViewModels
         {
             try
             {
+                // Load employees from Repository (ADO.NET)
                 var list = await Task.Run(() => _repository.GetAllEmployees());
                 _allEmployeesMaster = list.ToList();
 
                 TotalEmployees = _allEmployeesMaster.Count;
-                ActiveEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Đang làm việc");
+                ActiveEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE");
 
-                // Thay vì gán Employees = new..., ta gọi hàm Search để tự Clear/Add
                 Search();
 
+                // Load departments from DbContext (Entity Framework)
                 using (var db = new StafflyDbContext())
                 {
                     var deptList = await Task.Run(() => db.Departments.ToList());
-
-                    // Sửa lỗi gán Departments ở đây
                     Departments.Clear();
                     foreach (var dept in deptList)
                     {
@@ -67,10 +67,7 @@ namespace StafflyApp.ViewModels
             }
         }
 
-        partial void OnSearchTextChanged(string value)
-        {
-            Search();
-        }
+        partial void OnSearchTextChanged(string value) => Search();
 
         [RelayCommand]
         private void Search()
@@ -88,19 +85,15 @@ namespace StafflyApp.ViewModels
                 ).ToList();
             }
 
-            // Cập nhật danh sách mà không gán lại object Employees (Sửa lỗi CS0200)
             Employees.Clear();
-            foreach (var emp in filteredList)
-            {
-                Employees.Add(emp);
-            }
+            foreach (var emp in filteredList) Employees.Add(emp);
         }
 
         [RelayCommand]
         private void OpenAddDialog()
         {
             IsTransferMode = false;
-            EditingEmployee = new Employee();
+            EditingEmployee = new Employee { Status = "Active" }; // Default status
             FormTitle = "ADD NEW EMPLOYEE";
             _isEditMode = false;
             IsDialogOpen = true;
@@ -111,15 +104,20 @@ namespace StafflyApp.ViewModels
         {
             if (emp == null) return;
             IsTransferMode = false;
+
+            // Clone object to avoid direct list modification
             EditingEmployee = new Employee
             {
                 EmployeeID = emp.EmployeeID,
                 FullName = emp.FullName,
                 Email = emp.Email,
                 Phone = emp.Phone,
+                Address = emp.Address,
+                DateOfBirth = emp.DateOfBirth,
                 Status = emp.Status,
                 DepartmentID = emp.DepartmentID
             };
+
             FormTitle = "UPDATE INFORMATION";
             _isEditMode = true;
             IsDialogOpen = true;
@@ -136,45 +134,72 @@ namespace StafflyApp.ViewModels
         {
             try
             {
-                // 1. Kiểm tra các trường bắt buộc
+                // 1. Name Validation
                 if (string.IsNullOrWhiteSpace(EditingEmployee.FullName))
                 {
-                    MessageBox.Show("Vui lòng nhập tên nhân viên!");
+                    MessageBox.Show("Please enter the employee's full name!", "Validation Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                // ==========================================
-                // FIX LỖI DATABASE KHÔNG CHO PHÉP NULL Ở ĐÂY
-                // ==========================================
-                if (string.IsNullOrEmpty(EditingEmployee.Address))
-                    EditingEmployee.Address = "Chưa cập nhật"; // Gán giá trị mặc định cho Address
+                // 2. Email Validation
+                if (!string.IsNullOrWhiteSpace(EditingEmployee.Email))
+                {
+                    string emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+                    if (!Regex.IsMatch(EditingEmployee.Email, emailPattern))
+                    {
+                        MessageBox.Show("Invalid email format! Example: name@domain.com", "Email Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                }
 
-                if (string.IsNullOrEmpty(EditingEmployee.Email))
-                    EditingEmployee.Email = "";
+                // 3. Age Validation (>= 18)
+                if (EditingEmployee.DateOfBirth.HasValue)
+                {
+                    var dob = EditingEmployee.DateOfBirth.Value;
+                    var today = DateTime.Today;
+                    var age = today.Year - dob.Year;
+                    if (dob.Date > today.AddYears(-age)) age--;
 
-                if (string.IsNullOrEmpty(EditingEmployee.Phone))
-                    EditingEmployee.Phone = "";
-                // ==========================================
+                    if (age < 18)
+                    {
+                        MessageBox.Show($"This candidate is only {age} years old. Employees must be at least 18!", "Age Restriction", MessageBoxButton.OK, MessageBoxImage.Stop);
+                        return;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Please select a date of birth to verify age eligibility!", "Missing Information", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
 
+                // 4. Department Validation
+                if (EditingEmployee.DepartmentID == null || EditingEmployee.DepartmentID == 0)
+                {
+                    MessageBox.Show("Please assign a department to this employee!", "Validation Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // 5. Default Values
+                if (string.IsNullOrEmpty(EditingEmployee.Address)) EditingEmployee.Address = "Not updated yet";
+                if (string.IsNullOrEmpty(EditingEmployee.Status)) EditingEmployee.Status = "Active";
+
+                // 6. Save using Entity Framework
                 using (var db = new StafflyDbContext())
                 {
-                    if (_isEditMode)
-                        db.Employees.Update(EditingEmployee);
-                    else
-                        db.Employees.Add(EditingEmployee);
+                    if (_isEditMode) db.Employees.Update(EditingEmployee);
+                    else db.Employees.Add(EditingEmployee);
 
                     db.SaveChanges();
                 }
 
-                // Thành công thì đóng form và load lại bảng
                 IsDialogOpen = false;
                 _ = LoadData();
+                MessageBox.Show("Employee saved successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                // Mình in luôn cái InnerException ra để nếu Database có chê cột nào khác, nó sẽ báo rõ tên cột đó!
                 string errorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                MessageBox.Show($"Lỗi Database: {errorMsg}", "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Database Error: {errorMsg}", "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -193,12 +218,6 @@ namespace StafflyApp.ViewModels
         {
             if (SelectedTargetDept == null) return;
 
-            if (SelectedTargetDept.CurrentStaffCount >= SelectedTargetDept.HeadcountLimit)
-            {
-                MessageBox.Show($"{SelectedTargetDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
             try
             {
                 using (var db = new StafflyDbContext())
@@ -210,6 +229,7 @@ namespace StafflyApp.ViewModels
                         db.SaveChanges();
                         IsDialogOpen = false;
                         _ = LoadData();
+                        MessageBox.Show("Employee transferred successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 }
             }
@@ -223,7 +243,8 @@ namespace StafflyApp.ViewModels
         private void DeleteEmployee(Employee emp)
         {
             if (emp == null) return;
-            if (MessageBox.Show($"Are you sure you want to delete {emp.FullName}?", "Confirm Deletion", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            var result = MessageBox.Show($"Are you sure you want to delete {emp.FullName}?", "Confirm Deletion", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
             {
                 if (_repository.DeleteEmployee(emp.EmployeeID)) _ = LoadData();
             }

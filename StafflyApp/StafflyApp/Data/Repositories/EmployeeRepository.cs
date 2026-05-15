@@ -17,7 +17,12 @@ namespace StafflyApp.Data.Repositories
             using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
             {
                 conn.Open();
-                string query = "SELECT EmployeeID, FullName, Email, Phone, Address, DateOfBirth, DepartmentID, Status FROM Employees";
+                // Sửa Query: Lấy thêm cột DepartmentName từ bảng Departments
+                string query = @"SELECT e.EmployeeID, e.FullName, e.Email, e.Phone, e.Address, 
+                                e.DateOfBirth, e.DepartmentID, e.Status, 
+                                d.DepartmentName 
+                         FROM Employees e
+                         LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -34,7 +39,10 @@ namespace StafflyApp.Data.Repositories
                                 Address = reader["Address"] != DBNull.Value ? reader["Address"].ToString() : null,
                                 DateOfBirth = reader["DateOfBirth"] != DBNull.Value ? Convert.ToDateTime(reader["DateOfBirth"]) : (DateTime?)null,
                                 DepartmentID = reader["DepartmentID"] != DBNull.Value ? Convert.ToInt32(reader["DepartmentID"]) : (int?)null,
-                                Status = reader["Status"] != DBNull.Value ? reader["Status"].ToString() : null
+                                Status = reader["Status"] != DBNull.Value ? reader["Status"].ToString() : null,
+
+                                // LẤY TÊN PHÒNG BAN GÁN VÀO ĐÂY
+                                DepartmentName = reader["DepartmentName"] != DBNull.Value ? reader["DepartmentName"].ToString() : "No Department"
                             };
                             employees.Add(emp);
                         }
