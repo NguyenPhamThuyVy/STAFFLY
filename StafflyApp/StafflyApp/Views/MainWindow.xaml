@@ -9,82 +9,98 @@
         WindowStartupLocation="CenterScreen"
         Background="Transparent" AllowsTransparency="True"
         MouseDown="Window_MouseDown" FontFamily="Segoe UI">
+
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+            <v:DashboardView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:EmployeeViewModel}">
+            <v:EmployeeManagementView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DepartmentViewModel}">
+            <v:DepartmentView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PayrollViewModel}">
+            <v:PayrollView/>
+        </DataTemplate>
+
+        <Style x:Key="TabButtonStyle" TargetType="RadioButton">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="TabBorder" Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand">
+                            <TextBlock x:Name="TabText" Text="{TemplateBinding Content}" FontSize="14" FontWeight="Medium" Foreground="#6B7280"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="TabBorder" Property="Background" Value="#1954D1"/>
+                                <Setter TargetName="TabText" Property="Foreground" Value="White"/>
+                                <Setter TargetName="TabText" Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
-    <Border CornerRadius="30" Background="#F0F4F8" BorderThickness="1" BorderBrush="#E0E0E0" Padding="30">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Margin="0,0,0,30">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+    <materialDesign:DialogHost Identifier="RootDialog">
+        <Border CornerRadius="30" Background="#F0F4F8" BorderThickness="1" BorderBrush="#E0E0E0" Padding="30">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-                <TextBlock Grid.Column="0" Text="STAFFLY" FontSize="24" FontWeight="ExtraBold" Foreground="#1954D1" VerticalAlignment="Center"/>
+                <Grid Grid.Row="0" Margin="0,0,0,30">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <RadioButton Content="Dashboard" Style="{StaticResource TabButtonStyle}" 
-                                 IsChecked="True" Click="TabDashboard_Click"/>
+                    <TextBlock Grid.Column="0" Text="STAFFLY" FontSize="24" FontWeight="ExtraBold" Foreground="#1954D1" VerticalAlignment="Center"/>
 
-                    <Border x:Name="TabDashboard" Background="#1954D1" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabDashboard_Click">
-                        <TextBlock x:Name="TextDashboard" Text="Dashboard" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
-                    </Border>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <RadioButton Content="Dashboard" Style="{StaticResource TabButtonStyle}" 
+                                     IsChecked="True" Click="TabDashboard_Click"/>
 
-                    <Border x:Name="TabEmployees" Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabEmployees_Click">
-                        <TextBlock x:Name="TextEmployees" Text="Employees" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
-                    </Border>
+                        <RadioButton Content="Employees" Style="{StaticResource TabButtonStyle}" 
+                                     Click="TabEmployees_Click"/>
 
-                    <Border x:Name="TabDepartments" Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabDepartments_Click">
-                        <TextBlock x:Name="TextDepartments" Text="Departments" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
-                    </Border>
+                        <RadioButton Content="Departments" Style="{StaticResource TabButtonStyle}" 
+                                     Click="TabDepartments_Click"/>
 
-                    <Border x:Name="TabAttendance" Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabAttendance_Click">
-                        <TextBlock x:Name="TextAttendance" Text="Attendance" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
-                    </Border>
+                        <RadioButton Content="Payroll" Style="{StaticResource TabButtonStyle}" 
+                                     Visibility="{Binding IsHR, Converter={StaticResource BoolToVis}}"
+                                     Click="TabPayroll_Click"/>
 
-                    <Border x:Name="TabPayroll"  Visibility="{Binding IsHR, Converter={StaticResource BoolToVis}}"
-                            Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabPayroll_Click">
-                        <TextBlock x:Name="TextPayroll" Text="Payroll" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
-                    </Border>
+                        <RadioButton Content="System" Style="{StaticResource TabButtonStyle}" 
+                                     Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"
+                                     Click="TabSystem_Click"/>
+                    </StackPanel>
 
-                    <Border x:Name="TabRecruitment" Visibility="{Binding IsHR, Converter={StaticResource BoolToVis}}"
-                            Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabRecruitment_Click">
-                        <TextBlock x:Name="TextRecruitment" Text="Recruitment" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
-                    </Border>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Background="White" BorderThickness="0" Width="35" Height="35" Margin="0,0,10,0" materialDesign:ElevationAssist.Elevation="Dp2">
+                            <materialDesign:PackIcon Kind="SettingsOutline" Foreground="#6B7280"/>
+                        </Button>
+                        <Button Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Background="White" BorderThickness="0" Width="35" Height="35" Margin="0,0,15,0" materialDesign:ElevationAssist.Elevation="Dp2">
+                            <materialDesign:PackIcon Kind="AccountOutline" Foreground="#6B7280"/>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Padding="0" Click="CloseButton_Click" Cursor="Hand" VerticalAlignment="Center">
+                            <materialDesign:PackIcon Kind="Close" Foreground="#6B7280" Width="24" Height="24"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
 
-                    <Border x:Name="TabContracts" Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabContracts_Click">
-                        <TextBlock x:Name="TextContracts" Text="Contracts" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
-                    </Border>
-
-                    <Border x:Name="TabSystem" Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"
-                            Background="Transparent" CornerRadius="18" Padding="20,8" Margin="5,0" Cursor="Hand" MouseLeftButtonDown="TabSystem_Click">
-                        <TextBlock x:Name="TextSystem" Text="System" Foreground="#FF6B7280" FontSize="14" FontWeight="Medium"/>
-                    </Border>
-
-                    <RadioButton Content="Payroll" Style="{StaticResource TabButtonStyle}" 
-                                 Click="TabPayroll_Click"/>
-                </StackPanel>
-
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Background="White" BorderThickness="0" Width="35" Height="35" Margin="0,0,10,0" materialDesign:ElevationAssist.Elevation="Dp2">
-                        <materialDesign:PackIcon Kind="SettingsOutline" Foreground="#6B7280"/>
-                    </Button>
-                    <Button Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Background="White" BorderThickness="0" Width="35" Height="35" Margin="0,0,15,0" materialDesign:ElevationAssist.Elevation="Dp2">
-                        <materialDesign:PackIcon Kind="AccountOutline" Foreground="#6B7280"/>
-                    </Button>
-                    <Button Background="Transparent" BorderThickness="0" Padding="0" Click="CloseButton_Click" Cursor="Hand" VerticalAlignment="Center">
-                        <materialDesign:PackIcon Kind="Close" Foreground="#6B7280" Width="24" Height="24"/>
-                    </Button>
-                </StackPanel>
+                <materialDesign:TransitioningContent Content="{Binding CurrentView}" Grid.Row="1" Focusable="False">
+                    <materialDesign:TransitioningContent.OpeningEffect>
+                        <materialDesign:TransitionEffect Kind="FadeIn" Duration="0:0:0.3"/>
+                    </materialDesign:TransitioningContent.OpeningEffect>
+                </materialDesign:TransitioningContent>
             </Grid>
-
-            <ContentControl Content="{Binding CurrentView}" Grid.Row="1" Focusable="False" />
-        </Grid>
-    </Border>
+        </Border>
+    </materialDesign:DialogHost>
 </Window>

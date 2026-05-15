@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using StafflyApp.Data.Interfaces;
 using StafflyApp.Models;
-using StafflyApp.Data; 
+using StafflyApp.Data;
 
 namespace StafflyApp.Data.Repositories
 {
@@ -16,7 +16,6 @@ namespace StafflyApp.Data.Repositories
             using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
             {
                 conn.Open();
-                // Lấy đầy đủ cột và loại bỏ nhân viên đã nghỉ (Soft Delete)
                 string query = "SELECT EmployeeID, FullName, Email, Phone, Address, DateOfBirth, DepartmentID, Status " +
                                "FROM Employees WHERE Status != 'Resigned' OR Status IS NULL";
 
@@ -34,7 +33,7 @@ namespace StafflyApp.Data.Repositories
             return employees;
         }
 
-        // 2. Thêm mới 
+        // 2. Thêm mới nhân viên
         public bool AddEmployee(Employee emp)
         {
             using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
@@ -55,7 +54,7 @@ namespace StafflyApp.Data.Repositories
             }
         }
 
-        // 3. Cập nhật 
+        // 3. Cập nhật thông tin
         public bool UpdateEmployee(Employee emp)
         {
             using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
@@ -77,7 +76,7 @@ namespace StafflyApp.Data.Repositories
             }
         }
 
-        // 4. Xóa - CHỌN SOFT DELETE 
+        // 4. Xóa nhân viên 
         public bool DeleteEmployee(int id)
         {
             using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
@@ -111,7 +110,13 @@ namespace StafflyApp.Data.Repositories
             return employees;
         }
 
-        // Hàm phụ dùng chung để Map dữ liệu cho gọn code
+        // 6. Đọc file Excel 
+        public List<Employee> ReadExcelFile(string filePath)
+        {
+            return new List<Employee>();
+        }
+
+        // Hàm phụ dùng chung để Map dữ liệu 
         private Employee MapReaderToEmployee(SqlDataReader reader)
         {
             return new Employee
