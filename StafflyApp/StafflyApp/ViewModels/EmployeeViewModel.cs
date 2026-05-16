@@ -105,6 +105,7 @@ namespace StafflyApp.ViewModels
             IsDialogOpen = true;
         }
 
+        [RelayColumn]
         [RelayCommand]
         private void ConfirmAction()
         {
@@ -122,7 +123,6 @@ namespace StafflyApp.ViewModels
                     return;
                 }
 
-                
                 EditingEmployee.Address ??= "Not updated";
                 EditingEmployee.Email ??= "";
                 EditingEmployee.Phone ??= "";

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace StafflyApp.Migrations
 {
     /// <inheritdoc />
-    public partial class InitSystem : Migration
+    public partial class InitialEmptyEmployees : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -85,28 +85,6 @@ namespace StafflyApp.Migrations
                 table: "Users",
                 columns: new[] { "UserID", "EmployeeID", "IsActive", "Password", "RoleID", "Username" },
                 values: new object[] { 1, 1, true, "123", 1, "admin" });
-
-            migrationBuilder.InsertData(
-                table: "Employees",
-                columns: new[] { "EmployeeID", "Address", "DateOfBirth", "DepartmentID", "Email", "FullName", "Phone", "Status" },
-                values: new object[,]
-                {
-                    { 1, "TP.HCM", null, 1, "kieuvy611@staffly.com", "Lê Nguyễn Kiều Vy", "0901234567", "Active" },
-                    { 2, "Hà Nội", null, 1, "tvy1611@staffly.com", "Nguyễn Phạm Thúy Vy", "0901112223", "Active" },
-                    { 3, "Đà Nẵng", null, 2, "qthink1006@staffly.com", "Nguyễn Huỳnh Quốc Thịnh", "0903334445", "Active" },
-                    { 4, "Cần Thơ", null, 2, "thaouyen@staffly.com", "Hoàng Thị Thảo Uyên", "0905556667", "Active" },
-                    { 5, "TP.HCM", null, 3, "taha0302@staffly.com", "Lý Thái Hòa", "0907778889", "Inactive" },
-                    { 6, "Bình Dương", null, 1, "bvi0610@staffly.com", "Võ Thị Bảo Vy", "0909990001", "Active" },
-                    { 7, "Đồng Nai", null, 2, "vminhtien@staffly.com", "Vương Minh Tiến", "0911223344", "Active" },
-                    { 8, "Long An", null, 4, "diva@staffly.com", "Lady Gaga", "0912233445", "Active" },
-                    { 9, "Vũng Tàu", null, 3, "jack@staffly.com", "Leonardo Dicaprio", "0913344556", "Active" },
-                    { 10, "Tiền Giang", null, 5, "katty@staffly.com", "Katty Perry", "0914455667", "Active" },
-                    { 11, "Kiên Giang", null, 1, "thv@staffly.com", "Kim TaeHyung", "0915566778", "Active" },
-                    { 12, "An Giang", null, 1, "jk97@staffly.com", "Jeon JungKook", "0916677889", "Active" },
-                    { 13, "TP.HCM", null, 2, "yoonjunggo@staffly.com", "Go Yoon Jung", "0917788990", "Active" },
-                    { 14, "Bến Tre", null, 1, "xgh@staffly.com", "Xu Guang Han", "0918899001", "Active" },
-                    { 15, "TP.HCM", null, 4, "zrn@staffly.com", "Zhang Ruo Nan", "0919900112", "Active" }
-                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Employees_DepartmentID",

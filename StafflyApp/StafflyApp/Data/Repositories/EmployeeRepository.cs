@@ -9,7 +9,7 @@ namespace StafflyApp.Data.Repositories
 {
     public class EmployeeRepository : IEmployeeRepository
     {
-        // 1. Lấy danh sách 
+        // 1. Get all employees (Soft Delete filtered)
         public List<Employee> GetAllEmployees()
         {
             List<Employee> employees = new List<Employee>();
@@ -33,7 +33,7 @@ namespace StafflyApp.Data.Repositories
             return employees;
         }
 
-        // 2. Thêm mới nhân viên
+        // 2. Add new employee
         public bool AddEmployee(Employee emp)
         {
             using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
@@ -54,7 +54,7 @@ namespace StafflyApp.Data.Repositories
             }
         }
 
-        // 3. Cập nhật thông tin
+        // 3. Update employee information
         public bool UpdateEmployee(Employee emp)
         {
             using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
@@ -76,7 +76,7 @@ namespace StafflyApp.Data.Repositories
             }
         }
 
-        // 4. Xóa nhân viên 
+        // 4. Delete employee (Soft Delete)
         public bool DeleteEmployee(int id)
         {
             using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
@@ -89,7 +89,7 @@ namespace StafflyApp.Data.Repositories
             }
         }
 
-        // 5. Tìm kiếm 
+        // 5. Search employees
         public List<Employee> SearchEmployees(string keyword)
         {
             List<Employee> employees = new List<Employee>();
@@ -110,13 +110,13 @@ namespace StafflyApp.Data.Repositories
             return employees;
         }
 
-        // 6. Đọc file Excel 
+        // 6. Read Excel file (Placeholder for Bulk Import)
         public List<Employee> ReadExcelFile(string filePath)
         {
             return new List<Employee>();
         }
 
-        // Hàm phụ dùng chung để Map dữ liệu 
+        // Helper method to map data reader to Employee object
         private Employee MapReaderToEmployee(SqlDataReader reader)
         {
             return new Employee
