@@ -8,11 +8,13 @@ namespace StafflyApp.Models
 {
     public class PayrollImportModel
     {
-        public string EmployeeID { get; set; }
-        public string FullName { get; set; }
-        public decimal BasicSalary { get; set; }
-        public int WorkingDays { get; set; }
-        public string ErrorMessage { get; set; }
-        public bool IsValid => string.IsNullOrEmpty(ErrorMessage);
+        public int EmployeeID { get; set; }
+        public string EmployeeName { get; set; }
+        public int Month { get; set; }
+        public int Year { get; set; }
+        public decimal TotalSalary { get; set; }
+        public decimal TotalBonus { get; set; }
+        public bool IsValid { get; set; }
+        public string ErrorNote { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using StafflyApp.Data;
 using StafflyApp.Data.Repositories;
 using StafflyApp.Models;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -27,11 +28,11 @@ namespace StafflyApp.ViewModels
         public EmployeeViewModel()
         {
             _repository = new EmployeeRepository();
-            LoadData();
+            _ = LoadData();
         }
 
         [RelayCommand]
-        public void LoadData()
+        public async Task LoadData()
         {
             var list = _repository.GetAllEmployees();
             employees = new ObservableCollection<Employee>(list);

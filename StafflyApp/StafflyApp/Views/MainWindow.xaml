@@ -44,50 +44,56 @@
         </Style>
     </Window.Resources>
 
-    <Border CornerRadius="30" Background="#F0F4F8" BorderThickness="1" BorderBrush="#E0E0E0" Padding="30">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+    <materialDesign:DialogHost Identifier="RootDialog">
+        <Border CornerRadius="30" Background="#F0F4F8" BorderThickness="1" BorderBrush="#E0E0E0" Padding="30">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Margin="0,0,0,30">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                <Grid Grid.Row="0" Margin="0,0,0,30">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="STAFFLY" FontSize="24" FontWeight="ExtraBold" Foreground="#1954D1" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="0" Text="STAFFLY" FontSize="24" FontWeight="ExtraBold" Foreground="#1954D1" VerticalAlignment="Center"/>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <RadioButton Content="Dashboard" Style="{StaticResource TabButtonStyle}" 
-                                 IsChecked="True" Click="TabDashboard_Click"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <RadioButton Content="Dashboard" Style="{StaticResource TabButtonStyle}" 
+                                     IsChecked="True" Click="TabDashboard_Click"/>
 
-                    <RadioButton Content="Employees" Style="{StaticResource TabButtonStyle}" 
-                                 Click="TabEmployees_Click"/>
+                        <RadioButton Content="Employees" Style="{StaticResource TabButtonStyle}" 
+                                     Click="TabEmployees_Click"/>
 
-                    <RadioButton Content="Departments" Style="{StaticResource TabButtonStyle}" 
-                                 Click="TabDepartments_Click"/>
+                        <RadioButton Content="Departments" Style="{StaticResource TabButtonStyle}" 
+                                     Click="TabDepartments_Click"/>
 
-                    <RadioButton Content="Payroll" Style="{StaticResource TabButtonStyle}" 
-                                 Click="TabPayroll_Click"/>
-                </StackPanel>
+                        <RadioButton Content="Payroll" Style="{StaticResource TabButtonStyle}" 
+                                     Click="TabPayroll_Click"/>
+                    </StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Background="White" BorderThickness="0" Width="35" Height="35" Margin="0,0,10,0" materialDesign:ElevationAssist.Elevation="Dp2">
-                        <materialDesign:PackIcon Kind="SettingsOutline" Foreground="#6B7280"/>
-                    </Button>
-                    <Button Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Background="White" BorderThickness="0" Width="35" Height="35" Margin="0,0,15,0" materialDesign:ElevationAssist.Elevation="Dp2">
-                        <materialDesign:PackIcon Kind="AccountOutline" Foreground="#6B7280"/>
-                    </Button>
-                    <Button Background="Transparent" BorderThickness="0" Padding="0" Click="CloseButton_Click" Cursor="Hand" VerticalAlignment="Center">
-                        <materialDesign:PackIcon Kind="Close" Foreground="#6B7280" Width="24" Height="24"/>
-                    </Button>
-                </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Background="White" BorderThickness="0" Width="35" Height="35" Margin="0,0,10,0" materialDesign:ElevationAssist.Elevation="Dp2">
+                            <materialDesign:PackIcon Kind="SettingsOutline" Foreground="#6B7280"/>
+                        </Button>
+                        <Button Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Background="White" BorderThickness="0" Width="35" Height="35" Margin="0,0,15,0" materialDesign:ElevationAssist.Elevation="Dp2">
+                            <materialDesign:PackIcon Kind="AccountOutline" Foreground="#6B7280"/>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Padding="0" Click="CloseButton_Click" Cursor="Hand" VerticalAlignment="Center">
+                            <materialDesign:PackIcon Kind="Close" Foreground="#6B7280" Width="24" Height="24"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <materialDesign:TransitioningContent Content="{Binding CurrentView}" Grid.Row="1" Focusable="False">
+                    <materialDesign:TransitioningContent.OpeningEffect>
+                        <materialDesign:TransitionEffect Kind="FadeIn" Duration="0:0:0.3"/>
+                    </materialDesign:TransitioningContent.OpeningEffect>
+                </materialDesign:TransitioningContent>
             </Grid>
-
-            <ContentControl Content="{Binding CurrentView}" Grid.Row="1" Focusable="False" />
-        </Grid>
-    </Border>
+        </Border>
+    </materialDesign:DialogHost>
 </Window>
