@@ -1,0 +1,162 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page {
+            size: A4 landscape; /* Landscape orientation for multi-column payroll sheet */
+            margin: 15mm 12mm;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            font-size: 10pt;
+        }
+
+        .header-table {
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        .company-name {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #777;
+        }
+
+        .report-title {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #1B365D;
+            margin-top: 5px;
+        }
+
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+            table.data-table th {
+                background-color: #1B365D;
+                color: white;
+                padding: 8px 5px;
+                font-size: 9.5pt;
+                font-weight: bold;
+                border: 1px solid #D3D3D3;
+            }
+
+            table.data-table td {
+                padding: 7px 5px;
+                border: 1px solid #D3D3D3;
+                vertical-align: middle;
+            }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .zebra-row {
+            background-color: #F2F5F9;
+        }
+
+        .total-row {
+            background-color: #E6ECF5;
+            font-weight: bold;
+            border-top: 1px solid #1B365D;
+            border-bottom: 4px double #1B365D;
+        }
+
+        .status-badge {
+            background-color: #D4EDDA;
+            color: #155724;
+            font-weight: bold;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 8.5pt;
+        }
+
+        .signature-section {
+            margin-top: 40px;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <table class="header-table">
+        <tr>
+            <td>
+                <div class="company-name">STAFFLY HRMS</div>
+                <div class="report-title">EMPLOYEE PAYROLL SHEET</div>
+                <div style="font-style: italic; margin-top:4px;">Payroll Period: May 2026</div>
+            </td>
+            <td class="text-right" style="vertical-align: bottom; font-style: italic;">
+                Status: <b>APPROVED</b>
+            </td>
+        </tr>
+    </table>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Emp ID</th>
+                <th>Full Name</th>
+                <th>Department</th>
+                <th>Base Salary</th>
+                <th>Allowances</th>
+                <th>Workday Pay</th>
+                <th>OT Pay</th>
+                <th>Gross Income</th>
+                <th>Insurance</th>
+                <th>PIT</th>
+                <th>Net Salary</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="zebra-row">
+                <td class="text-center">NV001</td>
+                <td><b>Nguyen Van An</b></td>
+                <td class="text-center">Sales</td>
+                <td class="text-right">25,000,000</td>
+                <td class="text-right">2,000,000</td>
+                <td class="text-right">25,000,000</td>
+                <td class="text-right">500,000</td>
+                <td class="text-right">27,500,000</td>
+                <td class="text-right">2,887,500</td>
+                <td class="text-right">1,500,000</td>
+                <td class="text-right" style="color:#1B365D; font-weight:bold;">23,112,500</td>
+                <td class="text-center"><span class="status-badge">Approved</span></td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="3" class="text-center">TOTAL</td>
+                <td class="text-right">141,500,000</td>
+                <td class="text-right">9,200,000</td>
+                <td class="text-right">137,863,636</td>
+                <td class="text-right">3,100,000</td>
+                <td class="text-right">150,163,636</td>
+                <td class="text-right">15,767,182</td>
+                <td class="text-right">6,400,000</td>
+                <td class="text-right">127,996,454</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table style="width: 100%; margin-top: 50px; text-align: center;">
+        <tr>
+            <td style="width: 33%;"><b>Prepared By</b><br><span style="font-weight:normal; font-size:9pt; italic">(Signature & Full Name)</span></td>
+            <td style="width: 33%;"><b>Chief Accountant</b><br><span style="font-weight:normal; font-size:9pt; italic">(Signature & Full Name)</span></td>
+            <td style="width: 33%;"><b>Approved By (CEO)</b><br><span style="font-weight:normal; font-size:9pt; italic">(Signature & Stamp)</span></td>
+        </tr>
+    </table>
+</body>
+</html>
