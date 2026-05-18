@@ -50,11 +50,11 @@ namespace StafflyApp.Data
 
             // 2.5 Seed Data: Chèn 5 phòng ban mẫu TRƯỚC khi chèn nhân viên
             modelBuilder.Entity<Department>().HasData(
-                new Department { DepartmentID = 1, DepartmentName = "Ban Giám Đốc", HeadcountLimit = 5 },
-                new Department { DepartmentID = 2, DepartmentName = "Phòng IT & Công Nghệ", HeadcountLimit = 20 },
-                new Department { DepartmentID = 3, DepartmentName = "Phòng Nhân Sự (HR)", HeadcountLimit = 15 },
-                new Department { DepartmentID = 4, DepartmentName = "Phòng Marketing", HeadcountLimit = 25 },
-                new Department { DepartmentID = 5, DepartmentName = "Phòng Kế Toán", HeadcountLimit = 10 }
+                new Department { DepartmentID = 1, DepartmentName = "Board of Directors", HeadcountLimit = 5 },
+                new Department { DepartmentID = 2, DepartmentName = "IT & Technology Department", HeadcountLimit = 20 },
+                new Department { DepartmentID = 3, DepartmentName = "Human Resources Department (HR)", HeadcountLimit = 15 },
+                new Department { DepartmentID = 4, DepartmentName = "Marketing Department", HeadcountLimit = 25 },
+                new Department { DepartmentID = 5, DepartmentName = "Accounting Department", HeadcountLimit = 10 }
             );
             // Seed Data cho User (để test chức năng Login)
             modelBuilder.Entity<User>().HasData(
