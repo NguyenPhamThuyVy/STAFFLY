@@ -1,13 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Microsoft.EntityFrameworkCore;
 using StafflyApp.Data;
 using StafflyApp.Models;
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks; 
 namespace StafflyApp.Data.Repositories
 {
     public class PayrollRepository
     {
+        private readonly StafflyDbContext _context;
+
+        // Constructor dùng chung cho các hàm Async sử dụng DI _context
+        public PayrollRepository(StafflyDbContext context)
+        {
+            _context = context;
+        }
+
+        // Hoặc tạo thêm Constructor rỗng phòng trường hợp các chỗ khác trong code gọi New không truyền tham số
+        public PayrollRepository()
+        {
+            _context = new StafflyDbContext();
+        }
+
         // 1. Hàm cập nhật trạng thái phê duyệt/từ chối bảng lương 
         public bool UpdatePayrollStatus(int payrollId, string status, int approvedById)
         {
@@ -15,26 +30,18 @@ namespace StafflyApp.Data.Repositories
             {
                 using (var db = new StafflyDbContext())
                 {
-                    // Tìm bản ghi bảng lương theo ID
                     var payroll = db.Payrolls.Find(payrollId);
                     if (payroll == null) return false;
 
-                    // Cập nhật các thông tin phê duyệt
-                    payroll.Status = status; // "Approved" hoặc "Rejected"
-
-                    // SỬA LỖI 1: Đổi tham số truyền vào thành int approvedById để khớp kiểu int? của Model
+                    payroll.Status = status;
                     payroll.ApprovedBy = approvedById;
-
-                    // SỬA LỖI 2: Dòng này sẽ hết lỗi sau khi Vy thêm thuộc tính UpdatedAt vào file Payroll.cs
                     payroll.UpdatedAt = DateTime.Now;
 
-                    // Nếu được duyệt (Approved) thì tự động khóa dữ liệu chu kỳ đó lại
                     if (status.Equals("Approved", StringComparison.OrdinalIgnoreCase))
                     {
                         LockPayrollData(db, payrollId);
                     }
 
-                    // Lưu thay đổi xuống SQL Server
                     return db.SaveChanges() > 0;
                 }
             }
@@ -50,8 +57,6 @@ namespace StafflyApp.Data.Repositories
             var payroll = db.Payrolls.Find(payrollId);
             if (payroll != null)
             {
-                // Tìm tất cả các bản ghi chấm công (Attendance) của nhân viên này trong tháng/năm đó
-                // SỬA LỖI 3 & 4: Dùng .Value.Month và .Value.Year để bóc tách dữ liệu từ kiểu DateTime? (Nullable)
                 var attendances = db.Attendances
                                     .Where(a => a.EmployeeID == payroll.EmployeeID
                                              && a.Date.HasValue
@@ -59,7 +64,6 @@ namespace StafflyApp.Data.Repositories
                                              && a.Date.Value.Year == payroll.Year)
                                     .ToList();
 
-                // Đổi trạng thái toàn bộ ngày công thành Locked (HR Staff sẽ không sửa được nữa)
                 foreach (var attendance in attendances)
                 {
                     attendance.IsLocked = true;
@@ -67,14 +71,13 @@ namespace StafflyApp.Data.Repositories
             }
         }
 
-        // 3. Hàm kiểm tra xem một chu kỳ lương đã bị khóa (Approved) chưa (Phục vụ cụm chặn Guard Clause)
+        // 3. Hàm kiểm tra xem một chu kỳ lương đã bị khóa (Approved) chưa
         public bool IsPayrollLocked(int employeeId, int month, int year)
         {
             try
             {
                 using (var db = new StafflyDbContext())
                 {
-                    // Nếu bảng lương của nhân viên này ở tháng/năm này đã "Approved", trả về true (Đã khóa)
                     return db.Payrolls.Any(p => p.EmployeeID == employeeId
                                              && p.Month == month
                                              && p.Year == year
@@ -85,6 +88,49 @@ namespace StafflyApp.Data.Repositories
             {
                 return false;
             }
+        }
+
+        // 4. Hàm lưu danh sách bảng lương sau khi Staff Import Excel thành công
+        public async Task<bool> SavePayrollRangeAsync(List<Payroll> payrolls)
+        {
+            try
+            {
+                foreach (var payroll in payrolls)
+                {
+                    _context.Entry(payroll).State = EntityState.Added;
+                }
+
+                int result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DbSaveError: {ex.Message}");
+                return false;
+            }
+        }
+
+        // 5. SỬA LỖI 2: Đồng bộ check chu kỳ theo Month/Year thật của Model nhóm Vy
+        public async Task<bool> IsPayrollPeriodExistedAsync(int employeeId, int month, int year)
+        {
+            return await _context.Payrolls.AnyAsync(p =>
+                p.EmployeeID == employeeId &&
+                p.Month == month &&
+                p.Year == year);
+        }
+
+        // 6. SỬA LỖI 3: Đồng bộ cột ngày chấm công thành a.Date cho khớp Model Attendance
+        public async Task<bool> CheckAttendanceLockStatusAsync(int employeeId, DateTime? date)
+        {
+            if (date == null) return false;
+
+            var attendance = await _context.Attendances
+                .FirstOrDefaultAsync(a => a.EmployeeID == employeeId && a.Date == date);
+
+            if (attendance == null) return false;
+
+            // Kiểm tra cờ IsLocked của ngày công
+            return attendance.IsLocked;
         }
     }
 }
