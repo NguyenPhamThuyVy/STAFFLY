@@ -33,6 +33,8 @@ namespace StafflyApp.Data
         }
         public DbSet<Employee> Employees { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Payroll> Payrolls { get; set; }
+        public DbSet<Attendance> Attendances { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,6 +43,8 @@ namespace StafflyApp.Data
             // 1. Cấu hình Primary Key (EF thường tự nhận diện nhưng khai báo rõ cho chắc chắn)
             modelBuilder.Entity<Employee>().HasKey(e => e.EmployeeID);
             modelBuilder.Entity<User>().HasKey(u => u.UserID);
+            modelBuilder.Entity<Payroll>().HasKey(p => p.PayrollID);
+            modelBuilder.Entity<Attendance>().HasKey(a => a.AttendanceID);
 
             // 2. Cấu hình quan hệ giữa User và Employee (nếu có navigation property)
 

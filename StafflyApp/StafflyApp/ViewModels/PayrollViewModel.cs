@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using StafflyApp.Models;
 using System;
+using StafflyApp.Data;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
@@ -118,12 +119,54 @@ namespace StafflyApp.ViewModels
         }
 
         [RelayCommand]
-        private void SaveToDatabase()
+        private void SubmitToManager()
         {
-            MessageBox.Show($"Successfully saved {SuccessCount} valid records.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-            IsDataLoaded = false;
-            FilePath = "No file selected";
-            ImportedRecords.Clear();
+            try
+            {
+                using (var db = new StafflyDbContext())
+                {
+                    // Chỉ lọc ra các dòng dữ liệu hợp lệ (IsValid == true) để trình lên Sếp
+                    var validRecords = ImportedRecords.Where(r => r.IsValid).ToList();
+
+                    if (!validRecords.Any())
+                    {
+                        MessageBox.Show("No valid records to submit!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    foreach (var importItem in validRecords)
+                    {
+                        // Khởi tạo thực thể Payroll thật để chuẩn bị lưu xuống DB
+                        var payrollDbRecord = new Payroll
+                        {
+                            EmployeeID = importItem.EmployeeID,
+                            Month = importItem.Month,
+                            Year = importItem.Year,
+                            TotalSalary = importItem.TotalSalary,
+                            TotalBonus = importItem.TotalBonus,
+                            Status = "Pending", // GÁN TRẠNG THÁI CHỜ DUYỆT CỐT LÕI
+                            RejectReason = string.Empty
+                        };
+                        db.Payrolls.Add(payrollDbRecord);
+                    }
+
+                    // Thực hiện lưu hàng loạt (Bulk Insert Optimization)
+                    if (db.SaveChanges() > 0)
+                    {
+                        MessageBox.Show($"Successfully submitted {validRecords.Count} payroll records to HR Manager for review!",
+                                        "Submission Successful", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                        // Reset trạng thái UI sau khi trình sếp thành công
+                        IsDataLoaded = false;
+                        FilePath = "No file selected";
+                        ImportedRecords.Clear();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Database Error: " + ex.Message, "Submission Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         public class ImportErrorItem
