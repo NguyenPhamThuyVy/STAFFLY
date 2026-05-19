@@ -54,6 +54,7 @@ namespace StafflyApp.ViewModels
                 System.Diagnostics.Debug.WriteLine("LoadPendingData Error: " + ex.Message);
             }
         }
+
         [RelayCommand]
         private void AcceptPayroll(Payroll payroll)
         {
@@ -66,6 +67,57 @@ namespace StafflyApp.ViewModels
                 MessageBox.Show($"Payroll for {payroll.EmployeeName} has been APPROVED and attendance data is locked!",
                                 "Notification", MessageBoxButton.OK, MessageBoxImage.Information);
                 LoadPendingData();
+            }
+        }
+
+        // THÊM VÀO LUỒNG NGHIỆP VỤ BATCH UPDATE: Logic xử lý phê duyệt đồng loạt
+        [RelayCommand]
+        private void AcceptAllPayrolls()
+        {
+            if (PendingPayrolls == null || !PendingPayrolls.Any())
+            {
+                MessageBox.Show("There are no pending payroll records to approve!",
+                                "Notice", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var confirmResult = MessageBox.Show($"Are you sure you want to APPROVE ALL {PendingPayrolls.Count} pending payroll records at once?\nThis action will lock attendance logs for this period.",
+                                                "Bulk Approval Confirmation", MessageBoxButton.OKCancel, MessageBoxImage.Question);
+
+            if (confirmResult != MessageBoxResult.OK) return;
+
+            try
+            {
+                using (var db = new StafflyDbContext())
+                {
+                    // Thu thập tập hợp khóa chính ID hiện diện trên lưới UI để lọc
+                    var pendingIds = PendingPayrolls.Select(p => p.PayrollID).ToList();
+                    var recordsInDb = db.Payrolls.Where(p => pendingIds.Contains(p.PayrollID)).ToList();
+
+                    if (recordsInDb.Any())
+                    {
+                        foreach (var record in recordsInDb)
+                        {
+                            record.Status = "Approved";
+                            record.ApprovedBy = UserSession.Instance.UserID;
+                            record.UpdatedAt = DateTime.Now;
+                        }
+
+                        // Thực thi lưu đồng loạt trong một phiên giao dịch duy nhất xuống SQL Server
+                        if (db.SaveChanges() > 0)
+                        {
+                            MessageBox.Show($"All {recordsInDb.Count} payroll records have been successfully APPROVED and finalized!",
+                                            "Bulk Approval Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                            LoadPendingData(); // Làm sạch lưới dữ liệu hiển thị
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error during bulk approval processing: " + ex.Message,
+                                "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

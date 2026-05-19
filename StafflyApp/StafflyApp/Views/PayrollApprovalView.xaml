@@ -10,23 +10,36 @@
     </UserControl.DataContext>
 
     <Grid Margin="15">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="22*"/>
-            <ColumnDefinition Width="65*"/>
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Margin="0,0,0,15" Grid.ColumnSpan="2">
-            <TextBlock Text="PAYROLL APPROVAL PIPELINE" FontSize="18" FontWeight="Bold" Foreground="#FF434343"/>
-            <TextBlock Text="Review clean Excel payroll submissions from HR Staff and dispatch status updates." Foreground="#666" Margin="0,2,0,0"/>
-        </StackPanel>
+        <Grid Grid.Row="0" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="PAYROLL APPROVAL PIPELINE" FontSize="18" FontWeight="Bold" Foreground="#FF434343"/>
+                <TextBlock Text="Review clean Excel payroll submissions from HR Staff and dispatch status updates." Foreground="#666" Margin="0,2,0,0"/>
+            </StackPanel>
+
+            <Button Grid.Column="1" Content="✓ Accept All Pending" 
+                    Command="{Binding AcceptAllPayrollsCommand}"
+                    Background="#2A62FF" Foreground="White" FontWeight="Bold" Padding="15,0" Height="36" BorderThickness="0" VerticalAlignment="Center">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="6"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </Grid>
 
         <DataGrid Grid.Row="1" ItemsSource="{Binding PendingPayrolls}" AutoGenerateColumns="False" 
                   CanUserAddRows="False" IsReadOnly="True" Background="White" RowHeight="42" 
-                  GridLinesVisibility="Horizontal" BorderThickness="0" Grid.ColumnSpan="2">
+                  GridLinesVisibility="Horizontal" BorderThickness="0">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Emp ID" Binding="{Binding EmployeeID}" Width="70"/>
                 <DataGridTextColumn Header="Employee Name" Binding="{Binding EmployeeName}" Width="180" FontWeight="SemiBold"/>
@@ -50,12 +63,11 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-
                                 <Button Content="Accept" 
-                        Command="{Binding DataContext.AcceptPayrollCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                        CommandParameter="{Binding}"
-                        Background="#4CAF50" Foreground="White" FontWeight="Bold" Padding="12,4" Margin="0,0,8,0" BorderThickness="0"
-                        Height="28" VerticalAlignment="Center">
+                                        Command="{Binding DataContext.AcceptPayrollCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"
+                                        Background="#4CAF50" Foreground="White" FontWeight="Bold" Padding="12,4" Margin="0,0,8,0" BorderThickness="0"
+                                        Height="28" VerticalAlignment="Center">
                                     <Button.Resources>
                                         <Style TargetType="Border">
                                             <Setter Property="CornerRadius" Value="4"/>
@@ -64,17 +76,16 @@
                                 </Button>
 
                                 <Button Content="Decline" 
-                        Command="{Binding DataContext.OpenDeclinePopupCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                        CommandParameter="{Binding}"
-                        Background="#F44336" Foreground="White" FontWeight="Bold" Padding="12,4" BorderThickness="0"
-                        Height="28" VerticalAlignment="Center">
+                                        Command="{Binding DataContext.OpenDeclinePopupCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"
+                                        Background="#F44336" Foreground="White" FontWeight="Bold" Padding="12,4" BorderThickness="0"
+                                        Height="28" VerticalAlignment="Center">
                                     <Button.Resources>
                                         <Style TargetType="Border">
                                             <Setter Property="CornerRadius" Value="4"/>
                                         </Style>
                                     </Button.Resources>
                                 </Button>
-
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -82,7 +93,9 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <Popup IsOpen="{Binding IsDeclinePopupOpen}" Placement="Center" AllowsTransparency="True" StaysOpen="False" Grid.ColumnSpan="2" Margin="0,0,0,463" Grid.RowSpan="2">
+        <Popup IsOpen="{Binding IsDeclinePopupOpen}" 
+               PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=UserControl}}"
+               Placement="Center" AllowsTransparency="True" StaysOpen="False">
             <Border Background="White" Width="360" CornerRadius="8" Padding="20" BorderBrush="#EEE" BorderThickness="1">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="15" Color="#333" Opacity="0.15" ShadowDepth="3"/>
