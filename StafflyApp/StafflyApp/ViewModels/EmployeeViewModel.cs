@@ -46,7 +46,7 @@ namespace StafflyApp.ViewModels
                 _allEmployeesMaster = list.ToList();
 
                 TotalEmployees = _allEmployeesMaster.Count;
-                ActiveEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE");
+                ActiveEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working");
 
                 Search();
 
@@ -55,10 +55,7 @@ namespace StafflyApp.ViewModels
                 {
                     var deptList = await Task.Run(() => db.Departments.ToList());
                     Departments.Clear();
-                    foreach (var dept in deptList)
-                    {
-                        Departments.Add(dept);
-                    }
+                    foreach (var dept in deptList) Departments.Add(dept);
                 }
             }
             catch (Exception ex)
@@ -72,21 +69,12 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void Search()
         {
-            List<Employee> filteredList;
-            if (string.IsNullOrWhiteSpace(SearchText))
-            {
-                filteredList = _allEmployeesMaster;
-            }
-            else
-            {
-                filteredList = _allEmployeesMaster.Where(e =>
-                    (e.FullName != null && e.FullName.Contains(SearchText, StringComparison.OrdinalIgnoreCase)) ||
-                    e.EmployeeID.ToString().Contains(SearchText)
-                ).ToList();
-            }
+            var filtered = string.IsNullOrWhiteSpace(SearchText)
+                ? _allEmployeesMaster
+                : _allEmployeesMaster.Where(e => (e.FullName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false) || e.EmployeeID.ToString().Contains(SearchText)).ToList();
 
             Employees.Clear();
-            foreach (var emp in filteredList) Employees.Add(emp);
+            foreach (var emp in filtered) Employees.Add(emp);
         }
 
         [RelayCommand]
@@ -115,7 +103,9 @@ namespace StafflyApp.ViewModels
                 Address = emp.Address,
                 DateOfBirth = emp.DateOfBirth,
                 Status = emp.Status,
-                DepartmentID = emp.DepartmentID
+                DepartmentID = emp.DepartmentID,
+                Address = emp.Address,
+                DateOfBirth = emp.DateOfBirth
             };
 
             FormTitle = "UPDATE INFORMATION";
@@ -134,43 +124,16 @@ namespace StafflyApp.ViewModels
         {
             try
             {
-                // 1. Name Validation
                 if (string.IsNullOrWhiteSpace(EditingEmployee.FullName))
                 {
-                    MessageBox.Show("Please enter the employee's full name!", "Validation Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Please enter the employee's name!", "Input Required", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                // 2. Email Validation
-                if (!string.IsNullOrWhiteSpace(EditingEmployee.Email))
-                {
-                    string emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-                    if (!Regex.IsMatch(EditingEmployee.Email, emailPattern))
-                    {
-                        MessageBox.Show("Invalid email format! Example: name@domain.com", "Email Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
-                }
-
-                // 3. Age Validation (>= 18)
-                if (EditingEmployee.DateOfBirth.HasValue)
-                {
-                    var dob = EditingEmployee.DateOfBirth.Value;
-                    var today = DateTime.Today;
-                    var age = today.Year - dob.Year;
-                    if (dob.Date > today.AddYears(-age)) age--;
-
-                    if (age < 18)
-                    {
-                        MessageBox.Show($"This candidate is only {age} years old. Employees must be at least 18!", "Age Restriction", MessageBoxButton.OK, MessageBoxImage.Stop);
-                        return;
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Please select a date of birth to verify age eligibility!", "Missing Information", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+                
+                EditingEmployee.Address ??= "Not updated";
+                EditingEmployee.Email ??= "";
+                EditingEmployee.Phone ??= "";
 
                 // 4. Department Validation
                 if (EditingEmployee.DepartmentID == null || EditingEmployee.DepartmentID == 0)
@@ -188,7 +151,6 @@ namespace StafflyApp.ViewModels
                 {
                     if (_isEditMode) db.Employees.Update(EditingEmployee);
                     else db.Employees.Add(EditingEmployee);
-
                     db.SaveChanges();
                 }
 
@@ -198,7 +160,7 @@ namespace StafflyApp.ViewModels
             }
             catch (Exception ex)
             {
-                string errorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                string errorMsg = ex.InnerException?.Message ?? ex.Message;
                 MessageBox.Show($"Database Error: {errorMsg}", "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -217,6 +179,11 @@ namespace StafflyApp.ViewModels
         private void ExecuteTransfer()
         {
             if (SelectedTargetDept == null) return;
+            if (SelectedTargetDept.CurrentStaffCount >= SelectedTargetDept.HeadcountLimit)
+            {
+                MessageBox.Show($"{SelectedTargetDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
             try
             {
@@ -233,18 +200,14 @@ namespace StafflyApp.ViewModels
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Transfer error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            catch (Exception ex) { MessageBox.Show("Transfer Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error); }
         }
 
         [RelayCommand]
         private void DeleteEmployee(Employee emp)
         {
             if (emp == null) return;
-            var result = MessageBox.Show($"Are you sure you want to delete {emp.FullName}?", "Confirm Deletion", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result == MessageBoxResult.Yes)
+            if (MessageBox.Show($"Are you sure you want to delete {emp.FullName}?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 if (_repository.DeleteEmployee(emp.EmployeeID)) _ = LoadData();
             }

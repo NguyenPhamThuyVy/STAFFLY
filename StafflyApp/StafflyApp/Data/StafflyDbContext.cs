@@ -1,8 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using StafflyApp.Models;
-using Microsoft.Extensions.Configuration; // thêm thư viện
-using System.IO;
+using Microsoft.Extensions.Configuration; 
 
 namespace StafflyApp.Data
 {
@@ -53,7 +52,9 @@ namespace StafflyApp.Data
 
             // GIỮ LẠI SEED DATA TÀI KHOẢN (Để đăng nhập nếu có)
             modelBuilder.Entity<User>().HasData(
-                new User { UserID = 1, Username = "admin", Password = "123", RoleID = 1, EmployeeID = 1, IsActive = true }
+                new User { UserID = 1, Username = "admin", Password = "123", RoleID = 1, EmployeeID = 1, IsActive = true },
+                new User { UserID = 2, Username = "manager", Password = "123", RoleID = 2, EmployeeID = 2, IsActive = true },
+                new User { UserID = 3, Username = "staff", Password = "123", RoleID = 3, EmployeeID = 3, IsActive = true }
             );
 
             // (ĐÃ XÓA TOÀN BỘ ĐOẠN modelBuilder.Entity<Employee>().HasData(...) Ở ĐÂY)

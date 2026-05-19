@@ -159,6 +159,24 @@ namespace StafflyApp.Migrations
                             Password = "123",
                             RoleID = 1,
                             Username = "admin"
+                        },
+                        new
+                        {
+                            UserID = 2,
+                            EmployeeID = 2,
+                            IsActive = true,
+                            Password = "123",
+                            RoleID = 2,
+                            Username = "manager"
+                        },
+                        new
+                        {
+                            UserID = 3,
+                            EmployeeID = 3,
+                            IsActive = true,
+                            Password = "123",
+                            RoleID = 3,
+                            Username = "staff"
                         });
                 });
 
