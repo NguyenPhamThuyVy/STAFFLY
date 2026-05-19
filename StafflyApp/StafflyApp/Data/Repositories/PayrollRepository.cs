@@ -110,7 +110,7 @@ namespace StafflyApp.Data.Repositories
             }
         }
 
-        // 5. SỬA LỖI 2: Đồng bộ check chu kỳ theo Month/Year thật của Model nhóm Vy
+        // 5. Đồng bộ check chu kỳ theo Month/Year thật của Model 
         public async Task<bool> IsPayrollPeriodExistedAsync(int employeeId, int month, int year)
         {
             return await _context.Payrolls.AnyAsync(p =>
@@ -119,7 +119,7 @@ namespace StafflyApp.Data.Repositories
                 p.Year == year);
         }
 
-        // 6. SỬA LỖI 3: Đồng bộ cột ngày chấm công thành a.Date cho khớp Model Attendance
+        // 6. Đồng bộ cột ngày chấm công thành a.Date cho khớp Model Attendance
         public async Task<bool> CheckAttendanceLockStatusAsync(int employeeId, DateTime? date)
         {
             if (date == null) return false;

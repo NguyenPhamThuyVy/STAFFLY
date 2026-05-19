@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StafflyApp.Data;
 
@@ -11,9 +12,11 @@ using StafflyApp.Data;
 namespace StafflyApp.Migrations
 {
     [DbContext(typeof(StafflyDbContext))]
-    partial class StafflyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260519063713_TranslateDepartmentNamesToEnglish")]
+    partial class TranslateDepartmentNamesToEnglish
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -240,7 +243,7 @@ namespace StafflyApp.Migrations
                         {
                             UserID = 1,
                             IsActive = true,
-                            Password = "$2a$11$1f2Q4SgFL9Vi859.82Xu.OIbKK5S4wkyDAe2NChtAzOjS1cVLl1JO",
+                            Password = "123",
                             RoleID = 1,
                             Username = "admin"
                         },
@@ -248,7 +251,7 @@ namespace StafflyApp.Migrations
                         {
                             UserID = 2,
                             IsActive = true,
-                            Password = "$2a$11$hJnClFtaelAXyhcvowg6JOc9S9pbjyRKx4Qgu8gxArDRv.ZHLTek.",
+                            Password = "123",
                             RoleID = 2,
                             Username = "manager"
                         },
@@ -256,7 +259,7 @@ namespace StafflyApp.Migrations
                         {
                             UserID = 3,
                             IsActive = true,
-                            Password = "$2a$11$0atkZXfZ3SFADDtqaspw8.E/42SoaXl3/tX17KGf1rL4vtTU4XVua",
+                            Password = "123",
                             RoleID = 3,
                             Username = "staff"
                         });
