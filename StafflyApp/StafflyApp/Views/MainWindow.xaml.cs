@@ -1,7 +1,8 @@
-﻿using System.Windows;
-using System.Windows.Input;
+﻿using StafflyApp.Helpers; // Thêm thư viện để truy xuất UserSession
 using StafflyApp.ViewModels;
-
+using System.Windows;
+using System.Windows.Input;
+using StafflyApp.Views; //
 namespace StafflyApp
 {
     public partial class MainWindow : Window
@@ -48,7 +49,7 @@ namespace StafflyApp
         }
         private void TabAttendance_Click(object sender, MouseButtonEventArgs e)
         {
-            
+
         }
 
         private void TabRecruitment_Click(object sender, MouseButtonEventArgs e)
@@ -61,9 +62,35 @@ namespace StafflyApp
 
         private void TabSystem_Click(object sender, RoutedEventArgs e)
         {
+            if (this.DataContext is MainWindowViewModel vm)
+            {
+                vm.NavigateCommand.Execute("AdminSettings");
+            }
         }
 
         // --- CÁC HÀM HỆ THỐNG ---
+
+        // ĐÃ THÊM: Logic điều hướng đăng xuất, hủy phiên đăng nhập hiện tại
+        private void LogoutButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to log out of STAFFLY?",
+                                                      "Logout Confirmation",
+                                                      MessageBoxButton.YesNo,
+                                                      MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                // 1. Xóa sạch thông tin tài khoản lưu vết trong Singleton
+                UserSession.Instance.ClearSession();
+
+                // 2. Mở lại màn hình Đăng nhập
+                LoginWindow loginWindow = new LoginWindow();
+                loginWindow.Show();
+
+                // 3. Đóng cửa sổ quản trị chính hiện tại
+                this.Close();
+            }
+        }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {

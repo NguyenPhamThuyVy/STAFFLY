@@ -41,10 +41,11 @@
                   CanUserAddRows="False" IsReadOnly="True" Background="White" RowHeight="42" 
                   GridLinesVisibility="Horizontal" BorderThickness="0">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Emp ID" Binding="{Binding EmployeeID}" Width="70"/>
-                <DataGridTextColumn Header="Employee Name" Binding="{Binding EmployeeName}" Width="180" FontWeight="SemiBold"/>
+                <DataGridTextColumn Header="Emp ID" Binding="{Binding EmployeeID}" Width="80"/>
 
-                <DataGridTextColumn Header="Month/Year" Width="90">
+                <DataGridTextColumn Header="Employee Name" Binding="{Binding EmployeeName}" Width="*" FontWeight="SemiBold"/>
+
+                <DataGridTextColumn Header="Month/Year" Width="100">
                     <DataGridTextColumn.Binding>
                         <MultiBinding StringFormat="{}{0}/{1}">
                             <MultiBinding.Bindings>
@@ -55,9 +56,8 @@
                     </DataGridTextColumn.Binding>
                 </DataGridTextColumn>
 
-                <DataGridTextColumn Header="Bonus ($)" Binding="{Binding TotalBonus, StringFormat={}{0:N2}}" Width="110"/>
-                <DataGridTextColumn Header="Total Salary ($)" Binding="{Binding TotalSalary, StringFormat={}{0:N2}}" Width="130" Foreground="#2A62FF" FontWeight="Bold"/>
-                <DataGridTextColumn Header="System Note" Binding="{Binding ErrorNote}" Width="*"/>
+                <DataGridTextColumn Header="Bonus ($)" Binding="{Binding TotalBonus, StringFormat={}{0:N2}}" Width="120"/>
+                <DataGridTextColumn Header="Total Salary ($)" Binding="{Binding TotalSalary, StringFormat={}{0:N2}}" Width="140" Foreground="#2A62FF" FontWeight="Bold"/>
 
                 <DataGridTemplateColumn Header="Actions" Width="180">
                     <DataGridTemplateColumn.CellTemplate>

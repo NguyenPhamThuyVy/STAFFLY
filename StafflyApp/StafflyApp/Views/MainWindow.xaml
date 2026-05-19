@@ -86,15 +86,48 @@
                         <Button Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Background="White" BorderThickness="0" Width="35" Height="35" Margin="0,0,10,0" materialDesign:ElevationAssist.Elevation="Dp2">
                             <materialDesign:PackIcon Kind="SettingsOutline" Foreground="#6B7280"/>
                         </Button>
-                        <Button Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Background="White" BorderThickness="0" Width="35" Height="35" Margin="0,0,15,0" materialDesign:ElevationAssist.Elevation="Dp2">
-                            <materialDesign:PackIcon Kind="AccountOutline" Foreground="#6B7280"/>
-                        </Button>
+
+                        <materialDesign:PopupBox StaysOpen="False" PlacementMode="BottomAndAlignRightEdges" Margin="0,0,15,0">
+                            <materialDesign:PopupBox.ToggleContent>
+                                <Border Width="35" Height="35" Background="White" CornerRadius="17.5" materialDesign:ElevationAssist.Elevation="Dp2">
+                                    <materialDesign:PackIcon Kind="AccountOutline" Foreground="#6B7280" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </materialDesign:PopupBox.ToggleContent>
+
+                            <Border Background="White" CornerRadius="12" Width="220" Padding="15">
+                                <StackPanel>
+                                    <TextBlock Text="👤 ACCOUNT INFO" FontSize="11" FontWeight="Bold" Foreground="#9CA3AF" Margin="0,0,0,8"/>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <materialDesign:PackIcon Kind="Account" Foreground="#1954D1" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding CurrentUserInfo}" FontWeight="Bold" Foreground="#1A1C29" VerticalAlignment="Center" FontSize="14"/>
+                                    </StackPanel>
+
+                                    <Separator Background="#F3F4F6" Margin="0,10"/>
+
+                                    <Button Content="Log Out" 
+                                            Click="LogoutButton_Click"
+                                            Background="#FFF1F2" Foreground="#E11D48" BorderThickness="0"
+                                            Height="35" FontWeight="SemiBold" materialDesign:ButtonAssist.CornerRadius="8">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatButton}">
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#FFE4E6"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                        </materialDesign:PopupBox>
+
                         <Button Background="Transparent" BorderThickness="0" Padding="0" Click="CloseButton_Click" Cursor="Hand" VerticalAlignment="Center">
                             <materialDesign:PackIcon Kind="Close" Foreground="#6B7280" Width="24" Height="24"/>
                         </Button>
                     </StackPanel>
                 </Grid>
-
                 <materialDesign:TransitioningContent Content="{Binding CurrentView}" Grid.Row="1" Focusable="False">
                     <materialDesign:TransitioningContent.OpeningEffect>
                         <materialDesign:TransitionEffect Kind="FadeIn" Duration="0:0:0.3"/>
