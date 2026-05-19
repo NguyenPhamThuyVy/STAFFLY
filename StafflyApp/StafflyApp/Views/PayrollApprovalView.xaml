@@ -1,0 +1,113 @@
+﻿<UserControl x:Class="StafflyApp.Views.PayrollApprovalView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:StafflyApp.ViewModels"
+             mc:Ignorable="d" d:DesignHeight="550" d:DesignWidth="900" Background="#F4F6F9">
+    <UserControl.DataContext>
+        <vm:PayrollApprovalViewModel/>
+    </UserControl.DataContext>
+
+    <Grid Margin="15">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="22*"/>
+            <ColumnDefinition Width="65*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Margin="0,0,0,15" Grid.ColumnSpan="2">
+            <TextBlock Text="PAYROLL APPROVAL PIPELINE" FontSize="18" FontWeight="Bold" Foreground="#FF434343"/>
+            <TextBlock Text="Review clean Excel payroll submissions from HR Staff and dispatch status updates." Foreground="#666" Margin="0,2,0,0"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1" ItemsSource="{Binding PendingPayrolls}" AutoGenerateColumns="False" 
+                  CanUserAddRows="False" IsReadOnly="True" Background="White" RowHeight="42" 
+                  GridLinesVisibility="Horizontal" BorderThickness="0" Grid.ColumnSpan="2">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Emp ID" Binding="{Binding EmployeeID}" Width="70"/>
+                <DataGridTextColumn Header="Employee Name" Binding="{Binding EmployeeName}" Width="180" FontWeight="SemiBold"/>
+
+                <DataGridTextColumn Header="Month/Year" Width="90">
+                    <DataGridTextColumn.Binding>
+                        <MultiBinding StringFormat="{}{0}/{1}">
+                            <MultiBinding.Bindings>
+                                <Binding Path="Month"/>
+                                <Binding Path="Year"/>
+                            </MultiBinding.Bindings>
+                        </MultiBinding>
+                    </DataGridTextColumn.Binding>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="Bonus ($)" Binding="{Binding TotalBonus, StringFormat={}{0:N2}}" Width="110"/>
+                <DataGridTextColumn Header="Total Salary ($)" Binding="{Binding TotalSalary, StringFormat={}{0:N2}}" Width="130" Foreground="#2A62FF" FontWeight="Bold"/>
+                <DataGridTextColumn Header="System Note" Binding="{Binding ErrorNote}" Width="*"/>
+
+                <DataGridTemplateColumn Header="Actions" Width="180">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                                <Button Content="Accept" 
+                        Command="{Binding DataContext.AcceptPayrollCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                        CommandParameter="{Binding}"
+                        Background="#4CAF50" Foreground="White" FontWeight="Bold" Padding="12,4" Margin="0,0,8,0" BorderThickness="0"
+                        Height="28" VerticalAlignment="Center">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+
+                                <Button Content="Decline" 
+                        Command="{Binding DataContext.OpenDeclinePopupCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                        CommandParameter="{Binding}"
+                        Background="#F44336" Foreground="White" FontWeight="Bold" Padding="12,4" BorderThickness="0"
+                        Height="28" VerticalAlignment="Center">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Popup IsOpen="{Binding IsDeclinePopupOpen}" Placement="Center" AllowsTransparency="True" StaysOpen="False" Grid.ColumnSpan="2" Margin="0,0,0,463" Grid.RowSpan="2">
+            <Border Background="White" Width="360" CornerRadius="8" Padding="20" BorderBrush="#EEE" BorderThickness="1">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="15" Color="#333" Opacity="0.15" ShadowDepth="3"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="🚫 Decline Feedback Required" FontSize="15" FontWeight="Bold" Foreground="#F44336" Margin="0,0,0,5"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="Target Employee: " Foreground="#777"/>
+                        <TextBlock Text="{Binding SelectedPayroll.EmployeeName}" FontWeight="Bold" Foreground="#333"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Reason for rejection:" Margin="0,0,0,5" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding RejectReasonInput, UpdateSourceTrigger=PropertyChanged}" 
+                             Height="80" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Padding="6" Margin="0,0,0,15"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Content="Cancel" Command="{Binding CloseDeclinePopupCommand}" Background="#E0E0E0" Foreground="#333" Padding="0,8" Margin="0,0,5,0" BorderThickness="0"/>
+                        <Button Grid.Column="1" Content="Submit Reject" Command="{Binding ConfirmDeclinePayrollCommand}" Background="#F44336" Foreground="White" FontWeight="Bold" Padding="0,8" Margin="5,0,0,0" BorderThickness="0"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>

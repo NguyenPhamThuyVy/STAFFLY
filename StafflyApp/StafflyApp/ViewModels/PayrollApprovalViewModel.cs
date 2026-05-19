@@ -15,34 +15,37 @@ namespace StafflyApp.ViewModels
     {
         private readonly PayrollRepository _payrollRepo = new();
 
-        // Danh sách bảng lương Pending 
         [ObservableProperty] private ObservableCollection<Payroll> _pendingPayrolls = new();
-
-        // Thuộc tính nhận lý do từ chối
         [ObservableProperty] private string _rejectReasonInput = string.Empty;
+
+        // Quản lý trạng thái Popup ẩn/hiện
+        [ObservableProperty] private bool _isDeclinePopupOpen = false;
+
+        // Lưu vết dòng bản ghi lương đang được chọn để từ chối
+        [ObservableProperty] private Payroll? _selectedPayroll;
 
         public PayrollApprovalViewModel()
         {
+            // Đảm bảo bốc dữ liệu Pending ngay khi Manager vừa load View
             LoadPendingData();
         }
 
-        // 1. Hàm bốc dữ liệu Pending từ DB lên nuôi hệ thống
         public void LoadPendingData()
         {
             try
             {
                 using (var db = new StafflyDbContext())
                 {
-                    // Lấy các bản ghi có Status là Pending
+                    // Tải danh sách Pending
                     var list = db.Payrolls.Where(p => p.Status == "Pending").ToList();
 
-                    // Kết hợp bốc tên nhân viên từ bảng Employees lên để hiển thị
                     foreach (var p in list)
                     {
                         var emp = db.Employees.Find(p.EmployeeID);
                         p.EmployeeName = emp?.FullName ?? "Unknown Employee";
                     }
 
+                    // Gán đè ObservableCollection mới để kích hoạt giao diện DataGrid update
                     PendingPayrolls = new ObservableCollection<Payroll>(list);
                 }
             }
@@ -51,71 +54,77 @@ namespace StafflyApp.ViewModels
                 System.Diagnostics.Debug.WriteLine("LoadPendingData Error: " + ex.Message);
             }
         }
-
-        // 2. Logic xử lý khi Manager ấn nút ACCEPT (Phê duyệt)
         [RelayCommand]
         private void AcceptPayroll(Payroll payroll)
         {
             if (payroll == null) return;
 
-            // Gọi hàm Repo đổi trạng thái thành Approved và tự động khóa dữ liệu chấm công tháng đó lại
             bool isSuccess = _payrollRepo.UpdatePayrollStatus(payroll.PayrollID, "Approved", UserSession.Instance.UserID);
 
             if (isSuccess)
             {
-                MessageBox.Show($"Payroll for Employee ID {payroll.EmployeeID} has been APPROVED and attendance data is locked!",
-                                "Approval Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                LoadPendingData(); // Refresh lại danh sách
+                MessageBox.Show($"Payroll for {payroll.EmployeeName} has been APPROVED and attendance data is locked!",
+                                "Notification", MessageBoxButton.OK, MessageBoxImage.Information);
+                LoadPendingData();
             }
         }
 
-        // 3. Logic xử lý khi Manager ấn nút DECLINE (Từ chối)
+        // Kích hoạt mở Popup điền Feedback
         [RelayCommand]
-        private void DeclinePayroll(Payroll payroll)
+        private void OpenDeclinePopup(Payroll payroll)
         {
             if (payroll == null) return;
+            SelectedPayroll = payroll;
+            RejectReasonInput = "Incorrect bonus/allowance calculation."; // Đặt chữ gợi ý sẵn
+            IsDeclinePopupOpen = true;
+        }
 
-            // BƯỚC ĐỆM KHI CHƯA CÓ UI: Dùng Microsoft.VisualBasic Interaction.InputBox 
-            // để test nhanh luồng nhập dữ liệu mà không cần vẽ màn hình popup phức tạp!
-            string reason = Microsoft.VisualBasic.Interaction.InputBox(
-                $"Enter the reason for declining Employee ID {payroll.EmployeeID}'s payroll:",
-                "Decline Reason Required",
-                "Incorrect bonus configuration."
-            );
+        [RelayCommand]
+        private void CloseDeclinePopup()
+        {
+            IsDeclinePopupOpen = false;
+            SelectedPayroll = null;
+        }
 
-            // Nếu sếp bấm Cancel hoặc bỏ trống thì chặn không cho từ chối lụi
-            if (string.IsNullOrWhiteSpace(reason))
+        // Thực thi gửi tín hiệu Từ chối dữ liệu xuống DB
+        [RelayCommand]
+        private void ConfirmDeclinePayroll()
+        {
+            if (SelectedPayroll == null) return;
+
+            if (string.IsNullOrWhiteSpace(RejectReasonInput))
             {
-                MessageBox.Show("You must provide a reason to decline this payroll submission!",
+                MessageBox.Show("Please specify the reason for declining this payroll submission!",
                                 "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // Tiến hành cập nhật lý do và trạng thái Rejected xuống SQL Server
             try
             {
                 using (var db = new StafflyDbContext())
                 {
-                    var record = db.Payrolls.Find(payroll.PayrollID);
+                    var record = db.Payrolls.Find(SelectedPayroll.PayrollID);
                     if (record != null)
                     {
                         record.Status = "Rejected";
-                        record.RejectReason = reason; // Lưu vết chuỗi lý do sếp vừa gõ
+                        record.RejectReason = RejectReasonInput.Trim();
                         record.ApprovedBy = UserSession.Instance.UserID;
                         record.UpdatedAt = DateTime.Now;
 
                         if (db.SaveChanges() > 0)
                         {
-                            MessageBox.Show("Payroll declined successfully. Feedback has been sent back to HR Staff.",
-                                            "Declined", MessageBoxButton.OK, MessageBoxImage.Information);
-                            LoadPendingData(); // Tải lại lưới dữ liệu
+                            MessageBox.Show($"Payroll submission marked as [Declined]. Reason dispatched back to HR Staff.",
+                                            "Feedback Dispatched", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                            IsDeclinePopupOpen = false; // Đóng popup thành công
+                            LoadPendingData(); // Refresh lưới dữ liệu sạch
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error declining payroll: " + ex.Message, "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Error processing rejection: " + ex.Message, "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

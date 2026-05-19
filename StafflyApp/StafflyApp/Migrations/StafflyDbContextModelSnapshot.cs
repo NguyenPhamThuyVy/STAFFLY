@@ -3,7 +3,6 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StafflyApp.Data;
 
@@ -12,11 +11,9 @@ using StafflyApp.Data;
 namespace StafflyApp.Migrations
 {
     [DbContext(typeof(StafflyDbContext))]
-    [Migration("20260515145657_InitialEmptyEmployees")]
-    partial class InitialEmptyEmployees
+    partial class StafflyDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,6 +21,32 @@ namespace StafflyApp.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("StafflyApp.Models.Attendance", b =>
+                {
+                    b.Property<int>("AttendanceID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttendanceID"));
+
+                    b.Property<DateTime?>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("EmployeeID")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("AttendanceID");
+
+                    b.ToTable("Attendances");
+                });
 
             modelBuilder.Entity("StafflyApp.Models.Department", b =>
                 {
@@ -52,35 +75,35 @@ namespace StafflyApp.Migrations
                         {
                             DepartmentID = 1,
                             CurrentStaffCount = 0,
-                            DepartmentName = "Ban Giám Đốc",
+                            DepartmentName = "Board of Directors",
                             HeadcountLimit = 5
                         },
                         new
                         {
                             DepartmentID = 2,
                             CurrentStaffCount = 0,
-                            DepartmentName = "Phòng IT & Công Nghệ",
+                            DepartmentName = "IT & Technology Department",
                             HeadcountLimit = 20
                         },
                         new
                         {
                             DepartmentID = 3,
                             CurrentStaffCount = 0,
-                            DepartmentName = "Phòng Nhân Sự (HR)",
+                            DepartmentName = "Human Resources Department (HR)",
                             HeadcountLimit = 15
                         },
                         new
                         {
                             DepartmentID = 4,
                             CurrentStaffCount = 0,
-                            DepartmentName = "Phòng Marketing",
+                            DepartmentName = "Marketing Department",
                             HeadcountLimit = 25
                         },
                         new
                         {
                             DepartmentID = 5,
                             CurrentStaffCount = 0,
-                            DepartmentName = "Phòng Kế Toán",
+                            DepartmentName = "Accounting Department",
                             HeadcountLimit = 10
                         });
                 });
@@ -126,6 +149,62 @@ namespace StafflyApp.Migrations
                     b.ToTable("Employees");
                 });
 
+            modelBuilder.Entity("StafflyApp.Models.Payroll", b =>
+                {
+                    b.Property<int>("PayrollID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PayrollID"));
+
+                    b.Property<DateTime?>("ApprovalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ApprovedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EmployeeID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ErrorNote")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsValid")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RejectReason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalBonus")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalSalary")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("PayrollID");
+
+                    b.ToTable("Payrolls");
+                });
+
             modelBuilder.Entity("StafflyApp.Models.User", b =>
                 {
                     b.Property<int>("UserID")
@@ -146,6 +225,9 @@ namespace StafflyApp.Migrations
                     b.Property<int?>("RoleID")
                         .HasColumnType("int");
 
+                    b.Property<string>("RoleName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Username")
                         .HasColumnType("nvarchar(max)");
 
@@ -157,11 +239,26 @@ namespace StafflyApp.Migrations
                         new
                         {
                             UserID = 1,
-                            EmployeeID = 1,
                             IsActive = true,
                             Password = "123",
                             RoleID = 1,
                             Username = "admin"
+                        },
+                        new
+                        {
+                            UserID = 2,
+                            IsActive = true,
+                            Password = "abc",
+                            RoleID = 2,
+                            Username = "manager"
+                        },
+                        new
+                        {
+                            UserID = 3,
+                            IsActive = true,
+                            Password = "a1b2",
+                            RoleID = 3,
+                            Username = "staff"
                         });
                 });
 

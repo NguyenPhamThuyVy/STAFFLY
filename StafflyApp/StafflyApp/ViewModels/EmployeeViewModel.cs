@@ -104,8 +104,7 @@ namespace StafflyApp.ViewModels
                 DateOfBirth = emp.DateOfBirth,
                 Status = emp.Status,
                 DepartmentID = emp.DepartmentID,
-                Address = emp.Address,
-                DateOfBirth = emp.DateOfBirth
+        
             };
 
             FormTitle = "UPDATE INFORMATION";

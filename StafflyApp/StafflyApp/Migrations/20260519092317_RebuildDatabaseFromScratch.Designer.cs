@@ -12,8 +12,8 @@ using StafflyApp.Data;
 namespace StafflyApp.Migrations
 {
     [DbContext(typeof(StafflyDbContext))]
-    [Migration("20260519063713_TranslateDepartmentNamesToEnglish")]
-    partial class TranslateDepartmentNamesToEnglish
+    [Migration("20260519092317_RebuildDatabaseFromScratch")]
+    partial class RebuildDatabaseFromScratch
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -251,7 +251,7 @@ namespace StafflyApp.Migrations
                         {
                             UserID = 2,
                             IsActive = true,
-                            Password = "123",
+                            Password = "abc",
                             RoleID = 2,
                             Username = "manager"
                         },
@@ -259,7 +259,7 @@ namespace StafflyApp.Migrations
                         {
                             UserID = 3,
                             IsActive = true,
-                            Password = "123",
+                            Password = "a1b2",
                             RoleID = 3,
                             Username = "staff"
                         });
