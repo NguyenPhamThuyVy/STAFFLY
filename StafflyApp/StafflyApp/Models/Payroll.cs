@@ -14,12 +14,14 @@ namespace StafflyApp.Models
         public int Year { get; set; }
         public decimal TotalBonus { get; set; }
         public decimal TotalSalary { get; set; }
-        public string Status { get; set; }
+        public string Status { get; set; } = "Pending";
         public int? ApprovedBy { get; set; }
         public DateTime? ApprovalDate { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         // === CÁC TRƯỜNG BỔ SUNG CHỈ DÙNG CHO GIAO DIỆN IMPORT EXCEL ===
         public string EmployeeName { get; set; } // Tên nhân viên để hiển thị trên DataGrid
         public bool IsValid { get; set; } = true; // Cờ đánh dấu dòng bị lỗi
         public string ErrorNote { get; set; } // Câu thông báo lỗi (ví dụ: "Lương âm", "Sai mã NV")
+        public string RejectReason { get; set; } = string.Empty;
     }
 }

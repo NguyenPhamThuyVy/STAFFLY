@@ -33,6 +33,8 @@ namespace StafflyApp.Data
         }
         public DbSet<Employee> Employees { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Payroll> Payrolls { get; set; }
+        public DbSet<Attendance> Attendances { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -40,21 +42,24 @@ namespace StafflyApp.Data
 
             modelBuilder.Entity<Employee>().HasKey(e => e.EmployeeID);
             modelBuilder.Entity<User>().HasKey(u => u.UserID);
+            modelBuilder.Entity<Payroll>().HasKey(p => p.PayrollID);
+            modelBuilder.Entity<Attendance>().HasKey(a => a.AttendanceID);
 
-            // CHỈ GIỮ LẠI SEED DATA PHÒNG BAN (Để có dữ liệu chọn lúc Add Nhân viên)
+            // 2. Cấu hình quan hệ giữa User và Employee (nếu có navigation property)
+
+            // 2.5 Seed Data: Chèn 5 phòng ban mẫu TRƯỚC khi chèn nhân viên
             modelBuilder.Entity<Department>().HasData(
-                new Department { DepartmentID = 1, DepartmentName = "Ban Giám Đốc", HeadcountLimit = 5 },
-                new Department { DepartmentID = 2, DepartmentName = "Phòng IT & Công Nghệ", HeadcountLimit = 20 },
-                new Department { DepartmentID = 3, DepartmentName = "Phòng Nhân Sự (HR)", HeadcountLimit = 15 },
-                new Department { DepartmentID = 4, DepartmentName = "Phòng Marketing", HeadcountLimit = 25 },
-                new Department { DepartmentID = 5, DepartmentName = "Phòng Kế Toán", HeadcountLimit = 10 }
+                new Department { DepartmentID = 1, DepartmentName = "Board of Directors", HeadcountLimit = 5 },
+                new Department { DepartmentID = 2, DepartmentName = "IT & Technology Department", HeadcountLimit = 20 },
+                new Department { DepartmentID = 3, DepartmentName = "Human Resources Department (HR)", HeadcountLimit = 15 },
+                new Department { DepartmentID = 4, DepartmentName = "Marketing Department", HeadcountLimit = 25 },
+                new Department { DepartmentID = 5, DepartmentName = "Accounting Department", HeadcountLimit = 10 }
             );
-
-            // GIỮ LẠI SEED DATA TÀI KHOẢN (Để đăng nhập nếu có)
+            // Seed Data cho User (để test chức năng Login)
             modelBuilder.Entity<User>().HasData(
-                new User { UserID = 1, Username = "admin", Password = "123", RoleID = 1, EmployeeID = 1, IsActive = true },
-                new User { UserID = 2, Username = "manager", Password = "123", RoleID = 2, EmployeeID = 2, IsActive = true },
-                new User { UserID = 3, Username = "staff", Password = "123", RoleID = 3, EmployeeID = 3, IsActive = true }
+                new User { UserID = 1, Username = "admin", Password = "123", RoleID = 1, EmployeeID = null, IsActive = true },
+                new User { UserID = 2, Username = "manager", Password = "abc", RoleID = 2, EmployeeID = null, IsActive = true },
+                new User { UserID = 3, Username = "staff", Password = "a1b2", RoleID = 3, EmployeeID = null, IsActive = true }
             );
 
             // (ĐÃ XÓA TOÀN BỘ ĐOẠN modelBuilder.Entity<Employee>().HasData(...) Ở ĐÂY)

@@ -12,5 +12,6 @@ namespace StafflyApp.Models
         public int? EmployeeID { get; set; }
         public DateTime? Date { get; set; }
         public string Status { get; set; }
+        public bool IsLocked { get; set; }
     }
 }
