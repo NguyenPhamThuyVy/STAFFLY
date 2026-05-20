@@ -3,52 +3,67 @@ using CommunityToolkit.Mvvm.Input;
 using StafflyApp.Data;
 using StafflyApp.Data.Repositories;
 using StafflyApp.Models;
+using StafflyApp.Helpers;
+using StafflyApp.Views;
+using StafflyApp.Data.Repositories; 
 using System.Windows;
+using System.Windows.Controls;
 
-namespace StafflyApp.ViewModels // Chữ cái đầu nên viết hoa để khớp với XAML
+namespace StafflyApp.ViewModels
 {
-    // 1. Phải có partial và kế thừa ObservableObject
     public partial class LoginViewModel : ObservableObject
     {
         private readonly UserRepository _userRepository;
 
         [ObservableProperty]
-        private string username = string.Empty;
+        private string _username = string.Empty;
 
         [ObservableProperty]
-        private string password = string.Empty;
+        private string _errorMessage = string.Empty;
 
         public LoginViewModel()
         {
-            // 1. Khởi tạo context trước
+            // Khởi tạo Repository để kết nối Database thật
             var context = new StafflyDbContext();
-
-            // 2. Truyền context vào Repository
             _userRepository = new UserRepository(context);
         }
 
-        // 2. RelayCommand (R và C viết hoa) để Toolkit tự sinh ra lệnh LoginCommand
         [RelayCommand]
-        private void Login()
+        private void Login(object parameter)
         {
-            // Các phương thức hệ thống phải viết hoa đúng: string.IsNullOrEmpty, MessageBox.Show
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            var passwordBox = parameter as PasswordBox;
+            if (passwordBox == null) return;
+
+            string password = passwordBox.Password;
+
+            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(password))
             {
-                MessageBox.Show("Vui lòng nhập đầy đủ tài khoản và mật khẩu!");
+                ErrorMessage = "Please enter both username and password!";
                 return;
             }
 
-            // Lưu ý: Toolkit tự sinh ra Property 'Username' (viết hoa) từ field '_username'
-            User? authenticatedUser = _userRepository.AuthenticateUser(username, password);
+            User? authenticatedUser = _userRepository.AuthenticateUser(Username, password);
 
             if (authenticatedUser != null)
             {
-                MessageBox.Show($"Đăng nhập thành công! Chào mừng {authenticatedUser.Username}");
-                // Sau này bạn có thể thêm logic chuyển màn hình ở đây
+                // Gán vào Singleton mới
+                UserSession.Instance.UserID = authenticatedUser.UserID;
+                UserSession.Instance.Username = authenticatedUser.Username;
+                UserSession.Instance.RoleID = authenticatedUser.RoleID ?? 0;
+                UserSession.Instance.RoleName = authenticatedUser.RoleName;
+
+                // Xử lý chuyển cửa sổ 
+                Window currentWindow = Window.GetWindow(passwordBox);
+                if (currentWindow != null)
+                {
+                    MainWindow main = new MainWindow();
+                    main.Show();
+                    currentWindow.Close();
+                }
             }
             else
             {
-                MessageBox.Show("Tài khoản hoặc mật khẩu không chính xác!");
+                ErrorMessage = "Incorrect username or password!";
             }
         }
     }

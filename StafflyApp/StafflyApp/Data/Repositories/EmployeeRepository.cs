@@ -1,125 +1,135 @@
-﻿using Microsoft.Data.SqlClient;
-using StafflyApp.Data;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Data.SqlClient;
 using StafflyApp.Data.Interfaces;
 using StafflyApp.Models;
-using System;
-using System.Collections.Generic;
+using StafflyApp.Data;
 
-public class EmployeeRepository : IEmployeeRepository
+namespace StafflyApp.Data.Repositories
 {
-    // 1. Lấy danh sách (Soft Delete)
-    public List<Employee> GetAllEmployees()
+    public class EmployeeRepository : IEmployeeRepository
     {
-        List<Employee> employees = new List<Employee>();
-        using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
+        // 1. Lấy danh sách 
+        public List<Employee> GetAllEmployees()
         {
-            conn.Open();
-            string query = "SELECT * FROM Employees WHERE Status != 'Resigned' OR Status IS NULL";
-            using (SqlCommand cmd = new SqlCommand(query, conn))
+            List<Employee> employees = new List<Employee>();
+            using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
             {
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                conn.Open();
+                string query = "SELECT EmployeeID, FullName, Email, Phone, Address, DateOfBirth, DepartmentID, Status " +
+                               "FROM Employees WHERE Status != 'Resigned' OR Status IS NULL";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    while (reader.Read())
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        employees.Add(MapReaderToEmployee(reader));
+                        while (reader.Read())
+                        {
+                            employees.Add(MapReaderToEmployee(reader));
+                        }
                     }
                 }
             }
+            return employees;
         }
-        return employees;
-    }
 
-    // 2. THÊM MỚI (Hàm này đang thiếu trong hình của bạn nè)
-    public bool AddEmployee(Employee emp)
-    {
-        using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
+        // 2. Thêm mới nhân viên
+        public bool AddEmployee(Employee emp)
         {
-            string query = @"INSERT INTO Employees (FullName, Email, DateOfBirth, Status) 
-                            VALUES (@Name, @Email, @DOB, @Status)";
-            SqlCommand cmd = new SqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@Name", emp.FullName);
-            cmd.Parameters.AddWithValue("@Email", (object)emp.Email ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@DOB", (object)emp.DateOfBirth ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Status", (object)emp.Status ?? "Active");
+            using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
+            {
+                string query = @"INSERT INTO Employees (FullName, Email, Phone, Address, DateOfBirth, DepartmentID, Status) 
+                                VALUES (@Name, @Email, @Phone, @Address, @DOB, @DeptID, @Status)";
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@Name", emp.FullName);
+                cmd.Parameters.AddWithValue("@Email", (object)emp.Email ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Phone", (object)emp.Phone ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Address", (object)emp.Address ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@DOB", (object)emp.DateOfBirth ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@DeptID", (object)emp.DepartmentID ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Status", (object)emp.Status ?? "Active");
 
-            conn.Open();
-            return cmd.ExecuteNonQuery() > 0;
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
         }
-    }
+
+        // 3. Cập nhật thông tin
+        public bool UpdateEmployee(Employee emp)
+        {
+            using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
+            {
+                string query = @"UPDATE Employees SET FullName=@Name, Email=@Email, Phone=@Phone, Address=@Address, 
+                                DateOfBirth=@DOB, DepartmentID=@DeptID, Status=@Status WHERE EmployeeID=@ID";
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@ID", emp.EmployeeID);
+                cmd.Parameters.AddWithValue("@Name", emp.FullName);
+                cmd.Parameters.AddWithValue("@Email", (object)emp.Email ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Phone", (object)emp.Phone ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Address", (object)emp.Address ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@DOB", (object)emp.DateOfBirth ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@DeptID", (object)emp.DepartmentID ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Status", (object)emp.Status ?? "Active");
+
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+
+        // 4. Xóa nhân viên 
+        public bool DeleteEmployee(int id)
+        {
+            using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
+            {
+                string query = "UPDATE Employees SET Status = 'Resigned' WHERE EmployeeID = @ID";
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@ID", id);
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+
+        // 5. Tìm kiếm 
+        public List<Employee> SearchEmployees(string keyword)
+        {
+            List<Employee> employees = new List<Employee>();
+            using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
+            {
+                string query = "SELECT EmployeeID, FullName, Email, Phone, Address, DateOfBirth, DepartmentID, Status " +
+                               "FROM Employees WHERE FullName LIKE @Keyword AND (Status != 'Resigned' OR Status IS NULL)";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Keyword", "%" + keyword + "%");
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read()) { employees.Add(MapReaderToEmployee(reader)); }
+                    }
+                }
+            }
+            return employees;
+        }
+
+        // 6. Đọc file Excel 
         public List<Employee> ReadExcelFile(string filePath)
         {
-            // In a real scenario, use ExcelDataReader or EPPlus here
-            // For now, returning an empty list to allow successful build
             return new List<Employee>();
         }
 
-    // 3. CẬP NHẬT
-    public bool UpdateEmployee(Employee emp)
-    {
-        using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
+        // Hàm phụ dùng chung để Map dữ liệu 
+        private Employee MapReaderToEmployee(SqlDataReader reader)
         {
-            string query = @"UPDATE Employees SET FullName=@Name, Email=@Email, 
-                            DateOfBirth=@DOB, Status=@Status WHERE EmployeeID=@ID";
-            SqlCommand cmd = new SqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@ID", emp.EmployeeID);
-            cmd.Parameters.AddWithValue("@Name", emp.FullName);
-            cmd.Parameters.AddWithValue("@Email", (object)emp.Email ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@DOB", (object)emp.DateOfBirth ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Status", (object)emp.Status ?? "Active");
-
-            conn.Open();
-            return cmd.ExecuteNonQuery() > 0;
-        }
-    }
-
-    // 4. XÓA MỀM (Soft Delete)
-    public bool DeleteEmployee(int id)
-    {
-        using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
-        {
-            string query = "UPDATE Employees SET Status = 'Resigned' WHERE EmployeeID = @ID";
-            SqlCommand cmd = new SqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@ID", id);
-            conn.Open();
-            return cmd.ExecuteNonQuery() > 0;
-        }
-    }
-
-    private Employee MapReaderToEmployee(SqlDataReader reader)
-    {
-        return new Employee
-        {
-            EmployeeID = Convert.ToInt32(reader["EmployeeID"]),
-            FullName = reader["FullName"].ToString(),
-            Email = reader["Email"]?.ToString(),
-            DateOfBirth = reader["DateOfBirth"] != DBNull.Value ? Convert.ToDateTime(reader["DateOfBirth"]) : (DateTime?)null,
-            Status = reader["Status"]?.ToString()
-        };
-    }
-
-    public List<Employee> SearchEmployees(string keyword)
-    {
-        List<Employee> employees = new List<Employee>();
-        using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
-        {
-            string query = @"SELECT * FROM Employees 
-                        WHERE FullName LIKE @Keyword 
-                        AND (Status != 'Resigned' OR Status IS NULL)";
-
-            using (SqlCommand cmd = new SqlCommand(query, conn))
+            return new Employee
             {
-                cmd.Parameters.AddWithValue("@Keyword", "%" + keyword + "%");
-                conn.Open();
-
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        employees.Add(MapReaderToEmployee(reader));
-                    }
-                }
-            }
+                EmployeeID = Convert.ToInt32(reader["EmployeeID"]),
+                FullName = reader["FullName"].ToString(),
+                Email = reader["Email"] != DBNull.Value ? reader["Email"].ToString() : null,
+                Phone = reader["Phone"] != DBNull.Value ? reader["Phone"].ToString() : null,
+                Address = reader["Address"] != DBNull.Value ? reader["Address"].ToString() : null,
+                DateOfBirth = reader["DateOfBirth"] != DBNull.Value ? Convert.ToDateTime(reader["DateOfBirth"]) : (DateTime?)null,
+                DepartmentID = reader["DepartmentID"] != DBNull.Value ? Convert.ToInt32(reader["DepartmentID"]) : (int?)null,
+                Status = reader["Status"] != DBNull.Value ? reader["Status"].ToString() : null
+            };
         }
-        return employees;
     }
 }

@@ -11,20 +11,34 @@ using CommunityToolkit.Mvvm.Input;
 using StafflyApp.Models;
 using StafflyApp.Data;
 using StafflyApp.Data.Repositories;
+using System.Linq;
+using System.Windows;
+using System.Threading.Tasks;
 
 namespace StafflyApp.ViewModels
 {
     public partial class EmployeeViewModel : ObservableObject
     {
         private readonly EmployeeRepository _repository;
-        [ObservableProperty]
-        private ObservableCollection<Employee> employees = new();
+private readonly DepartmentRepository _deptRepository = new();
 
-        [ObservableProperty]
-        private Employee? selectedEmployee;
-        private readonly DepartmentRepository _deptRepository = new();
-        [ObservableProperty]
-        private ObservableCollection<Department> departments = new();
+    private List<Employee> _allEmployeesMaster = new();
+
+    [ObservableProperty] private ObservableCollection<Employee> _employees = new();
+    [ObservableProperty] private ObservableCollection<Department> _departments = new();
+    
+    // Giữ lại từ nhánh HEAD nhưng đổi tên có dấu '_' cho chuẩn MVVM Toolkit
+    [ObservableProperty] private Employee? _selectedEmployee; 
+    
+    [ObservableProperty] private string _searchText = string.Empty;
+    [ObservableProperty] private int _totalEmployees;
+    [ObservableProperty] private int _activeEmployees;
+    [ObservableProperty] private bool _isDialogOpen = false;
+    [ObservableProperty] private bool _isTransferMode = false;
+    [ObservableProperty] private Employee _editingEmployee = new();
+    [ObservableProperty] private Department? _selectedTargetDept;
+    [ObservableProperty] private string _formTitle = "ADD EMPLOYEE";
+    private bool _isEditMode = false;
         public EmployeeViewModel()
         {
             _repository = new EmployeeRepository();
@@ -34,15 +48,35 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         public async Task LoadData()
         {
-            var list = _repository.GetAllEmployees();
-            employees = new ObservableCollection<Employee>(list);
-            var deptList = _deptRepository.GetAllDepartments();
-            departments = new ObservableCollection<Department>(deptList);
+try
+    {
+        var list = await Task.Run(() => _repository.GetAllEmployees());
+        _allEmployeesMaster = list.ToList();
+
+        TotalEmployees = _allEmployeesMaster.Count;
+        ActiveEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working");
+
+        Search();
+
+        var deptList = await Task.Run(() => _deptRepository.GetAllDepartments());
+        
+        Departments.Clear();
+        foreach (var dept in deptList) 
+        {
+            Departments.Add(dept);
         }
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show("Data loading failed: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+
+    partial void OnSearchTextChanged(string value) => Search();
 
         [RelayCommand]
-        private void AddNewEmployee()
+        private void Search()
         {
+// Giữ lại logic cuối của hàm LoadData phía trên
             // Logic BE: tạm thời gọi LoadData để refresh
             LoadData();
         }
@@ -50,12 +84,143 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void DeleteSelected()
         {
-            if (selectedEmployee != null)
+            // Đổi selectedEmployee thành SelectedEmployee (chữ S viết hoa) cho đúng chuẩn MVVM
+            if (SelectedEmployee != null)
             {
-                if (_repository.DeleteEmployee(selectedEmployee.EmployeeID))
+                if (_repository.DeleteEmployee(SelectedEmployee.EmployeeID))
                 {
                     LoadData();
                 }
+            }
+        }
+
+        // Logic Search từ nhánh xanh dương
+        private void Search()
+        {
+            var filtered = string.IsNullOrWhiteSpace(SearchText)
+                ? _allEmployeesMaster
+                : _allEmployeesMaster.Where(e => (e.FullName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false) || e.EmployeeID.ToString().Contains(SearchText)).ToList();
+
+            Employees.Clear();
+            foreach (var emp in filtered) Employees.Add(emp);
+        }
+
+        [RelayCommand]
+        private void OpenAddDialog()
+        {
+            IsTransferMode = false;
+            EditingEmployee = new Employee();
+            FormTitle = "ADD NEW EMPLOYEE";
+            _isEditMode = false;
+            IsDialogOpen = true;
+        }
+
+        [RelayCommand]
+        private void OpenEditDialog(Employee emp)
+        {
+            if (emp == null) return;
+            IsTransferMode = false;
+            EditingEmployee = new Employee
+            {
+                EmployeeID = emp.EmployeeID,
+                FullName = emp.FullName,
+                Email = emp.Email,
+                Phone = emp.Phone,
+                Status = emp.Status,
+                DepartmentID = emp.DepartmentID,
+                Address = emp.Address,
+                DateOfBirth = emp.DateOfBirth
+            };
+            FormTitle = "UPDATE INFORMATION";
+            _isEditMode = true;
+            IsDialogOpen = true;
+        }
+
+        [RelayCommand]
+        private void ConfirmAction()
+        {
+            if (IsTransferMode) ExecuteTransfer();
+            else SaveEmployee();
+        }
+
+        private void SaveEmployee()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(EditingEmployee.FullName))
+                {
+                    MessageBox.Show("Please enter the employee's name!", "Input Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                
+                EditingEmployee.Address ??= "Not updated";
+                EditingEmployee.Email ??= "";
+                EditingEmployee.Phone ??= "";
+
+                using (var db = new StafflyDbContext())
+                {
+                    if (_isEditMode) db.Employees.Update(EditingEmployee);
+                    else db.Employees.Add(EditingEmployee);
+                    db.SaveChanges();
+                }
+
+                IsDialogOpen = false;
+                _ = LoadData();
+            }
+            catch (Exception ex)
+            {
+                string errorMsg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Database Error: {errorMsg}", "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        [RelayCommand]
+        private void OpenTransferDialog(Employee emp)
+        {
+            if (emp == null) return;
+            EditingEmployee = emp;
+            SelectedTargetDept = null;
+            IsTransferMode = true;
+            FormTitle = "EMPLOYEE TRANSFER";
+            IsDialogOpen = true;
+        }
+
+        private void ExecuteTransfer()
+        {
+            if (SelectedTargetDept == null) return;
+            if (SelectedTargetDept.CurrentStaffCount >= SelectedTargetDept.HeadcountLimit)
+            {
+                MessageBox.Show($"{SelectedTargetDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                using (var db = new StafflyDbContext())
+                {
+                    var emp = db.Employees.Find(EditingEmployee.EmployeeID);
+                    if (emp != null)
+                    {
+                        emp.DepartmentID = SelectedTargetDept.DepartmentID;
+                        db.SaveChanges();
+                        IsDialogOpen = false;
+                        _ = LoadData();
+                    }
+                }
+            }
+            catch (Exception ex) 
+            { 
+                MessageBox.Show("Transfer Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error); 
+            }
+        }
+
+        [RelayCommand]
+        private void DeleteEmployee(Employee emp)
+        {
+            if (emp == null) return;
+            if (MessageBox.Show($"Are you sure you want to delete {emp.FullName}?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                if (_repository.DeleteEmployee(emp.EmployeeID)) _ = LoadData();
             }
         }
     }

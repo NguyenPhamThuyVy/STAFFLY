@@ -74,13 +74,15 @@
                     <TextBlock Text="Welcome back! Please enter your details." FontSize="14" Foreground="#6B7280" Margin="0,5,0,30" HorizontalAlignment="Center"/>
 
                     <TextBox Style="{StaticResource MaterialDesignOutlinedTextBox}" 
+                             Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
                              materialDesign:HintAssist.Hint="Email / Username" 
                              Margin="0,0,0,20" FontSize="15" BorderThickness="1.5"
                              BorderBrush="#1954D1" materialDesign:TextFieldAssist.TextFieldCornerRadius="12"
                              materialDesign:HintAssist.Foreground="#1954D1"
                              Background="White"/>
 
-                    <PasswordBox Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}" 
+                    <PasswordBox x:Name="TxtPassword" 
+                                 Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}" 
                                  materialDesign:HintAssist.Hint="Password" 
                                  Margin="0,0,0,10" FontSize="15" BorderThickness="1.5"
                                  BorderBrush="#1954D1" materialDesign:TextFieldAssist.TextFieldCornerRadius="12"
@@ -91,9 +93,14 @@
                     <TextBlock Text="Forgot password?" HorizontalAlignment="Right" Foreground="#6B7280" 
                                Cursor="Hand" TextDecorations="Underline" Margin="0,0,0,35" FontSize="13"/>
 
-                    <Button Content="SIGN IN" Foreground="White" Height="50" Click="LoginButton_Click" 
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" FontSize="13" 
+                               HorizontalAlignment="Center" Margin="0,0,0,15" FontWeight="SemiBold"/>
+
+                    <Button Content="SIGN IN" Foreground="White" Height="50" 
+                            Command="{Binding LoginCommand}" 
+                            CommandParameter="{Binding ElementName=TxtPassword}"
                             materialDesign:ButtonAssist.CornerRadius="25" FontWeight="Bold" 
-                            Background="#1954D1" BorderThickness="0">
+                            Background="#1954D1" BorderThickness="0">   
                         <Button.Effect>
                             <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.2" Color="#1954D1"/>
                         </Button.Effect>

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using StafflyApp.Models;
 using System;
+using StafflyApp.Data;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
@@ -118,12 +119,82 @@ namespace StafflyApp.ViewModels
         }
 
         [RelayCommand]
-        private void SaveToDatabase()
+        private void SubmitToManager()
         {
-            MessageBox.Show($"Successfully saved {SuccessCount} valid records.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-            IsDataLoaded = false;
-            FilePath = "No file selected";
-            ImportedRecords.Clear();
+            try
+            {
+                using (var db = new StafflyDbContext())
+                {
+                    // Lấy danh sách các dòng READY từ giao diện
+                    var validRecords = ImportedRecords.Where(r => r.IsValid).ToList();
+
+                    if (!validRecords.Any())
+                    {
+                        MessageBox.Show("No valid records to submit!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    // Lấy danh sách toàn bộ các ID nhân viên ĐANG THỰC SỰ TỒN TẠI dưới Database thật
+                    var existingEmployeeIds = db.Employees.Select(e => e.EmployeeID).ToList();
+
+                    var payrollsToAdd = new System.Collections.Generic.List<Payroll>();
+                    var missingEmpIds = new System.Collections.Generic.List<int>();
+
+                    foreach (var importItem in validRecords)
+                    {
+                        // BẪY KIỂM TRA: Nếu mã nhân viên trong file Excel KHÔNG tìm thấy dưới DB thật
+                        if (!existingEmployeeIds.Contains(importItem.EmployeeID))
+                        {
+                            missingEmpIds.Add(importItem.EmployeeID);
+                            continue; // Bỏ qua dòng này, không cho đẩy xuống DB để né lỗi sập app
+                        }
+
+                        // Nếu hợp lệ, tiến hành đóng gói
+                        var payrollDbRecord = new Payroll
+                        {
+                            EmployeeID = importItem.EmployeeID,
+                            Month = importItem.Month,
+                            Year = importItem.Year,
+                            TotalSalary = importItem.TotalSalary,
+                            TotalBonus = importItem.TotalBonus,
+                            Status = "Pending",
+                            RejectReason = string.Empty
+                        };
+                        payrollsToAdd.Add(payrollDbRecord);
+                    }
+
+                    // Nếu phát hiện có nhân viên sai ID trong file Excel, cảnh báo ngay cho Staff biết
+                    if (missingEmpIds.Any())
+                    {
+                        string ids = string.Join(", ", missingEmpIds.Distinct());
+                        MessageBox.Show($"Submission aborted! The following Employee IDs from Excel do not exist in the Database: [{ids}].\nPlease add these employees to the system or fix the Excel file first!",
+                                        "Foreign Key Constraint Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    // Nếu tất cả ID đều khớp khít rịt với DB, tiến hành lưu hàng loạt
+                    if (payrollsToAdd.Any())
+                    {
+                        db.Payrolls.AddRange(payrollsToAdd);
+                        if (db.SaveChanges() > 0)
+                        {
+                            MessageBox.Show($"Successfully submitted {payrollsToAdd.Count} payroll records to HR Manager for review!",
+                                            "Submission Successful", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                            // Reset giao diện sau khi gửi thành công
+                            IsDataLoaded = false;
+                            FilePath = "No file selected";
+                            ImportedRecords.Clear();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Bẫy lỗi và hiện nguyên văn lý do tại sao lỗi để dễ debug
+                MessageBox.Show("Database Save Error: " + (ex.InnerException != null ? ex.InnerException.Message : ex.Message),
+                                "Submission Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         public class ImportErrorItem

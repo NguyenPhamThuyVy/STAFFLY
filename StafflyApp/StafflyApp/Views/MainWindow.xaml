@@ -11,6 +11,8 @@
         MouseDown="Window_MouseDown" FontFamily="Segoe UI">
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
         <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
             <v:DashboardView/>
         </DataTemplate>
@@ -72,7 +74,12 @@
                                      Click="TabDepartments_Click"/>
 
                         <RadioButton Content="Payroll" Style="{StaticResource TabButtonStyle}" 
+                                     Visibility="{Binding IsHR, Converter={StaticResource BoolToVis}}"
                                      Click="TabPayroll_Click"/>
+
+                        <RadioButton Content="System" Style="{StaticResource TabButtonStyle}" 
+                                     Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"
+                                     Click="TabSystem_Click"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">

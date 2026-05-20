@@ -1,4 +1,6 @@
-﻿namespace StafflyApp.Services
+﻿using StafflyApp.Data.Repositories;
+
+namespace StafflyApp.Services
 {
     using StafflyApp.Data;
     using StafflyApp.Models;
