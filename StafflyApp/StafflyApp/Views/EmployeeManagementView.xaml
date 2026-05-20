@@ -6,14 +6,14 @@
              Background="Transparent" FontFamily="Segoe UI"
              KeyDown="UserControl_KeyDown">
 
-    <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-    </UserControl.Resources>
-
     <UserControl.InputBindings>
         <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding OpenAddDialogCommand}"/>
         <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding ConfirmActionCommand}"/>
     </UserControl.InputBindings>
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
 
     <materialDesign:DialogHost IsOpen="{Binding IsDialogOpen}" Identifier="MainDialog">
         <materialDesign:DialogHost.DialogContent>
@@ -37,7 +37,17 @@
                         <DatePicker materialDesign:HintAssist.Hint="Date of Birth" SelectedDate="{Binding EditingEmployee.DateOfBirth, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedDatePicker}" Margin="0,8"/>
                         <TextBox materialDesign:HintAssist.Hint="Email Address" Text="{Binding EditingEmployee.Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,8" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
                         <TextBox materialDesign:HintAssist.Hint="Phone Number" Text="{Binding EditingEmployee.Phone, UpdateSourceTrigger=PropertyChanged}" Margin="0,8" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                        <ComboBox materialDesign:HintAssist.Hint="Assign Department" ItemsSource="{Binding Departments}" DisplayMemberPath="DepartmentName" SelectedValuePath="DepartmentID" SelectedValue="{Binding EditingEmployee.DepartmentID, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,8"/>
+                        <TextBox materialDesign:HintAssist.Hint="Home Address" Text="{Binding EditingEmployee.Address, UpdateSourceTrigger=PropertyChanged}" Margin="0,8" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+
+                        <ComboBox materialDesign:HintAssist.Hint="Contract Type" Text="{Binding EditingEmployee.ContractType, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,8">
+                            <ComboBoxItem Content="Full-time"/>
+                            <ComboBoxItem Content="Part-time"/>
+                            <ComboBoxItem Content="Probationary"/>
+                        </ComboBox>
+
+                        <ComboBox materialDesign:HintAssist.Hint="Assign Department" ItemsSource="{Binding Departments}" DisplayMemberPath="DepartmentName" SelectedValuePath="DepartmentID" SelectedValue="{Binding EditingEmployee.DepartmentID, UpdateSourceTrigger=PropertyChanged}" 
+                                  IsEnabled="{Binding CanEditDepartment}" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,8"/>
+
                         <ComboBox materialDesign:HintAssist.Hint="Status" Text="{Binding EditingEmployee.Status, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,8">
                             <ComboBoxItem Content="Active"/>
                             <ComboBoxItem Content="Probation"/>
@@ -67,8 +77,7 @@
         </materialDesign:DialogHost.DialogContent>
 
         <Grid>
-            <Border Background="White" CornerRadius="25" Padding="25" Margin="10" 
-                    Visibility="{Binding IsListViewVisible, Converter={StaticResource BoolToVis}}">
+            <Border Background="White" CornerRadius="25" Padding="25" Margin="10">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -102,19 +111,25 @@
                     <Grid Grid.Row="1" Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBox x:Name="SearchBox" Grid.Column="0" Width="280" materialDesign:HintAssist.Hint="Search employees..." 
-                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}">
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}">
                             <TextBox.InputBindings>
                                 <KeyBinding Key="Return" Command="{Binding SearchCommand}"/>
                             </TextBox.InputBindings>
                         </TextBox>
-                        <Button Grid.Column="2" Content="+ Add Employee" Command="{Binding OpenAddDialogCommand}" 
-                                Background="#1954D1" Foreground="White" BorderThickness="0" Height="40" Padding="15,0"
-                                materialDesign:ButtonAssist.CornerRadius="10"/>
+
+                        <Button Grid.Column="1" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="15,0,0,0" Height="40" Foreground="#6B7280" BorderBrush="#D1D5DB">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="FilterVariant" VerticalAlignment="Center" Width="18" Height="18" Margin="0,0,6,0"/>
+                                <TextBlock Text="Filter" VerticalAlignment="Center" FontWeight="Medium"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Grid.Column="3" Content="+ Add Employee" Visibility="{Binding IsStaff, Converter={StaticResource BoolToVis}}" Command="{Binding OpenAddDialogCommand}" Background="#1954D1" Foreground="White" BorderThickness="0" Height="40" Padding="15,0" materialDesign:ButtonAssist.CornerRadius="10"/>
                     </Grid>
 
                     <Border Grid.Row="2" Background="#F9FAFB" CornerRadius="8" Padding="15,12" Margin="0,0,0,10">
@@ -163,22 +178,21 @@
                                             <TextBlock Grid.Column="2" Text="{Binding Phone}" VerticalAlignment="Center" Foreground="#4B5563"/>
                                             <TextBlock Grid.Column="3" Text="{Binding Email}" VerticalAlignment="Center" Foreground="#4B5563"/>
                                             <TextBlock Grid.Column="4" Text="{Binding DepartmentName}" VerticalAlignment="Center" Foreground="#4B5563"/>
-                                            <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right">
 
+                                            <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right">
                                                 <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="View Details" Height="32" Width="32" Margin="0,0,4,0"
                                                         Command="{Binding DataContext.ViewProfileCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
                                                     <materialDesign:PackIcon Kind="EyeOutline" Foreground="#8B5CF6"/>
                                                 </Button>
 
                                                 <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="Transfer" Height="32" Width="32" 
+                                                        Visibility="{Binding DataContext.IsManager, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"
                                                         Command="{Binding DataContext.OpenTransferDialogCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
                                                     <materialDesign:PackIcon Kind="SwapHorizontal" Foreground="#1954D1"/>
                                                 </Button>
-                                                <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="Edit" Height="32" Width="32" Margin="4,0"
-                                                        Command="{Binding DataContext.OpenEditDialogCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
-                                                    <materialDesign:PackIcon Kind="PencilOutline" Foreground="#6B7280"/>
-                                                </Button>
+
                                                 <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="Delete" Height="32" Width="32"
+                                                        Visibility="{Binding DataContext.IsStaff, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"
                                                         Command="{Binding DataContext.DeleteEmployeeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
                                                     <materialDesign:PackIcon Kind="DeleteOutline" Foreground="#EF4444"/>
                                                 </Button>
@@ -192,8 +206,11 @@
                 </Grid>
             </Border>
 
-            <views:EmployeeProfileView Visibility="{Binding IsProfileViewVisible, Converter={StaticResource BoolToVis}}"/>
-
+            <Border Width="650" HorizontalAlignment="Right" Margin="0,0,10,10" CornerRadius="25,0,0,25"
+                    Background="White" Effect="{StaticResource MaterialDesignShadowDepth5}"
+                    Visibility="{Binding IsProfileViewVisible, Converter={StaticResource BoolToVis}}">
+                <views:EmployeeProfileView/>
+            </Border>
         </Grid>
     </materialDesign:DialogHost>
 </UserControl>

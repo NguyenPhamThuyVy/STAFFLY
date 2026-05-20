@@ -35,7 +35,7 @@ namespace StafflyApp.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Payroll> Payrolls { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
-
+        public DbSet<Contract> Contracts { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
