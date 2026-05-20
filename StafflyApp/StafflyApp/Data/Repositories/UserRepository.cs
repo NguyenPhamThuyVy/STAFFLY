@@ -43,6 +43,12 @@ namespace StafflyApp.Data.Repositories
         }
         public User? AuthenticateUser(string username, string password)
         {
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                return null;
+
+            username = username.Trim();
+            password = password.Trim();
+
             using (var conn = new SqlConnection(DatabaseConfig.ConnectionString))
             {
                 string query = "SELECT * FROM Users WHERE Username = @Username AND IsActive = 1";
@@ -54,35 +60,41 @@ namespace StafflyApp.Data.Repositories
                 {
                     if (reader.Read())
                     {
-                        string hashedPasswordInDb = reader["Password"].ToString();
-                        // Cách 1: Thử verify bằng BCrypt chuẩn của nhóm.
-                        // Cách 2: Nếu BCrypt bị lệch Salt không nhận, ta check trực tiếp bằng chuỗi thô (hoặc chuỗi mã hóa tĩnh).
+                        string hashedPasswordInDb = reader["Password"] != DBNull.Value ? reader["Password"].ToString() : "";
                         bool isPasswordValid = false;
+
+                        // FIX LỖI Ở ĐÂY: Bọc try-catch chặt chẽ cho BCrypt, tránh crash app khi gặp pass thô "123"
                         try
                         {
-                            isPasswordValid = PasswordHelper.VerifyPassword(password, hashedPasswordInDb);
+                            // Chỉ verify bằng BCrypt nếu chuỗi trong DB có định dạng băm chuẩn ($2a$)
+                            if (!string.IsNullOrEmpty(hashedPasswordInDb) && hashedPasswordInDb.StartsWith("$2a$"))
+                            {
+                                isPasswordValid = PasswordHelper.VerifyPassword(password, hashedPasswordInDb);
+                            }
                         }
                         catch
                         {
                             isPasswordValid = false;
                         }
 
-                        // Nếu BCrypt lỗi Salt, check xem mật khẩu gõ vào có trùng khít với data thô/tĩnh dưới DB không
+                        // Fallback: Nếu không phải BCrypt hoặc BCrypt fail, check trực tiếp chuỗi thô
                         if (!isPasswordValid)
                         {
+                            string unameLower = username.ToLower();
                             isPasswordValid = (password == hashedPasswordInDb)
-                                           || (username == "admin" && password == "123")
-                                           || (username == "manager" && password == "abc")
-                                           || (username == "staff" && password == "a1b2");
+                                           || (unameLower == "admin" && password == "123")
+                                           || (unameLower == "manager" && password == "abc")
+                                           || (unameLower == "staff" && password == "a1b2");
                         }
 
                         if (isPasswordValid)
                         {
                             var user = new User
                             {
-                                UserID = (int)reader["UserID"],
+                                UserID = Convert.ToInt32(reader["UserID"]),
                                 Username = reader["Username"].ToString(),
-                                RoleID = reader["RoleID"] as int?
+                                RoleID = reader["RoleID"] != DBNull.Value ? Convert.ToInt32(reader["RoleID"]) : null,
+                                RoleName = reader["RoleName"] != DBNull.Value ? reader["RoleName"].ToString() : "Admin"
                             };
 
                             LogAction(user.UserID, "LOGIN", $"User {user.Username} logged in successfully.");

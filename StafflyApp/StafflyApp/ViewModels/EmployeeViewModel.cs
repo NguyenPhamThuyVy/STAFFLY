@@ -39,6 +39,9 @@ private readonly DepartmentRepository _deptRepository = new();
     [ObservableProperty] private Department? _selectedTargetDept;
     [ObservableProperty] private string _formTitle = "ADD EMPLOYEE";
     private bool _isEditMode = false;
+        // CỜ VÀ BIẾN MỚI CHO GIAO DIỆN PROFILE NHÂN VIÊN
+        [ObservableProperty] private bool _isListViewVisible = true;
+        [ObservableProperty] private bool _isProfileViewVisible = false;
         public EmployeeViewModel()
         {
             _repository = new EmployeeRepository();
@@ -88,6 +91,15 @@ try
             if (SelectedEmployee != null)
             {
                 if (_repository.DeleteEmployee(SelectedEmployee.EmployeeID))
+                var list = await Task.Run(() => _repository.GetAllEmployees());
+                _allEmployeesMaster = list.ToList();
+
+                TotalEmployees = _allEmployeesMaster.Count;
+                ActiveEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working");
+
+                Search();
+
+                using (var db = new StafflyDbContext())
                 {
                     LoadData();
                 }
@@ -105,11 +117,41 @@ try
             foreach (var emp in filtered) Employees.Add(emp);
         }
 
+        // =======================================================
+        // LOGIC CHUYỂN ĐỔI MÀN HÌNH SANG PROFILE CHI TIẾT
+        // =======================================================
+        [RelayCommand]
+        private void ViewProfile(Employee emp)
+        {
+            if (emp == null) return;
+            SelectedEmployee = emp;            // Nạp dữ liệu vào Profile
+            SelectedTargetDept = null;         // Reset combo chọn phòng ban chuyển đi
+            IsListViewVisible = false;         // Ẩn lưới đi
+            IsProfileViewVisible = true;       // Lộ diện Profile View
+        }
+
+        [RelayCommand]
+        private void GoBack()
+        {
+            IsProfileViewVisible = false;      // Ẩn Profile
+            IsListViewVisible = true;          // Hiện lại lưới danh sách
+            _ = LoadData();                    // Tải lại lưới phòng hờ có sửa đổi phòng ban
+        }
+
+        [RelayCommand]
+        private void ConfirmTransfer()
+        {
+            // Tận dụng lại lõi Transfer đã có bằng cách gán sang biến tạm EditingEmployee
+            EditingEmployee = SelectedEmployee;
+            ExecuteTransfer();
+        }
+        // =======================================================
+
         [RelayCommand]
         private void OpenAddDialog()
         {
             IsTransferMode = false;
-            EditingEmployee = new Employee();
+            EditingEmployee = new Employee { Status = "Active" };
             FormTitle = "ADD NEW EMPLOYEE";
             _isEditMode = false;
             IsDialogOpen = true;
@@ -128,8 +170,6 @@ try
                 Phone = emp.Phone,
                 Status = emp.Status,
                 DepartmentID = emp.DepartmentID,
-                Address = emp.Address,
-                DateOfBirth = emp.DateOfBirth
             };
             FormTitle = "UPDATE INFORMATION";
             _isEditMode = true;
@@ -152,10 +192,18 @@ try
                     MessageBox.Show("Please enter the employee's name!", "Input Required", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-                
                 EditingEmployee.Address ??= "Not updated";
                 EditingEmployee.Email ??= "";
                 EditingEmployee.Phone ??= "";
+
+                if (EditingEmployee.DepartmentID == null || EditingEmployee.DepartmentID == 0)
+                {
+                    MessageBox.Show("Please assign a department to this employee!", "Validation Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(EditingEmployee.Address)) EditingEmployee.Address = "Not updated yet";
+                if (string.IsNullOrEmpty(EditingEmployee.Status)) EditingEmployee.Status = "Active";
 
                 using (var db = new StafflyDbContext())
                 {
@@ -205,6 +253,15 @@ try
                         db.SaveChanges();
                         IsDialogOpen = false;
                         _ = LoadData();
+
+                        // Nếu đang đứng ở giao diện Profile thì cập nhật lại luôn chữ phòng ban mới trên Profile
+                        if (IsProfileViewVisible)
+                        {
+                            SelectedEmployee.DepartmentName = SelectedTargetDept.DepartmentName;
+                            OnPropertyChanged(nameof(SelectedEmployee));
+                        }
+
+                        MessageBox.Show("Employee transferred successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 }
             }

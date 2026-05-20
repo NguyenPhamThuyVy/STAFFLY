@@ -8,11 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace StafflyApp.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:StafflyApp/StafflyApp/Migrations/20260515145657_InitialEmptyEmployees.cs
-    public partial class InitialEmptyEmployees : Migration
-========
-    public partial class InitialCleanDb : Migration
->>>>>>>> develop:StafflyApp/StafflyApp/Migrations/20260518171242_InitialCleanDb.cs
+    public partial class RebuildDatabaseFromScratch : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -120,27 +116,22 @@ namespace StafflyApp.Migrations
                 columns: new[] { "DepartmentID", "CurrentStaffCount", "DepartmentName", "HeadcountLimit" },
                 values: new object[,]
                 {
-                    { 1, 0, "Ban Giám Đốc", 5 },
-                    { 2, 0, "Phòng IT & Công Nghệ", 20 },
-                    { 3, 0, "Phòng Nhân Sự (HR)", 15 },
-                    { 4, 0, "Phòng Marketing", 25 },
-                    { 5, 0, "Phòng Kế Toán", 10 }
+                    { 1, 0, "Board of Directors", 5 },
+                    { 2, 0, "IT & Technology Department", 20 },
+                    { 3, 0, "Human Resources Department (HR)", 15 },
+                    { 4, 0, "Marketing Department", 25 },
+                    { 5, 0, "Accounting Department", 10 }
                 });
 
             migrationBuilder.InsertData(
                 table: "Users",
-<<<<<<<< HEAD:StafflyApp/StafflyApp/Migrations/20260515145657_InitialEmptyEmployees.cs
-                columns: new[] { "UserID", "EmployeeID", "IsActive", "Password", "RoleID", "Username" },
-                values: new object[] { 1, 1, true, "123", 1, "admin" });
-========
                 columns: new[] { "UserID", "EmployeeID", "IsActive", "Password", "RoleID", "RoleName", "Username" },
                 values: new object[,]
                 {
                     { 1, null, true, "123", 1, null, "admin" },
-                    { 2, null, true, "123", 2, null, "manager" },
-                    { 3, null, true, "123", 3, null, "staff" }
+                    { 2, null, true, "abc", 2, null, "manager" },
+                    { 3, null, true, "a1b2", 3, null, "staff" }
                 });
->>>>>>>> develop:StafflyApp/StafflyApp/Migrations/20260518171242_InitialCleanDb.cs
 
             migrationBuilder.CreateIndex(
                 name: "IX_Employees_DepartmentID",
@@ -151,20 +142,11 @@ namespace StafflyApp.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Attendances");
-
-            migrationBuilder.DropTable(
-                name: "Employees");
-
-            migrationBuilder.DropTable(
-                name: "Payrolls");
-
-            migrationBuilder.DropTable(
-                name: "Users");
-
-            migrationBuilder.DropTable(
-                name: "Departments");
+            migrationBuilder.DropTable(name: "Attendances");
+            migrationBuilder.DropTable(name: "Employees");
+            migrationBuilder.DropTable(name: "Payrolls");
+            migrationBuilder.DropTable(name: "Users");
+            migrationBuilder.DropTable(name: "Departments");
         }
     }
 }
