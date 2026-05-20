@@ -26,6 +26,26 @@
             <v:PayrollView/>
         </DataTemplate>
 
+        <DataTemplate DataType="{x:Type vm:HRDashboardViewModel}">
+            <v:HRDashboardView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:HRDepartmentViewModel}">
+            <v:HRDepartmentView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PayrollApprovalViewModel}">
+            <v:PayrollApprovalView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:AdminAccountsViewModel}">
+            <v:AdminAccountsView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AdminAuditLogsViewModel}">
+            <v:AdminAuditLogsView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AdminDeptLimitsViewModel}">
+            <v:AdminDeptLimitsView/>
+        </DataTemplate>
+
         <Style x:Key="TabButtonStyle" TargetType="RadioButton">
             <Setter Property="Template">
                 <Setter.Value>
@@ -64,22 +84,37 @@
                     <TextBlock Grid.Column="0" Text="STAFFLY" FontSize="24" FontWeight="ExtraBold" Foreground="#1954D1" VerticalAlignment="Center"/>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <RadioButton Content="Dashboard" Style="{StaticResource TabButtonStyle}" 
-                                     IsChecked="True" Click="TabDashboard_Click"/>
 
-                        <RadioButton Content="Employees" Style="{StaticResource TabButtonStyle}" 
+                        <RadioButton Content="Dashboard" GroupName="Menu" Style="{StaticResource TabButtonStyle}" 
+                                     Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}" 
+                                     IsChecked="{Binding IsDashboardChecked, Mode=TwoWay}"
+                                     Click="TabDashboard_Click"/>
+
+                        <RadioButton Content="Employees" GroupName="Menu" Style="{StaticResource TabButtonStyle}" 
+                                     Visibility="{Binding IsNotAdmin, Converter={StaticResource BoolToVis}}" 
+                                     IsChecked="{Binding IsEmployeesChecked, Mode=TwoWay}"
                                      Click="TabEmployees_Click"/>
 
-                        <RadioButton Content="Departments" Style="{StaticResource TabButtonStyle}" 
+                        <RadioButton Content="Departments" GroupName="Menu" Style="{StaticResource TabButtonStyle}" 
+                                     Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}" 
                                      Click="TabDepartments_Click"/>
 
-                        <RadioButton Content="Payroll" Style="{StaticResource TabButtonStyle}" 
-                                     Visibility="{Binding IsHR, Converter={StaticResource BoolToVis}}"
+                        <RadioButton Content="Payroll" GroupName="Menu" Style="{StaticResource TabButtonStyle}" 
+                                     Visibility="{Binding IsNotAdmin, Converter={StaticResource BoolToVis}}" 
                                      Click="TabPayroll_Click"/>
 
-                        <RadioButton Content="System" Style="{StaticResource TabButtonStyle}" 
-                                     Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"
-                                     Click="TabSystem_Click"/>
+                        <RadioButton Content="Accounts" GroupName="Menu" Style="{StaticResource TabButtonStyle}" 
+                                     Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}" 
+                                     IsChecked="{Binding IsAdminAccountsChecked, Mode=TwoWay}"
+                                     Click="TabAdminAccounts_Click"/>
+
+                        <RadioButton Content="Audit Logs" GroupName="Menu" Style="{StaticResource TabButtonStyle}" 
+                                     Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}" 
+                                     Click="TabAdminAuditLogs_Click"/>
+
+                        <RadioButton Content="Dept Limits" GroupName="Menu" Style="{StaticResource TabButtonStyle}" 
+                                     Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}" 
+                                     Click="TabAdminDeptLimits_Click"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
@@ -105,10 +140,7 @@
 
                                     <Separator Background="#F3F4F6" Margin="0,10"/>
 
-                                    <Button Content="Log Out" 
-                                            Click="LogoutButton_Click"
-                                            Background="#FFF1F2" Foreground="#E11D48" BorderThickness="0"
-                                            Height="35" FontWeight="SemiBold" materialDesign:ButtonAssist.CornerRadius="8">
+                                    <Button Content="Log Out" Click="LogoutButton_Click" Background="#FFF1F2" Foreground="#E11D48" BorderThickness="0" Height="35" FontWeight="SemiBold" materialDesign:ButtonAssist.CornerRadius="8">
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatButton}">
                                                 <Style.Triggers>
@@ -128,6 +160,7 @@
                         </Button>
                     </StackPanel>
                 </Grid>
+
                 <materialDesign:TransitioningContent Content="{Binding CurrentView}" Grid.Row="1" Focusable="False">
                     <materialDesign:TransitioningContent.OpeningEffect>
                         <materialDesign:TransitionEffect Kind="FadeIn" Duration="0:0:0.3"/>

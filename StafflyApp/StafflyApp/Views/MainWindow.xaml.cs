@@ -1,8 +1,9 @@
-﻿using StafflyApp.Helpers; // Thêm thư viện để truy xuất UserSession
+﻿using StafflyApp.Helpers;
 using StafflyApp.ViewModels;
+using StafflyApp.Views;
 using System.Windows;
 using System.Windows.Input;
-using StafflyApp.Views; //
+
 namespace StafflyApp
 {
     public partial class MainWindow : Window
@@ -10,84 +11,64 @@ namespace StafflyApp
         public MainWindow()
         {
             InitializeComponent();
-            // Nối ViewModel chính vào DataContext của Window
             this.DataContext = new MainWindowViewModel();
         }
 
-        // --- NHÓM HÀM ĐIỀU HƯỚNG TAB  ---
-
+        // --- HÀM CỦA HR / MANAGER ---
         private void TabDashboard_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is MainWindowViewModel vm)
-            {
                 vm.NavigateCommand.Execute("Dashboard");
-            }
         }
 
         private void TabEmployees_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is MainWindowViewModel vm)
-            {
                 vm.NavigateCommand.Execute("Employees");
-            }
         }
 
         private void TabDepartments_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is MainWindowViewModel vm)
-            {
                 vm.NavigateCommand.Execute("Departments");
-            }
         }
 
         private void TabPayroll_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is MainWindowViewModel vm)
-            {
                 vm.NavigateCommand.Execute("Payroll");
-            }
-        }
-        private void TabAttendance_Click(object sender, MouseButtonEventArgs e)
-        {
-
         }
 
-        private void TabRecruitment_Click(object sender, MouseButtonEventArgs e)
-        {
-        }
-
-        private void TabContracts_Click(object sender, MouseButtonEventArgs e)
-        {
-        }
-
-        private void TabSystem_Click(object sender, RoutedEventArgs e)
+        // --- HÀM CỦA ADMIN ---
+        private void TabAdminAccounts_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is MainWindowViewModel vm)
-            {
-                vm.NavigateCommand.Execute("AdminSettings");
-            }
+                vm.NavigateCommand.Execute("AdminAccounts");
+        }
+
+        private void TabAdminAuditLogs_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is MainWindowViewModel vm)
+                vm.NavigateCommand.Execute("AdminAuditLogs");
+        }
+
+        private void TabAdminDeptLimits_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is MainWindowViewModel vm)
+                vm.NavigateCommand.Execute("AdminDeptLimits");
         }
 
         // --- CÁC HÀM HỆ THỐNG ---
-
-        // ĐÃ THÊM: Logic điều hướng đăng xuất, hủy phiên đăng nhập hiện tại
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
             MessageBoxResult result = MessageBox.Show("Are you sure you want to log out of STAFFLY?",
-                                                      "Logout Confirmation",
-                                                      MessageBoxButton.YesNo,
-                                                      MessageBoxImage.Question);
+                                                      "Logout Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result == MessageBoxResult.Yes)
             {
-                // 1. Xóa sạch thông tin tài khoản lưu vết trong Singleton
                 UserSession.Instance.ClearSession();
-
-                // 2. Mở lại màn hình Đăng nhập
                 LoginWindow loginWindow = new LoginWindow();
                 loginWindow.Show();
-
-                // 3. Đóng cửa sổ quản trị chính hiện tại
                 this.Close();
             }
         }
