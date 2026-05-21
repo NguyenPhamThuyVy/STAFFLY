@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StafflyApp.Data;
 
@@ -11,9 +12,11 @@ using StafflyApp.Data;
 namespace StafflyApp.Migrations
 {
     [DbContext(typeof(StafflyDbContext))]
-    partial class StafflyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260520125619_AddContractsTable")]
+    partial class AddContractsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -242,20 +245,10 @@ namespace StafflyApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int?>("EmployeeID")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDefaultPassword")
                         .HasColumnType("bit");
 
                     b.Property<string>("Password")
@@ -278,10 +271,7 @@ namespace StafflyApp.Migrations
                         new
                         {
                             UserID = 1,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "",
                             IsActive = true,
-                            IsDefaultPassword = false,
                             Password = "123",
                             RoleID = 1,
                             Username = "admin"
@@ -289,10 +279,7 @@ namespace StafflyApp.Migrations
                         new
                         {
                             UserID = 2,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "",
                             IsActive = true,
-                            IsDefaultPassword = false,
                             Password = "abc",
                             RoleID = 2,
                             Username = "manager"
@@ -300,10 +287,7 @@ namespace StafflyApp.Migrations
                         new
                         {
                             UserID = 3,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "",
                             IsActive = true,
-                            IsDefaultPassword = false,
                             Password = "a1b2",
                             RoleID = 3,
                             Username = "staff"

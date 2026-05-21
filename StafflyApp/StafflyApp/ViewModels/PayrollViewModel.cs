@@ -6,6 +6,7 @@ using System;
 using StafflyApp.Data;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using OfficeOpenXml; // Thư viện EPPlus
@@ -25,6 +26,27 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private async Task ImportExcel()
         {
+            int currentMonth = DateTime.Now.Month;
+            int currentYear = DateTime.Now.Year;
+            // Chặn không cho import file lương nhiều lần trong cùng 1 tháng sau khi đã được accept
+            try
+            {
+                using (var db = new StafflyDbContext())
+                {
+                    bool isLocked = db.Payrolls.Any(p => p.Month == currentMonth && p.Year == currentYear && p.Status == "Approved");
+                    if (isLocked)
+                    {
+                        MessageBox.Show($"The payroll for Month {currentMonth}/{currentYear} has already been approved and locked! You cannot re-import or overwrite this data.",
+                                        "Payroll Locked", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return; // Chặn đứng luồng không cho import tiếp
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error checking payroll lock status: " + ex.Message, "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Filter = "Excel Files|*.xlsx;*.xls"
@@ -68,14 +90,14 @@ namespace StafflyApp.ViewModels
                                 bool isRowValid = true;
                                 string note = "";
 
-                                // Validation logic (Việc 4)
+                                // Validation logic 
                                 if (string.IsNullOrWhiteSpace(empName)) { isRowValid = false; note += "Name is missing; "; }
                                 if (!decimal.TryParse(rawSalary, out decimal salary)) { isRowValid = false; note += "Invalid Salary; "; }
 
                                 var record = new PayrollImportModel
                                 {
                                     EmployeeID = int.TryParse(rawId, out int id) ? id : 0,
-                                    EmployeeName = empName ?? "Unknown", // <--- LẤY TÊN THẬT TỪ EXCEL
+                                    EmployeeName = empName ?? "Unknown", // LẤY TÊN THẬT TỪ EXCEL
                                     Month = DateTime.Now.Month,
                                     Year = DateTime.Now.Year,
                                     TotalSalary = salary,
@@ -125,6 +147,17 @@ namespace StafflyApp.ViewModels
             {
                 using (var db = new StafflyDbContext())
                 {
+                    // Chặn lần nữa
+                    int currentMonth = DateTime.Now.Month;
+                    int currentYear = DateTime.Now.Year;
+
+                    bool isLocked = db.Payrolls.Any(p => p.Month == currentMonth && p.Year == currentYear && p.Status == "Approved");
+                    if (isLocked)
+                    {
+                        MessageBox.Show($"Submission Denied! The payroll for Month {currentMonth}/{currentYear} has just been approved by the Manager.",
+                                        "Submission Blocked", MessageBoxButton.OK, MessageBoxImage.Hand);
+                        return;
+                    }
                     var validRecords = ImportedRecords.Where(r => r.IsValid).ToList();
 
                     if (!validRecords.Any())
@@ -148,7 +181,7 @@ namespace StafflyApp.ViewModels
                         {
                             EmployeeID = importItem.EmployeeID,
 
-                            // SỬA / THÊM DÒNG NÀY: Bốc tên từ file Excel sạch truyền xuống cho Database lưu vết
+                            // Bốc tên từ file Excel sạch truyền xuống cho Database lưu vết
                             EmployeeName = importItem.EmployeeName ?? "Unknown",
 
                             Month = importItem.Month,
@@ -160,7 +193,7 @@ namespace StafflyApp.ViewModels
                             ErrorNote = string.Empty
                         };
 
-                        // ĐÃ SỬA: Nạp thực thể vào list để lưu xuống DB
+                        // Nạp thực thể vào list để lưu xuống DB
                         payrollsToAdd.Add(payrollDbRecord);
                     }
 
@@ -174,13 +207,16 @@ namespace StafflyApp.ViewModels
 
                     if (payrollsToAdd.Any())
                     {
+                        // Xóa dữ liệu cũ pending của tháng này trước khi nạp mới
+                        var oldPending = db.Payrolls.Where(p => p.Month == currentMonth && p.Year == currentYear && p.Status == "Pending");
+                        db.Payrolls.RemoveRange(oldPending);
                         db.Payrolls.AddRange(payrollsToAdd);
                         if (db.SaveChanges() > 0)
                         {
                             MessageBox.Show($"Successfully submitted {payrollsToAdd.Count} payroll records to HR Manager!",
                                             "Submission Successful", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                            // Reset trạng thái UI sạch sẽ
+                            // Reset trạng thái UI 
                             IsDataLoaded = false;
                             FilePath = "No file selected";
                             ImportedRecords.Clear();

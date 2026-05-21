@@ -4,108 +4,146 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              Background="Transparent" FontFamily="Segoe UI">
 
-    <Border Background="White" CornerRadius="25" Padding="40" Margin="10">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
 
-            <Grid Grid.Row="0" Margin="0,0,0,30">
-                <Button HorizontalAlignment="Left" Style="{StaticResource MaterialDesignFlatButton}" 
-                        Command="{Binding GoBackCommand}" Foreground="#6B7280" Padding="0">
+    <Border Padding="30" Background="Transparent">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Margin="0,0,25,0">
+                <Button HorizontalAlignment="Left" Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding GoBackCommand}" Foreground="#6B7280" Margin="0,0,0,20" Padding="0">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="ArrowLeft" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                        <TextBlock Text="Back to Employee List" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        <materialDesign:PackIcon Kind="ArrowLeft" VerticalAlignment="Center"/>
+                        <TextBlock Text="Back to List" Margin="8,0,0,0" FontWeight="SemiBold"/>
                     </StackPanel>
                 </Button>
-            </Grid>
 
-            <Grid Grid.Row="1" Margin="0,0,0,40">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Border Grid.Column="0" Width="120" Height="120" CornerRadius="60" Background="#F3F4F6" BorderBrush="#E5E7EB" BorderThickness="2" Margin="0,0,30,0">
-                    <materialDesign:PackIcon Kind="AccountTie" Width="80" Height="80" Foreground="#9CA3AF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
-
-                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding SelectedEmployee.FullName}" FontSize="32" FontWeight="ExtraBold" Foreground="#1A1C29" Margin="0,0,0,5"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                        <Border Background="#E0E7FF" CornerRadius="6" Padding="10,4" Margin="0,0,10,0">
-                            <TextBlock Text="{Binding SelectedEmployee.DepartmentName}" Foreground="#1954D1" FontWeight="Bold" FontSize="13"/>
+                <Border Background="#F9FAFB" CornerRadius="20" Padding="25" Margin="0,0,0,20" BorderBrush="#F3F4F6" BorderThickness="1">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Border Width="110" Height="110" CornerRadius="55" Background="#E0E7FF" Margin="0,0,0,15">
+                            <materialDesign:PackIcon Kind="AccountTie" Width="65" Height="65" Foreground="#1954D1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <Border Background="#ECFDF5" CornerRadius="6" Padding="10,4">
-                            <TextBlock Text="{Binding SelectedEmployee.Status}" Foreground="#10B981" FontWeight="Bold" FontSize="13"/>
-                        </Border>
-                    </StackPanel>
-                    <TextBlock Text="{Binding SelectedEmployee.EmployeeID, StringFormat='Employee ID: {0}'}" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
-                </StackPanel>
-            </Grid>
-
-            <Grid Grid.Row="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0" Margin="0,0,20,0">
-                    <TextBlock Text="PERSONAL DETAILS" FontSize="14" FontWeight="Bold" Foreground="#9CA3AF" Margin="0,0,0,20"/>
-
-                    <Grid Margin="0,0,0,15">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="30"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <materialDesign:PackIcon Kind="PhoneOutline" Foreground="#6B7280" VerticalAlignment="Center"/>
-                        <StackPanel Grid.Column="1">
-                            <TextBlock Text="Phone Number" FontSize="12" Foreground="#9CA3AF"/>
-                            <TextBlock Text="{Binding SelectedEmployee.Phone}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid Margin="0,0,0,15">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="30"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <materialDesign:PackIcon Kind="EmailOutline" Foreground="#6B7280" VerticalAlignment="Center"/>
-                        <StackPanel Grid.Column="1">
-                            <TextBlock Text="Email Address" FontSize="12" Foreground="#9CA3AF"/>
-                            <TextBlock Text="{Binding SelectedEmployee.Email}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid Margin="0,0,0,15">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="30"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <materialDesign:PackIcon Kind="CakeVariantOutline" Foreground="#6B7280" VerticalAlignment="Center"/>
-                        <StackPanel Grid.Column="1">
-                            <TextBlock Text="Date of Birth" FontSize="12" Foreground="#9CA3AF"/>
-                            <TextBlock Text="{Binding SelectedEmployee.DateOfBirth, StringFormat={}{0:dd/MM/yyyy}}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"/>
-                        </StackPanel>
-                    </Grid>
-                </StackPanel>
-
-                <Border Grid.Column="1" Background="#F9FAFB" CornerRadius="16" Padding="25">
-                    <StackPanel>
-                        <TextBlock Text="DEPARTMENT TRANSFER" FontSize="14" FontWeight="Bold" Foreground="#1954D1" Margin="0,0,0,20"/>
-                        <TextBlock Text="Select a new destination department for this employee. This action will update their primary operational unit." TextWrapping="Wrap" Foreground="#6B7280" Margin="0,0,0,20"/>
-
-                        <ComboBox materialDesign:HintAssist.Hint="Target Department" 
-                                  ItemsSource="{Binding Departments}" 
-                                  DisplayMemberPath="DepartmentName"
-                                  SelectedItem="{Binding SelectedTargetDept}"
-                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,0,20" Background="White"/>
-
-                        <Button Content="Execute Transfer" Command="{Binding ConfirmTransferCommand}" Background="#1954D1" Foreground="White" BorderThickness="0" Height="45" materialDesign:ButtonAssist.CornerRadius="8" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding SelectedEmployee.FullName}" FontSize="18" FontWeight="Bold" Foreground="#1A1C29" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding SelectedEmployee.EmployeeID, StringFormat='ID: {0}'}" Foreground="#6B7280" HorizontalAlignment="Center" FontSize="13" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
+
+                <Border Background="White" CornerRadius="20" Padding="15" BorderBrush="#F3F4F6" BorderThickness="1" Height="280">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="DEPARTMENT COLLEAGUES" FontSize="12" FontWeight="Bold" Foreground="#9CA3AF" Margin="0,0,0,12"/>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding DepartmentColleagues}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#F9FAFB" CornerRadius="8" Padding="10" Margin="0,0,0,6">
+                                            <TextBlock Text="{Binding FullName}" FontWeight="SemiBold" FontSize="13" Foreground="#4B5563" TextWrapping="Wrap"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <Grid Grid.Column="1" Margin="20,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="EMPLOYEE DETAILS" FontSize="20" FontWeight="Bold" Foreground="#1954D1" Margin="0,5,0,25"/>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,0,15,0">
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Full Name" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding SelectedEmployee.FullName, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+                                     IsReadOnly="{Binding IsNotEditMode}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Date of Birth" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <DatePicker SelectedDate="{Binding SelectedEmployee.DateOfBirth, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+                                        IsEnabled="{Binding IsEditMode}" BorderThickness="0" Padding="0,4"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Email Address" Foreground="#9CA3AF" FontSize="15" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding SelectedEmployee.Email, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+                                     IsReadOnly="{Binding IsNotEditMode}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Phone Number" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding SelectedEmployee.Phone, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+                                     IsReadOnly="{Binding IsNotEditMode}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Department" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding SelectedEmployee.DepartmentName}" FontSize="15" FontWeight="Bold" Foreground="#1954D1" VerticalAlignment="Center" Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Status" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding SelectedEmployee.Status, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="SemiBold" Foreground="#10B981"
+                                     IsReadOnly="{Binding IsNotEditMode}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Home Address" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding SelectedEmployee.Address, UpdateSourceTrigger=PropertyChanged, TargetNullValue='No address'}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+                                     IsReadOnly="{Binding IsNotEditMode}" TextWrapping="Wrap" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Contract Type" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,6"/>
+                            <ComboBox SelectedValue="{Binding SelectedContractType, UpdateSourceTrigger=PropertyChanged}" 
+                                      IsEnabled="{Binding IsEditMode}"
+                                      Style="{StaticResource MaterialDesignFloatingHintComboBox}" FontSize="15" FontWeight="SemiBold">
+                                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Full-time</System:String>
+                                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Part-time</System:String>
+                                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Probationary</System:String>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}" Margin="0,10,0,0">
+                            <Separator Margin="0,0,0,20"/>
+                            <TextBlock Text="MANAGER ACTIONS: TRANSFER" FontWeight="Bold" Foreground="#EF4444" Margin="0,0,0,10"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox ItemsSource="{Binding Departments}" DisplayMemberPath="DepartmentName" SelectedItem="{Binding SelectedTargetDept}" 
+                                          materialDesign:HintAssist.Hint="Select New Department" Margin="0,0,15,0" Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                                <Button Grid.Column="1" Content="Transfer" Command="{Binding ConfirmTransferCommand}" Background="#EF4444" BorderThickness="0" Height="45" Padding="20,0"/>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0" Visibility="{Binding IsStaff, Converter={StaticResource BoolToVis}}">
+                    <Button Content="EDIT PROFILE" Command="{Binding EnableEditModeCommand}" Width="130" Background="#1954D1" Foreground="White"
+                            Visibility="{Binding IsNotEditMode, Converter={StaticResource BoolToVis}}"/>
+
+                    <Button Content="CANCEL" Command="{Binding CancelEditCommand}" Style="{StaticResource MaterialDesignFlatButton}" Foreground="#EF4444" Margin="0,0,10,0"
+                            Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVis}}"/>
+                    <Button Content="SAVE CHANGES" Command="{Binding SaveChangesCommand}" Width="150" Background="#10B981" Foreground="White" BorderThickness="0"
+                            Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVis}}"/>
+                </StackPanel>
             </Grid>
         </Grid>
     </Border>
