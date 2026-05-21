@@ -2,6 +2,7 @@
 using StafflyApp.Data.Interfaces;
 using StafflyApp.Helpers;
 using StafflyApp.Models;
+using System;
 using System.Linq;
 
 namespace StafflyApp.Data.Repositories
@@ -14,6 +15,7 @@ namespace StafflyApp.Data.Repositories
         {
             _context = context;
         }
+
         // Ghi Audit Logs
         public void LogAction(int? userId, string action, string detail)
         {
@@ -25,7 +27,6 @@ namespace StafflyApp.Data.Repositories
                                    VALUES (@UserID, @Action, @Detail, @Timestamp)";
 
                     var cmd = new SqlCommand(query, conn);
-                    // Dùng object vì UserID có thể null nếu chưa login
                     cmd.Parameters.AddWithValue("@UserID", (object)userId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Action", action);
                     cmd.Parameters.AddWithValue("@Detail", detail);
@@ -37,10 +38,10 @@ namespace StafflyApp.Data.Repositories
             }
             catch (Exception ex)
             {
-                // Ghi log lỗi ra console hoặc file nếu không lưu được vào DB
                 System.Diagnostics.Debug.WriteLine("LogAction Error: " + ex.Message);
             }
         }
+
         public User? AuthenticateUser(string username, string password)
         {
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
@@ -51,7 +52,8 @@ namespace StafflyApp.Data.Repositories
 
             using (var conn = new SqlConnection(DatabaseConfig.ConnectionString))
             {
-                string query = "SELECT * FROM Users WHERE Username = @Username AND IsActive = 1";
+                // 🔥 ĐÃ SỬA: Bỏ "AND IsActive = 1" ở đây để bốc được User lên kiểm tra trạng thái bên ViewModel
+                string query = "SELECT * FROM Users WHERE Username = @Username";
                 var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@Username", username);
 
@@ -63,10 +65,8 @@ namespace StafflyApp.Data.Repositories
                         string hashedPasswordInDb = reader["Password"] != DBNull.Value ? reader["Password"].ToString() : "";
                         bool isPasswordValid = false;
 
-                        // FIX LỖI Ở ĐÂY: Bọc try-catch chặt chẽ cho BCrypt, tránh crash app khi gặp pass thô "123"
                         try
                         {
-                            // Chỉ verify bằng BCrypt nếu chuỗi trong DB có định dạng băm chuẩn ($2a$)
                             if (!string.IsNullOrEmpty(hashedPasswordInDb) && hashedPasswordInDb.StartsWith("$2a$"))
                             {
                                 isPasswordValid = PasswordHelper.VerifyPassword(password, hashedPasswordInDb);
@@ -77,7 +77,7 @@ namespace StafflyApp.Data.Repositories
                             isPasswordValid = false;
                         }
 
-                        // Fallback: Nếu không phải BCrypt hoặc BCrypt fail, check trực tiếp chuỗi thô
+                        // Fallback check chuỗi thô cho đống seed data cũ
                         if (!isPasswordValid)
                         {
                             string unameLower = username.ToLower();
@@ -89,12 +89,19 @@ namespace StafflyApp.Data.Repositories
 
                         if (isPasswordValid)
                         {
+                            // 🔥 ĐÃ SỬA: Bốc đầy đủ tất cả các trường mới nạp vào Object để LoginViewModel kiểm tra
                             var user = new User
                             {
                                 UserID = Convert.ToInt32(reader["UserID"]),
                                 Username = reader["Username"].ToString(),
                                 RoleID = reader["RoleID"] != DBNull.Value ? Convert.ToInt32(reader["RoleID"]) : null,
-                                RoleName = reader["RoleName"] != DBNull.Value ? reader["RoleName"].ToString() : "Admin"
+                                RoleName = reader["RoleName"] != DBNull.Value ? reader["RoleName"].ToString() : "Admin",
+
+                                // Nạp thêm các trường bảo mật quan trọng tụi mình mới thêm vào DB
+                                IsActive = reader["IsActive"] != DBNull.Value ? Convert.ToBoolean(reader["IsActive"]) : false,
+                                IsDefaultPassword = reader["IsDefaultPassword"] != DBNull.Value ? Convert.ToBoolean(reader["IsDefaultPassword"]) : false,
+                                Email = reader["Email"] != DBNull.Value ? reader["Email"].ToString() : string.Empty,
+                                CreatedAt = reader["CreatedAt"] != DBNull.Value ? Convert.ToDateTime(reader["CreatedAt"]) : DateTime.Now
                             };
 
                             LogAction(user.UserID, "LOGIN", $"User {user.Username} logged in successfully.");
@@ -103,7 +110,7 @@ namespace StafflyApp.Data.Repositories
                     }
                 }
             }
-            return null;
+            return null; // Sai mật khẩu hoặc không tồn tại username -> Trả về null chuẩn bài
         }
 
         public Employee? GetEmployeeByUserId(int userId)
@@ -115,6 +122,7 @@ namespace StafflyApp.Data.Repositories
             }
             return null;
         }
+
         // Tạo mới tài khoản với mật khẩu được mã hóa
         public bool AddUser(User newUser, string plainPassword)
         {
@@ -122,7 +130,6 @@ namespace StafflyApp.Data.Repositories
             {
                 using (var conn = new SqlConnection(DatabaseConfig.ConnectionString))
                 {
-                    // QUAN TRỌNG: Mã hóa mật khẩu trước khi lưu
                     string hashedPassword = PasswordHelper.HashPassword(plainPassword);
 
                     string query = @"INSERT INTO Users (Username, Password, RoleID, EmployeeID, IsActive) 
@@ -130,7 +137,7 @@ namespace StafflyApp.Data.Repositories
 
                     var cmd = new SqlCommand(query, conn);
                     cmd.Parameters.AddWithValue("@Username", newUser.Username);
-                    cmd.Parameters.AddWithValue("@Password", hashedPassword); // Lưu chuỗi đã băm
+                    cmd.Parameters.AddWithValue("@Password", hashedPassword);
                     cmd.Parameters.AddWithValue("@RoleID", (object)newUser.RoleID ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@EmployeeID", (object)newUser.EmployeeID ?? DBNull.Value);
 
@@ -152,4 +159,3 @@ namespace StafflyApp.Data.Repositories
         }
     }
 }
-
