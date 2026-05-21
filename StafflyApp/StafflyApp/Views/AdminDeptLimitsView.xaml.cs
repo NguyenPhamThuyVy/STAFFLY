@@ -1,28 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using StafflyApp.Models;
+using StafflyApp.ViewModels;
 
 namespace StafflyApp.Views
 {
-    /// <summary>
-    /// Interaction logic for AdminDeptLimitsView.xaml
-    /// </summary>
     public partial class AdminDeptLimitsView : UserControl
     {
-        public AdminDeptLimitsView()
+        public AdminDeptLimitsView() => InitializeComponent();
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            InitializeComponent();
+            if (this.DataContext is AdminDeptLimitsViewModel vm) vm.LoadDeptLimitsData();
+        }
+
+        private void DataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                var grid = (DataGrid)sender;
+                grid.CommitEdit(DataGridEditingUnit.Cell, true);
+                grid.CancelEdit(); 
+                e.Handled = true;
+            }
+        }
+
+        private void DataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            if (e.EditAction == DataGridEditAction.Commit)
+            {
+                if (e.Row.Item is Department editedDept && this.DataContext is AdminDeptLimitsViewModel vm)
+                {
+                    var textBox = e.EditingElement as TextBox;
+                    if (textBox != null && int.TryParse(textBox.Text, out int newValue))
+                    {
+                        editedDept.HeadcountLimit = newValue;
+                        vm.SaveDeptLimitDataCommand.Execute(editedDept);
+                    }
+                }
+            }
         }
     }
 }

@@ -219,17 +219,31 @@ namespace StafflyApp.ViewModels
                 using (var db = new StafflyDbContext())
                 {
                     var emp = db.Employees.Find(EditingEmployee.EmployeeID);
-                    if (emp != null)
-                    {
-                        emp.DepartmentID = SelectedTargetDept.DepartmentID;
-                        db.SaveChanges();
-                        _ = LoadData();
-
-                        SelectedEmployee.DepartmentName = SelectedTargetDept.DepartmentName;
-                        OnPropertyChanged(nameof(SelectedEmployee));
-
-                        MessageBox.Show("Employee transferred successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    var oldDept = db.Departments.FirstOrDefault(d => d.DepartmentID == emp.DepartmentID);
+                    var newDept = db.Departments.FirstOrDefault(d => d.DepartmentID == SelectedTargetDept.DepartmentID);
+                    if (emp == null || newDept == null) return;
+                    if(newDept.CurrentStaffCount >= newDept.HeadcountLimit)
+            {
+                        MessageBox.Show($"{newDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
                     }
+
+                    emp.DepartmentID = newDept.DepartmentID; 
+
+                    newDept.CurrentStaffCount += 1;
+
+                    if (oldDept != null)
+                    {
+                        oldDept.CurrentStaffCount -= 1;
+                    }
+
+                    db.SaveChanges(); 
+
+                    _ = LoadData();
+                    SelectedEmployee.DepartmentName = newDept.DepartmentName;
+                    OnPropertyChanged(nameof(SelectedEmployee));
+
+                    MessageBox.Show("Employee transferred successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
@@ -273,6 +287,16 @@ namespace StafflyApp.ViewModels
                 using (var db = new StafflyDbContext())
                 {
                     db.Employees.Add(EditingEmployee);
+                    var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == EditingEmployee.DepartmentID);
+                    if (dept != null && dept.CurrentStaffCount >= dept.HeadcountLimit)
+                    {
+                        MessageBox.Show($"Save failed: {dept.DepartmentName} has reached its headcount limit ({dept.HeadcountLimit})!",
+                                        "Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return; 
+                    }
+
+                    db.Employees.Add(EditingEmployee);
+                    if (dept != null) dept.CurrentStaffCount += 1; 
                     db.SaveChanges();
                 }
                 IsDialogOpen = false;
@@ -291,7 +315,30 @@ namespace StafflyApp.ViewModels
             if (emp == null) return;
             if (MessageBox.Show($"Are you sure you want to delete {emp.FullName}?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
-                if (_repository.DeleteEmployee(emp.EmployeeID)) _ = LoadData();
+                try
+                {
+                    using (var db = new StafflyDbContext())
+                    {
+                        var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == emp.DepartmentID);
+
+                        if (dept != null && dept.CurrentStaffCount > 0)
+                        {
+                            dept.CurrentStaffCount -= 1;
+                        }
+                        if (_repository.DeleteEmployee(emp.EmployeeID))
+                        {
+                            db.SaveChanges();
+
+                            _ = LoadData();
+
+                            MessageBox.Show("Employee deleted and department count updated!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Delete Error: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }

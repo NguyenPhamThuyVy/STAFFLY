@@ -76,5 +76,33 @@ namespace StafflyApp.Data.Repositories
                 }
             }
         }
+
+        public bool UpdateHeadcountLimit(int departmentId, int newLimit)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
+                {
+                    string query = @"UPDATE Departments 
+                                     SET HeadcountLimit = @NewLimit 
+                                     WHERE DepartmentID = @DeptID";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@NewLimit", newLimit);
+                        cmd.Parameters.AddWithValue("@DeptID", departmentId);
+
+                        conn.Open();
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("UpdateHeadcountLimit Error: " + ex.Message);
+                return false;
+            }
+        }
     }
 }
