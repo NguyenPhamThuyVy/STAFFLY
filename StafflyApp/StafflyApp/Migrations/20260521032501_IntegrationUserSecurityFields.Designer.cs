@@ -12,8 +12,8 @@ using StafflyApp.Data;
 namespace StafflyApp.Migrations
 {
     [DbContext(typeof(StafflyDbContext))]
-    [Migration("20260520172523_AddNewUserSecurityFields")]
-    partial class AddNewUserSecurityFields
+    [Migration("20260521032501_IntegrationUserSecurityFields")]
+    partial class IntegrationUserSecurityFields
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
