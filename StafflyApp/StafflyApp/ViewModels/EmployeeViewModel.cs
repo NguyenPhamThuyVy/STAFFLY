@@ -1,26 +1,22 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.AspNetCore.Http.Internal;
 using StafflyApp.Data;
 using StafflyApp.Data.Repositories;
 using StafflyApp.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using StafflyApp.Models;
-using StafflyApp.Data;
-using StafflyApp.Data.Repositories;
 using System.Linq;
-using System.Windows;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace StafflyApp.ViewModels
 {
     public partial class EmployeeViewModel : ObservableObject
     {
         private readonly EmployeeRepository _repository;
-private readonly DepartmentRepository _deptRepository = new();
+        private List<Employee> _allEmployeesMaster = new();
 
         // =======================================================
         // VÙNG KHAI BÁO BIẾN (TẤT CẢ ĐỀU PHẢI NẰM TRONG CLASS VÀ TRÊN CÙNG)
@@ -60,8 +56,8 @@ private readonly DepartmentRepository _deptRepository = new();
             _repository = new EmployeeRepository();
 
             var currentUser = StafflyApp.Helpers.UserSession.Instance;
-            IsManager = currentUser.RoleID == 2;
-            IsStaff = currentUser.RoleID == 3;
+            _isManager = currentUser.RoleID == 2;
+            _isStaff = currentUser.RoleID == 3;
 
             _ = LoadData();
         }
@@ -72,70 +68,38 @@ private readonly DepartmentRepository _deptRepository = new();
         [RelayCommand]
         public async Task LoadData()
         {
-try
-    {
-        var list = await Task.Run(() => _repository.GetAllEmployees());
-        _allEmployeesMaster = list.ToList();
-
-        TotalEmployees = _allEmployeesMaster.Count;
-        ActiveEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working");
-
-        Search();
-
-        var deptList = await Task.Run(() => _deptRepository.GetAllDepartments());
-        
-        Departments.Clear();
-        foreach (var dept in deptList) 
-        {
-            Departments.Add(dept);
-        }
-    }
-    catch (Exception ex)
-    {
-        MessageBox.Show("Data loading failed: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
-    }
-
-    partial void OnSearchTextChanged(string value) => Search();
-
-        [RelayCommand]
-        private void Search()
-        {
-// Giữ lại logic cuối của hàm LoadData phía trên
-            // Logic BE: tạm thời gọi LoadData để refresh
-            LoadData();
-        }
-
-        [RelayCommand]
-        private void DeleteSelected()
-        {
-            // Đổi selectedEmployee thành SelectedEmployee (chữ S viết hoa) cho đúng chuẩn MVVM
-            if (SelectedEmployee != null)
+            try
             {
-                if (_repository.DeleteEmployee(SelectedEmployee.EmployeeID))
                 var list = await Task.Run(() => _repository.GetAllEmployees());
                 _allEmployeesMaster = list.Where(e => string.IsNullOrEmpty(e.Status) || !e.Status.Equals("Resigned", StringComparison.OrdinalIgnoreCase)).ToList();
 
-                TotalEmployees = _allEmployeesMaster.Count;
-                ActiveEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working");
+                _totalEmployees = _allEmployeesMaster.Count;
+                _activeEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working");
 
                 Search();
 
                 using (var db = new StafflyDbContext())
                 {
-                    LoadData();
+                    var deptList = await Task.Run(() => db.Departments.ToList());
+                    _departments.Clear();
+                    foreach (var dept in deptList) _departments.Add(dept);
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Data loading failed: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        // Logic Search từ nhánh xanh dương
+        [RelayCommand]
         private void Search()
         {
-            var filtered = string.IsNullOrWhiteSpace(SearchText)
+            var filtered = string.IsNullOrWhiteSpace(_searchText)
                 ? _allEmployeesMaster
-                : _allEmployeesMaster.Where(e => (e.FullName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false) || e.EmployeeID.ToString().Contains(SearchText)).ToList();
+                : _allEmployeesMaster.Where(e => (e.FullName?.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ?? false) || e.EmployeeID.ToString().Contains(_searchText)).ToList();
 
-            Employees.Clear();
-            foreach (var emp in filtered) Employees.Add(emp);
+            _employees.Clear();
+            foreach (var emp in filtered) _employees.Add(emp);
         }
 
         // =======================================================
@@ -158,16 +122,16 @@ try
 
                     fullEmp.DepartmentName = dept?.DepartmentName ?? "No Department";
 
-                    SelectedContractType = contract?.ContractType ?? "Full-time";
-                    SelectedEmployee = fullEmp;
+                    _selectedContractType = contract?.ContractType ?? "Full-time";
+                    _selectedEmployee = fullEmp;
 
                     var colleagues = _allEmployeesMaster.Where(e => e.DepartmentID == fullEmp.DepartmentID && e.EmployeeID != fullEmp.EmployeeID).ToList();
-                    DepartmentColleagues = new ObservableCollection<Employee>(colleagues);
+                    _departmentColleagues = new ObservableCollection<Employee>(colleagues);
                 }
 
-                IsEditMode = false;
-                IsNotEditMode = true;
-                IsProfileViewVisible = true;
+                _isEditMode = false;
+                _isNotEditMode = true;
+                _isProfileViewVisible = true;
             }
             catch (Exception ex)
             {
@@ -176,21 +140,21 @@ try
         }
 
         [RelayCommand]
-        private void GoBack() => IsProfileViewVisible = false;
+        private void GoBack() => _isProfileViewVisible = false;
 
         [RelayCommand]
         private void EnableEditMode()
         {
-            IsEditMode = true;
-            IsNotEditMode = false;
+            _isEditMode = true;
+            _isNotEditMode = false;
         }
 
         [RelayCommand]
         private void CancelEdit()
         {
-            IsEditMode = false;
-            IsNotEditMode = true;
-            ViewProfile(SelectedEmployee);
+            _isEditMode = false;
+            _isNotEditMode = true;
+            ViewProfile(_selectedEmployee);
         }
 
         [RelayCommand]
@@ -198,7 +162,7 @@ try
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(SelectedEmployee.FullName))
+                if (string.IsNullOrWhiteSpace(_selectedEmployee.FullName))
                 {
                     MessageBox.Show("Employee name cannot be empty!", "Validation Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
@@ -206,21 +170,21 @@ try
 
                 using (var db = new StafflyDbContext())
                 {
-                    db.Employees.Update(SelectedEmployee);
+                    db.Employees.Update(_selectedEmployee);
 
-                    var contract = db.Contracts.FirstOrDefault(c => c.EmployeeID == SelectedEmployee.EmployeeID);
+                    var contract = db.Contracts.FirstOrDefault(c => c.EmployeeID == _selectedEmployee.EmployeeID);
                     if (contract == null)
                     {
-                        contract = new Contract { EmployeeID = SelectedEmployee.EmployeeID };
+                        contract = new Contract { EmployeeID = _selectedEmployee.EmployeeID };
                         db.Contracts.Add(contract);
                     }
-                    contract.ContractType = SelectedContractType;
+                    contract.ContractType = _selectedContractType;
 
                     await db.SaveChangesAsync();
                 }
 
-                IsEditMode = false;
-                IsNotEditMode = true;
+                _isEditMode = false;
+                _isNotEditMode = true;
                 _ = LoadData();
                 MessageBox.Show("Employee details and contract updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -236,16 +200,16 @@ try
         [RelayCommand]
         private void ConfirmTransfer()
         {
-            EditingEmployee = SelectedEmployee;
+            _editingEmployee = _selectedEmployee;
             ExecuteTransfer();
         }
 
         private void ExecuteTransfer()
         {
-            if (SelectedTargetDept == null) return;
-            if (SelectedTargetDept.CurrentStaffCount >= SelectedTargetDept.HeadcountLimit)
+            if (_selectedTargetDept == null) return;
+            if (_selectedTargetDept.CurrentStaffCount >= _selectedTargetDept.HeadcountLimit)
             {
-                MessageBox.Show($"{SelectedTargetDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"{_selectedTargetDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -253,15 +217,15 @@ try
             {
                 using (var db = new StafflyDbContext())
                 {
-                    var emp = db.Employees.Find(EditingEmployee.EmployeeID);
+                    var emp = db.Employees.Find(_editingEmployee.EmployeeID);
                     if (emp != null)
                     {
-                        emp.DepartmentID = SelectedTargetDept.DepartmentID;
+                        emp.DepartmentID = _selectedTargetDept.DepartmentID;
                         db.SaveChanges();
                         _ = LoadData();
 
-                        SelectedEmployee.DepartmentName = SelectedTargetDept.DepartmentName;
-                        OnPropertyChanged(nameof(SelectedEmployee));
+                        _selectedEmployee.DepartmentName = _selectedTargetDept.DepartmentName;
+                        OnPropertyChanged(nameof(_selectedEmployee));
 
                         MessageBox.Show("Employee transferred successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
@@ -279,11 +243,11 @@ try
         [RelayCommand]
         private void OpenAddDialog()
         {
-            IsTransferMode = false;
-            CanEditDepartment = true;
-            EditingEmployee = new Employee { Status = "Active", ContractType = "Full-time" };
-            FormTitle = "ADD NEW EMPLOYEE";
-            IsDialogOpen = true;
+            _isTransferMode = false;
+            _canEditDepartment = true;
+            _editingEmployee = new Employee { Status = "Active", ContractType = "Full-time" };
+            _formTitle = "ADD NEW EMPLOYEE";
+            _isDialogOpen = true;
         }
 
         [RelayCommand]
@@ -293,13 +257,13 @@ try
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(EditingEmployee.FullName))
+                if (string.IsNullOrWhiteSpace(_editingEmployee.FullName))
                 {
                     MessageBox.Show("Please enter the employee's name!", "Input Required", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                if (EditingEmployee.DepartmentID == null || EditingEmployee.DepartmentID == 0)
+                if (_editingEmployee.DepartmentID == null || _editingEmployee.DepartmentID == 0)
                 {
                     MessageBox.Show("Please assign a department to this employee!", "Validation Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
@@ -307,10 +271,10 @@ try
 
                 using (var db = new StafflyDbContext())
                 {
-                    db.Employees.Add(EditingEmployee);
+                    db.Employees.Add(_editingEmployee);
                     db.SaveChanges();
                 }
-                IsDialogOpen = false;
+                _isDialogOpen = false;
                 _ = LoadData();
                 MessageBox.Show("New employee added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
