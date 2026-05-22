@@ -52,7 +52,6 @@ namespace StafflyApp.Data.Repositories
 
             using (var conn = new SqlConnection(DatabaseConfig.ConnectionString))
             {
-                // 🔥 ĐÃ SỬA: Bỏ "AND IsActive = 1" ở đây để bốc được User lên kiểm tra trạng thái bên ViewModel
                 string query = "SELECT * FROM Users WHERE Username = @Username";
                 var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@Username", username);
@@ -77,7 +76,7 @@ namespace StafflyApp.Data.Repositories
                             isPasswordValid = false;
                         }
 
-                        // Fallback check chuỗi thô cho đống seed data cũ
+                        // Fallback check chuỗi thô cho eed data cũ
                         if (!isPasswordValid)
                         {
                             string unameLower = username.ToLower();
@@ -89,28 +88,26 @@ namespace StafflyApp.Data.Repositories
 
                         if (isPasswordValid)
                         {
-                            // 🔥 ĐÃ SỬA: Bốc đầy đủ tất cả các trường mới nạp vào Object để LoginViewModel kiểm tra
                             var user = new User
                             {
                                 UserID = Convert.ToInt32(reader["UserID"]),
                                 Username = reader["Username"].ToString(),
                                 RoleID = reader["RoleID"] != DBNull.Value ? Convert.ToInt32(reader["RoleID"]) : null,
                                 RoleName = reader["RoleName"] != DBNull.Value ? reader["RoleName"].ToString() : "Admin",
-
-                                // Nạp thêm các trường bảo mật quan trọng tụi mình mới thêm vào DB
                                 IsActive = reader["IsActive"] != DBNull.Value ? Convert.ToBoolean(reader["IsActive"]) : false,
                                 IsDefaultPassword = reader["IsDefaultPassword"] != DBNull.Value ? Convert.ToBoolean(reader["IsDefaultPassword"]) : false,
                                 Email = reader["Email"] != DBNull.Value ? reader["Email"].ToString() : string.Empty,
-                                CreatedAt = reader["CreatedAt"] != DBNull.Value ? Convert.ToDateTime(reader["CreatedAt"]) : DateTime.Now
+                                CreatedAt = reader["CreatedAt"] != DBNull.Value ? Convert.ToDateTime(reader["CreatedAt"]) : DateTime.Now,
+                                IsResetRequested = reader["IsResetRequested"] != DBNull.Value ? Convert.ToBoolean(reader["IsResetRequested"]) : false,
+                                TempPasswordPlain = reader["TempPasswordPlain"] != DBNull.Value ? reader["TempPasswordPlain"].ToString() : null
                             };
-
                             LogAction(user.UserID, "LOGIN", $"User {user.Username} logged in successfully.");
                             return user;
                         }
                     }
                 }
             }
-            return null; // Sai mật khẩu hoặc không tồn tại username -> Trả về null chuẩn bài
+            return null; 
         }
 
         public Employee? GetEmployeeByUserId(int userId)
@@ -154,6 +151,37 @@ namespace StafflyApp.Data.Repositories
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine("AddUser Error: " + ex.Message);
+            }
+            return false;
+        }
+        public bool RequestResetPassword(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username)) return false;
+
+            try
+            {
+                using (var conn = new SqlConnection(DatabaseConfig.ConnectionString))
+                {
+                    // Bật cờ yêu cầu lên 1, xóa mật khẩu tạm cũ nếu có
+                    string query = @"UPDATE Users 
+                             SET IsResetRequested = 1, TempPasswordPlain = NULL 
+                             WHERE LOWER(Username) = @Username";
+
+                    var cmd = new SqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@Username", username.Trim().ToLower());
+
+                    conn.Open();
+                    int rows = cmd.ExecuteNonQuery();
+                    if (rows > 0)
+                    {
+                        LogAction(null, "REQUEST_RESET_PASS", $"User {username} requested password reset.");
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("RequestResetPassword Error: " + ex.Message);
             }
             return false;
         }

@@ -16,6 +16,7 @@ namespace StafflyApp.ViewModels
         [ObservableProperty] private string _selectedRole = "Staff";
         [ObservableProperty] private bool _isCreateAccountPopupOpen = false;
         [ObservableProperty] private bool _isEditMode = false;
+        [ObservableProperty] private string _newEmail = string.Empty;
         [ObservableProperty] private ObservableCollection<User> _accountsList = new();
         public ObservableCollection<string> RolesCollection { get; set; } = new() { "Staff", "Manager" };
 
@@ -25,7 +26,7 @@ namespace StafflyApp.ViewModels
         {
             using (var db = new StafflyDbContext())
             {
-                AccountsList = new ObservableCollection<User>(db.Users.OrderByDescending(u => u.CreatedAt).ToList());
+                AccountsList = new ObservableCollection<User>(db.Users.OrderBy(u => u.CreatedAt).ToList());
             }
         }
 
@@ -33,6 +34,7 @@ namespace StafflyApp.ViewModels
         private void OpenCreateAccountPopup()
         {
             NewUsername = string.Empty;
+            NewEmail = string.Empty;
             IsEditMode = false;
             IsCreateAccountPopupOpen = true;
         }
@@ -40,16 +42,15 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void ClosePopup() => IsCreateAccountPopupOpen = false;
 
-        // Command thay thế cho việc gọi hàm ExecuteCreateAccount thủ công
         [RelayCommand]
         private void CreateAccount(object parameter)
         {
             var passwordBox = parameter as PasswordBox;
             string rawPassword = passwordBox?.Password ?? "";
 
-            if (string.IsNullOrWhiteSpace(NewUsername) || string.IsNullOrWhiteSpace(rawPassword))
+            if (string.IsNullOrWhiteSpace(NewUsername) || string.IsNullOrWhiteSpace(rawPassword) || string.IsNullOrWhiteSpace(NewEmail))
             {
-                MessageBox.Show("Username and Password are required!", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Username, Email, and Password are required!", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -59,19 +60,22 @@ namespace StafflyApp.ViewModels
                 {
                     if (db.Users.Any(u => u.Username.ToLower() == NewUsername.ToLower()))
                     {
-                        MessageBox.Show("Username already exists!");
+                        MessageBox.Show("Username already exists!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
 
                     var newUser = new User
                     {
                         Username = NewUsername.Trim(),
+                        Email = NewEmail.Trim(),
                         RoleName = SelectedRole,
                         RoleID = SelectedRole == "Manager" ? 2 : 3,
                         Password = BCrypt.Net.BCrypt.HashPassword(rawPassword),
                         IsActive = true,
                         IsDefaultPassword = true, // Force đổi pass
-                        CreatedAt = DateTime.Now
+                        CreatedAt = DateTime.Now,
+                        IsResetRequested = false,
+                        TempPasswordPlain = null
                     };
 
                     db.Users.Add(newUser);
@@ -79,9 +83,11 @@ namespace StafflyApp.ViewModels
                 }
 
                 IsCreateAccountPopupOpen = false;
-                passwordBox.Clear();
-                LoadActiveAccounts();
-                MessageBox.Show("Account created successfully!");
+                NewUsername = string.Empty;
+                NewEmail = string.Empty;
+                passwordBox.Clear();        
+                LoadActiveAccounts();       
+                MessageBox.Show("Account created successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
@@ -101,17 +107,20 @@ namespace StafflyApp.ViewModels
         private void ResetPassword(User user)
         {
             if (user == null) return;
-            string tempPass = "Staffly@2026";
+            string randomPass = "ST@" + new Random().Next(1000, 9999).ToString();
 
             using (var db = new StafflyDbContext())
             {
                 var u = db.Users.Find(user.UserID);
                 if (u != null)
                 {
-                    u.Password = BCrypt.Net.BCrypt.HashPassword(tempPass);
+                    u.Password = BCrypt.Net.BCrypt.HashPassword(randomPass);
                     u.IsDefaultPassword = true;
+                    u.IsResetRequested = false; 
+                    u.TempPasswordPlain = randomPass; 
                     db.SaveChanges();
-                    MessageBox.Show($"Password reset to: {tempPass}. User will be forced to change it.");
+                    LoadActiveAccounts();
+                    MessageBox.Show($"Password reset to: {randomPass}. User will be forced to change it.");
                 }
             }
         }
