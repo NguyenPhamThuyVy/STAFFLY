@@ -18,7 +18,7 @@ namespace StafflyApp.ViewModels
         private List<Employee> _allEmployeesMaster = new();
 
         // =======================================================
-        // VÙNG KHAI BÁO BIẾN (TẤT CẢ ĐỀU PHẢI NẰM TRONG CLASS VÀ TRÊN CÙNG)
+        // VÙNG KHAI BÁO BIẾN TRÊN ĐẦU CLASS
         // =======================================================
         [ObservableProperty] private ObservableCollection<Employee> _employees = new();
         [ObservableProperty] private ObservableCollection<Department> _departments = new();
@@ -62,7 +62,7 @@ namespace StafflyApp.ViewModels
         }
 
         // =======================================================
-        // CÁC PHƯƠNG THỨC LOGIC
+        // CÁC PHƯƠNG THỨC LOGIC DỮ LIỆU
         // =======================================================
         [RelayCommand]
         public async Task LoadData()
@@ -75,14 +75,21 @@ namespace StafflyApp.ViewModels
                 TotalEmployees = _allEmployeesMaster.Count;
                 ActiveEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working");
 
-                Search();
-
                 using (var db = new StafflyDbContext())
                 {
                     var deptList = await Task.Run(() => db.Departments.ToList());
+
+                    foreach (var emp in _allEmployeesMaster)
+                    {
+                        var matchingDept = deptList.FirstOrDefault(d => d.DepartmentID == emp.DepartmentID);
+                        emp.DepartmentName = matchingDept != null ? matchingDept.DepartmentName : "No Department";
+                    }
+
                     Departments.Clear();
                     foreach (var dept in deptList) Departments.Add(dept);
                 }
+
+                Search();
             }
             catch (Exception ex)
             {
@@ -196,7 +203,7 @@ namespace StafflyApp.ViewModels
         }
 
         // =======================================================
-        // ĐIỀU CHUYỂN PHÒNG BAN (DÀNH RIÊNG CHO MANAGER)
+        // ĐIỀU CHUYỂN PHÒNG BAN (MANAGER)
         // =======================================================
         [RelayCommand]
         private void ConfirmTransfer()
@@ -241,6 +248,7 @@ namespace StafflyApp.ViewModels
         // =======================================================
         // DIALOG THÊM MỚI NHÂN VIÊN BAN ĐẦU CỦA STAFF
         // =======================================================
+        // 🔥 ĐÃ SỬA: Xóa bỏ dòng lỗi [RelayColumn] dư thừa ở đây
         [RelayCommand]
         private void OpenAddDialog()
         {
@@ -279,10 +287,7 @@ namespace StafflyApp.ViewModels
                 _ = LoadData();
                 MessageBox.Show("New employee added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Database Error: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            catch (Exception ex) { MessageBox.Show("Database Error: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error); }
         }
 
         [RelayCommand]

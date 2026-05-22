@@ -1,6 +1,7 @@
 ﻿<UserControl x:Class="StafflyApp.Views.PayrollView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              Background="Transparent" FontFamily="Segoe UI">
 
@@ -13,16 +14,65 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Margin="0,0,0,25">
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
                 <TextBlock Text="Payroll Statistics" FontSize="26" FontWeight="Bold" Foreground="#1A1C29"/>
-                <TextBlock Text="Import payroll data from Excel and submit it to Manager" Foreground="#6B7280" FontSize="14" Margin="0,5,0,0"/>
+                <TextBlock Text="Configure targeted timeline, department sector, and import validated financial records." Foreground="#6B7280" FontSize="14" Margin="0,5,0,0"/>
             </StackPanel>
 
-            <Grid Grid.Row="1" Margin="0,0,0,20">
+            <Border Grid.Row="1" Background="#F8FAFC" CornerRadius="16" Padding="20" Margin="0,0,0,20" BorderBrush="#E2E8F0" BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="2*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,15,0">
+                        <TextBlock Text="Target Month" Foreground="#6B7280" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                        <ComboBox SelectedValue="{Binding SelectedMonth, UpdateSourceTrigger=PropertyChanged}" 
+                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="40" Padding="10,0">
+                            <system:Int32>1</system:Int32>
+                            <system:Int32>2</system:Int32>
+                            <system:Int32>3</system:Int32>
+                            <system:Int32>4</system:Int32>
+                            <system:Int32>5</system:Int32>
+                            <system:Int32>6</system:Int32>
+                            <system:Int32>7</system:Int32>
+                            <system:Int32>8</system:Int32>
+                            <system:Int32>9</system:Int32>
+                            <system:Int32>10</system:Int32>
+                            <system:Int32>11</system:Int32>
+                            <system:Int32>12</system:Int32>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Margin="10,0,15,0">
+                        <TextBlock Text="Target Year" Foreground="#6B7280" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                        <ComboBox SelectedValue="{Binding SelectedYear, UpdateSourceTrigger=PropertyChanged}" 
+                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="40" Padding="10,0">
+                            <system:Int32>2024</system:Int32>
+                            <system:Int32>2025</system:Int32>
+                            <system:Int32>2026</system:Int32>
+                            <system:Int32>2027</system:Int32>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Margin="10,0,0,0">
+                        <TextBlock Text="Target Department" Foreground="#6B7280" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                        <ComboBox ItemsSource="{Binding Departments}" 
+                                  SelectedItem="{Binding SelectedDepartment}" 
+                                  DisplayMemberPath="DepartmentName"
+                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="40" Padding="10,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="2" Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
@@ -53,7 +103,7 @@
                 </Button>
             </Grid>
 
-            <DataGrid Grid.Row="2" ItemsSource="{Binding ImportedRecords}" 
+            <DataGrid Grid.Row="3" ItemsSource="{Binding ImportedRecords}" 
                       AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                       Style="{StaticResource MaterialDesignDataGrid}"
                       BorderThickness="0" Background="White"
@@ -75,7 +125,7 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ID" Binding="{Binding EmployeeID}" Width="70"/>
 
-                    <DataGridTemplateColumn Header="Employee Name" Width="200">
+                    <DataGridTemplateColumn Header="Employee Name" Width="220">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -91,13 +141,15 @@
                     <DataGridTextColumn Header="Period" Width="100">
                         <DataGridTextColumn.Binding>
                             <MultiBinding StringFormat="{}{0:D2}/{1}">
-                                <Binding Path="Month"/>
-                                <Binding Path="Year"/>
+                                <MultiBinding.Bindings>
+                                    <Binding Path="Month"/>
+                                    <Binding Path="Year"/>
+                                </MultiBinding.Bindings>
                             </MultiBinding>
                         </DataGridTextColumn.Binding>
                     </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="Basic Salary" Binding="{Binding TotalSalary, StringFormat={}{0:N0} USD}" Width="130">
+                    <DataGridTextColumn Header="Basic Salary" Binding="{Binding TotalSalary, StringFormat={}{0:N0} USD}" Width="140">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Right"/>
@@ -106,7 +158,7 @@
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="Bonus" Binding="{Binding TotalBonus, StringFormat={}{0:N0} USD}" Width="110">
+                    <DataGridTextColumn Header="Bonus" Binding="{Binding TotalBonus, StringFormat={}{0:N0} USD}" Width="120">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Right"/>
@@ -140,7 +192,7 @@
                 </DataGrid.Columns>
             </DataGrid>
 
-            <Border Grid.Row="3" Background="#F9FAFB" CornerRadius="12" Padding="15" Margin="0,20,0,0">
+            <Border Grid.Row="4" Background="#F9FAFB" CornerRadius="12" Padding="15" Margin="0,20,0,0">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="AlertCircleOutline" Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <TextBlock Foreground="#6B7280" FontSize="12" VerticalAlignment="Center">
