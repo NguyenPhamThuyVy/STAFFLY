@@ -68,14 +68,21 @@ namespace StafflyApp.ViewModels
                 TotalEmployees = _allEmployeesMaster.Count;
                 ActiveEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working");
 
-                Search();
-
                 using (var db = new StafflyDbContext())
                 {
                     var deptList = await Task.Run(() => db.Departments.ToList());
+
+                    foreach (var emp in _allEmployeesMaster)
+                    {
+                        var matchingDept = deptList.FirstOrDefault(d => d.DepartmentID == emp.DepartmentID);
+                        emp.DepartmentName = matchingDept != null ? matchingDept.DepartmentName : "No Department";
+                    }
+
                     Departments.Clear();
                     foreach (var dept in deptList) Departments.Add(dept);
                 }
+
+                Search();
             }
             catch (Exception ex)
             {
@@ -289,10 +296,7 @@ namespace StafflyApp.ViewModels
                 _ = LoadData();
                 MessageBox.Show("New employee added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Database Error: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            catch (Exception ex) { MessageBox.Show("Database Error: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error); }
         }
 
         [RelayCommand]
