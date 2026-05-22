@@ -1,15 +1,17 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
+using OfficeOpenXml; // Thư viện EPPlus
+using StafflyApp.Data;
+using StafflyApp.Data.Repositories;
+using StafflyApp.Helpers;
 using StafflyApp.Models;
 using System;
-using StafflyApp.Data;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using OfficeOpenXml; // Thư viện EPPlus
 
 namespace StafflyApp.ViewModels
 {
@@ -23,22 +25,26 @@ namespace StafflyApp.ViewModels
         [ObservableProperty] private int _failureCount;
         [ObservableProperty] private ObservableCollection<ImportErrorItem> _errorList = new();
 
+        [ObservableProperty] private int _selectedMonth = DateTime.Now.Month;
+        [ObservableProperty] private int _selectedYear = DateTime.Now.Year;
+
         [RelayCommand]
         private async Task ImportExcel()
         {
-            int currentMonth = DateTime.Now.Month;
-            int currentYear = DateTime.Now.Year;
+            int targetMonth = SelectedMonth;
+            int targetYear = SelectedYear;
+
             // Chặn không cho import file lương nhiều lần trong cùng 1 tháng sau khi đã được accept
             try
             {
                 using (var db = new StafflyDbContext())
                 {
-                    bool isLocked = db.Payrolls.Any(p => p.Month == currentMonth && p.Year == currentYear && p.Status == "Approved");
+                    bool isLocked = db.Payrolls.Any(p => p.Month == targetMonth && p.Year == targetYear && p.Status == "Approved");
                     if (isLocked)
                     {
-                        MessageBox.Show($"The payroll for Month {currentMonth}/{currentYear} has already been approved and locked! You cannot re-import or overwrite this data.",
+                        MessageBox.Show($"The payroll for Month {targetMonth}/{targetYear} has already been approved and locked! You cannot re-import data into this period.",
                                         "Payroll Locked", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return; // Chặn đứng luồng không cho import tiếp
+                        return;
                     }
                 }
             }
@@ -47,6 +53,7 @@ namespace StafflyApp.ViewModels
                 MessageBox.Show("Error checking payroll lock status: " + ex.Message, "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
+
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Filter = "Excel Files|*.xlsx;*.xls"
@@ -97,9 +104,9 @@ namespace StafflyApp.ViewModels
                                 var record = new PayrollImportModel
                                 {
                                     EmployeeID = int.TryParse(rawId, out int id) ? id : 0,
-                                    EmployeeName = empName ?? "Unknown", // LẤY TÊN THẬT TỪ EXCEL
-                                    Month = DateTime.Now.Month,
-                                    Year = DateTime.Now.Year,
+                                    EmployeeName = empName ?? "Unknown",
+                                    Month = targetMonth,
+                                    Year = targetYear,
                                     TotalSalary = salary,
                                     TotalBonus = decimal.TryParse(rawBonus, out decimal bonus) ? bonus : 0,
                                     IsValid = isRowValid,
@@ -148,16 +155,15 @@ namespace StafflyApp.ViewModels
                 using (var db = new StafflyDbContext())
                 {
                     // Chặn lần nữa
-                    int currentMonth = DateTime.Now.Month;
-                    int currentYear = DateTime.Now.Year;
+                    int targetMonth = SelectedMonth;
+                    int targetYear = SelectedYear;
 
-                    bool isLocked = db.Payrolls.Any(p => p.Month == currentMonth && p.Year == currentYear && p.Status == "Approved");
-                    if (isLocked)
+                    if (db.Payrolls.Any(p => p.Month == targetMonth && p.Year == targetYear && p.Status == "Approved"))
                     {
-                        MessageBox.Show($"Submission Denied! The payroll for Month {currentMonth}/{currentYear} has just been approved by the Manager.",
-                                        "Submission Blocked", MessageBoxButton.OK, MessageBoxImage.Hand);
+                        MessageBox.Show($"Submission Denied! The payroll for Month {targetMonth}/{targetYear} is locked.", "Error", MessageBoxButton.OK, MessageBoxImage.Hand);
                         return;
                     }
+
                     var validRecords = ImportedRecords.Where(r => r.IsValid).ToList();
 
                     if (!validRecords.Any())
@@ -166,61 +172,50 @@ namespace StafflyApp.ViewModels
                         return;
                     }
 
-                    var existingEmployeeIds = db.Employees.Select(e => e.EmployeeID).ToList();
-                    var payrollsToAdd = new System.Collections.Generic.List<Payroll>();
-                    var missingEmpIds = new System.Collections.Generic.List<int>();
-
                     foreach (var importItem in validRecords)
                     {
-                        if (!existingEmployeeIds.Contains(importItem.EmployeeID))
+                        // KIỂM TRA TRÙNG TỪNG NHÂN VIÊN TRONG THÁNG/NĂM
+                        var existingPayroll = db.Payrolls.FirstOrDefault(p => p.EmployeeID == importItem.EmployeeID && p.Month == targetMonth && p.Year == targetYear && p.Status == "Pending");
+
+                        if (existingPayroll != null)
                         {
-                            missingEmpIds.Add(importItem.EmployeeID);
-                            continue;
+                            // Nếu đã có bản ghi Pending cũ của nhân viên này -> Cập nhật đè số tiền mới lên chứ không xóa nguyên bảng
+                            existingPayroll.TotalSalary = importItem.TotalSalary;
+                            existingPayroll.TotalBonus = importItem.TotalBonus;
+                            existingPayroll.EmployeeName = importItem.EmployeeName;
                         }
-                        var payrollDbRecord = new Payroll
+                        else
                         {
-                            EmployeeID = importItem.EmployeeID,
-
-                            // Bốc tên từ file Excel sạch truyền xuống cho Database lưu vết
-                            EmployeeName = importItem.EmployeeName ?? "Unknown",
-
-                            Month = importItem.Month,
-                            Year = importItem.Year,
-                            TotalSalary = importItem.TotalSalary,
-                            TotalBonus = importItem.TotalBonus,
-                            Status = "Pending",
-                            RejectReason = string.Empty,
-                            ErrorNote = string.Empty
-                        };
-
-                        // Nạp thực thể vào list để lưu xuống DB
-                        payrollsToAdd.Add(payrollDbRecord);
+                            // Nếu chưa có -> Thêm mới bản ghi cho nhân viên này
+                            db.Payrolls.Add(new Payroll
+                            {
+                                EmployeeID = importItem.EmployeeID,
+                                EmployeeName = importItem.EmployeeName,
+                                Month = targetMonth,
+                                Year = targetYear,
+                                TotalSalary = importItem.TotalSalary,
+                                TotalBonus = importItem.TotalBonus,
+                                Status = "Pending"
+                            });
+                        }
                     }
 
-                    if (missingEmpIds.Any())
+                    if (db.SaveChanges() > 0)
                     {
-                        string ids = string.Join(", ", missingEmpIds.Distinct());
-                        MessageBox.Show($"Submission aborted! Employee IDs do not exist: [{ids}].",
-                                        "Foreign Key Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
+                        // Ghi log chi tiết số lượng bản ghi nộp thành công, khớp chuẩn thời gian
+                        UserRepository.LogAction(
+                            UserSession.Instance.UserID,
+                            "SUBMIT_PAYROLL",
+                            $"Submitted payroll batch for Month {targetMonth}/{targetYear} (Total: {validRecords.Count} records successfully processed)."
+                        );
 
-                    if (payrollsToAdd.Any())
-                    {
-                        // Xóa dữ liệu cũ pending của tháng này trước khi nạp mới
-                        var oldPending = db.Payrolls.Where(p => p.Month == currentMonth && p.Year == currentYear && p.Status == "Pending");
-                        db.Payrolls.RemoveRange(oldPending);
-                        db.Payrolls.AddRange(payrollsToAdd);
-                        if (db.SaveChanges() > 0)
-                        {
-                            MessageBox.Show($"Successfully submitted {payrollsToAdd.Count} payroll records to HR Manager!",
-                                            "Submission Successful", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show($"Successfully submitted payroll records to HR Manager!",
+                                        "Submission Successful", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                            // Reset trạng thái UI 
-                            IsDataLoaded = false;
-                            FilePath = "No file selected";
-                            ImportedRecords.Clear();
-                        }
+                        // Reset trạng thái UI
+                        IsDataLoaded = false;
+                        FilePath = "No file selected";
+                        ImportedRecords.Clear();
                     }
                 }
             }
@@ -230,7 +225,6 @@ namespace StafflyApp.ViewModels
                                 "Submission Failed", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-    
 
         public class ImportErrorItem
         {

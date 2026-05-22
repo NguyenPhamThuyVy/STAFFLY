@@ -36,6 +36,7 @@ namespace StafflyApp.Data
         public DbSet<Payroll> Payrolls { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<Contract> Contracts { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -44,6 +45,8 @@ namespace StafflyApp.Data
             modelBuilder.Entity<User>().HasKey(u => u.UserID);
             modelBuilder.Entity<Payroll>().HasKey(p => p.PayrollID);
             modelBuilder.Entity<Attendance>().HasKey(a => a.AttendanceID);
+            modelBuilder.Entity<AuditLog>().HasKey(log => log.LogID);
+
 
             // 2. Cấu hình quan hệ giữa User và Employee (nếu có navigation property)
 

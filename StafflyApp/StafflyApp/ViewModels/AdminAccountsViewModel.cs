@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StafflyApp.Data;
+using StafflyApp.Data.Repositories;
+using StafflyApp.Helpers;
 using StafflyApp.Models;
 using System;
 using System.Collections.ObjectModel;
@@ -72,14 +74,23 @@ namespace StafflyApp.ViewModels
                         RoleID = SelectedRole == "Manager" ? 2 : 3,
                         Password = BCrypt.Net.BCrypt.HashPassword(rawPassword),
                         IsActive = true,
-                        IsDefaultPassword = true, // Force đổi pass
+                        IsDefaultPassword = true, 
                         CreatedAt = DateTime.Now,
                         IsResetRequested = false,
                         TempPasswordPlain = null
                     };
 
                     db.Users.Add(newUser);
-                    db.SaveChanges();
+                    if (db.SaveChanges() > 0)
+                    {
+                        // Ghi vết hành động Admin tạo tài khoản nhân sự mới
+                        UserRepository.LogAction(
+                            UserSession.Instance.UserID,
+                            "CREATE_USER",
+                            $"Created new system user account: '{newUser.Username}' assigned with role: {newUser.RoleName}."
+                        );
+                    }
+
                 }
 
                 IsCreateAccountPopupOpen = false;
@@ -99,7 +110,21 @@ namespace StafflyApp.ViewModels
             using (var db = new StafflyDbContext())
             {
                 var u = db.Users.Find(user.UserID);
-                if (u != null) { u.IsActive = user.IsActive; db.SaveChanges(); }
+                if (u != null) { 
+                    u.IsActive = user.IsActive;
+                    if (db.SaveChanges() > 0)
+                    {
+                        // Xác định hành động kích hoạt hay vô hiệu hóa động theo trạng thái mới của nút Switch
+                        string statusText = u.IsActive ? "Activated" : "Deactivated";
+
+                        // Ghi vết bảo mật khi bật/tắt quyền truy cập tài khoản
+                        UserRepository.LogAction(
+                            UserSession.Instance.UserID,
+                            "TOGGLE_USER_STATUS",
+                            $"{statusText} access security token for User: '{u.Username}' (User ID: {u.UserID})."
+                        );
+                    }
+                }
             }
         }
 
@@ -119,6 +144,7 @@ namespace StafflyApp.ViewModels
                     u.IsResetRequested = false; 
                     u.TempPasswordPlain = randomPass; 
                     db.SaveChanges();
+                    UserRepository.LogAction(UserSession.Instance.UserID, "RESET_PASSWORD", $"Admin reset password for user ID: {u.UserID} - Username: {u.Username}");
                     LoadActiveAccounts();
                     MessageBox.Show($"Password reset to: {randomPass}. User will be forced to change it.");
                 }

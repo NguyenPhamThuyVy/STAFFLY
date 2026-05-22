@@ -17,7 +17,7 @@ namespace StafflyApp.Data.Repositories
         }
 
         // Ghi Audit Logs
-        public void LogAction(int? userId, string action, string detail)
+        public static void LogAction(int? userId, string action, string detail)
         {
             try
             {
