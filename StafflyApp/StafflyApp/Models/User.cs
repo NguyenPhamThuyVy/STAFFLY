@@ -14,6 +14,11 @@ namespace StafflyApp.Models
         public int? RoleID { get; set; }
         public string? RoleName { get; set; } 
         public int? EmployeeID { get; set; } 
-        public bool IsActive { get; set; } 
+        public bool IsActive { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public bool IsDefaultPassword { get; set; } // Cờ Bit kiểm tra mật khẩu mặc định (True/False)
+        public DateTime CreatedAt { get; set; }
+        public bool IsResetRequested { get; set; } // Cờ báo xem User có đang đòi reset pass không
+        public string? TempPasswordPlain { get; set; } // Lưu pass thô tạm thời để tự điền ở màn Login cho user
     }
 }

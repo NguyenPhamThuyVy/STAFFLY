@@ -19,7 +19,8 @@ namespace StafflyApp.Models
         public string Status { get; set; } = "Active"; // Mặc định là Active
         [NotMapped]
         public string DepartmentName { get; set; }
-
+        [NotMapped]
+        public string ContractType { get; set; }
     }
 }
 

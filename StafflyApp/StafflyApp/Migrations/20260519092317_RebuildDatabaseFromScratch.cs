@@ -8,11 +8,27 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace StafflyApp.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialEmptyEmployees : Migration
+    public partial class RebuildDatabaseFromScratch : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Attendances",
+                columns: table => new
+                {
+                    AttendanceID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EmployeeID = table.Column<int>(type: "int", nullable: true),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsLocked = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Attendances", x => x.AttendanceID);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Departments",
                 columns: table => new
@@ -29,6 +45,31 @@ namespace StafflyApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Payrolls",
+                columns: table => new
+                {
+                    PayrollID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EmployeeID = table.Column<int>(type: "int", nullable: true),
+                    Month = table.Column<int>(type: "int", nullable: false),
+                    Year = table.Column<int>(type: "int", nullable: false),
+                    TotalBonus = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalSalary = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ApprovedBy = table.Column<int>(type: "int", nullable: true),
+                    ApprovalDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EmployeeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsValid = table.Column<bool>(type: "bit", nullable: false),
+                    ErrorNote = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RejectReason = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payrolls", x => x.PayrollID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -37,6 +78,7 @@ namespace StafflyApp.Migrations
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RoleID = table.Column<int>(type: "int", nullable: true),
+                    RoleName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EmployeeID = table.Column<int>(type: "int", nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -74,17 +116,22 @@ namespace StafflyApp.Migrations
                 columns: new[] { "DepartmentID", "CurrentStaffCount", "DepartmentName", "HeadcountLimit" },
                 values: new object[,]
                 {
-                    { 1, 0, "Ban Giám Đốc", 5 },
-                    { 2, 0, "Phòng IT & Công Nghệ", 20 },
-                    { 3, 0, "Phòng Nhân Sự (HR)", 15 },
-                    { 4, 0, "Phòng Marketing", 25 },
-                    { 5, 0, "Phòng Kế Toán", 10 }
+                    { 1, 0, "Board of Directors", 5 },
+                    { 2, 0, "IT & Technology Department", 20 },
+                    { 3, 0, "Human Resources Department (HR)", 15 },
+                    { 4, 0, "Marketing Department", 25 },
+                    { 5, 0, "Accounting Department", 10 }
                 });
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "UserID", "EmployeeID", "IsActive", "Password", "RoleID", "Username" },
-                values: new object[] { 1, 1, true, "123", 1, "admin" });
+                columns: new[] { "UserID", "EmployeeID", "IsActive", "Password", "RoleID", "RoleName", "Username" },
+                values: new object[,]
+                {
+                    { 1, null, true, "123", 1, null, "admin" },
+                    { 2, null, true, "abc", 2, null, "manager" },
+                    { 3, null, true, "a1b2", 3, null, "staff" }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Employees_DepartmentID",
@@ -96,7 +143,13 @@ namespace StafflyApp.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Attendances");
+
+            migrationBuilder.DropTable(
                 name: "Employees");
+
+            migrationBuilder.DropTable(
+                name: "Payrolls");
 
             migrationBuilder.DropTable(
                 name: "Users");

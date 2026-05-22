@@ -10,8 +10,9 @@ namespace StafflyApp.Data
         static DatabaseConfig()
         {
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
+                // SỬA DÒNG NÀY: Để đảm bảo luôn tìm thấy appsettings.json khi chạy App
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .Build();
 
             ConnectionString = configuration.GetConnectionString("DefaultConnection");

@@ -1,6 +1,8 @@
-﻿using System.Windows;
-using System.Windows.Input;
+﻿using StafflyApp.Helpers;
 using StafflyApp.ViewModels;
+using StafflyApp.Views;
+using System.Windows;
+using System.Windows.Input;
 
 namespace StafflyApp
 {
@@ -9,61 +11,67 @@ namespace StafflyApp
         public MainWindow()
         {
             InitializeComponent();
-            // Nối ViewModel chính vào DataContext của Window
             this.DataContext = new MainWindowViewModel();
         }
 
-        // --- NHÓM HÀM ĐIỀU HƯỚNG TAB  ---
-
+        // --- HÀM CỦA HR / MANAGER ---
         private void TabDashboard_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is MainWindowViewModel vm)
-            {
                 vm.NavigateCommand.Execute("Dashboard");
-            }
         }
 
         private void TabEmployees_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is MainWindowViewModel vm)
-            {
                 vm.NavigateCommand.Execute("Employees");
-            }
         }
 
         private void TabDepartments_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is MainWindowViewModel vm)
-            {
                 vm.NavigateCommand.Execute("Departments");
-            }
         }
 
         private void TabPayroll_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is MainWindowViewModel vm)
-            {
                 vm.NavigateCommand.Execute("Payroll");
-            }
-        }
-        private void TabAttendance_Click(object sender, MouseButtonEventArgs e)
-        {
-            
         }
 
-        private void TabRecruitment_Click(object sender, MouseButtonEventArgs e)
+        // --- HÀM CỦA ADMIN ---
+        private void TabAdminAccounts_Click(object sender, RoutedEventArgs e)
         {
+            if (this.DataContext is MainWindowViewModel vm)
+                vm.NavigateCommand.Execute("AdminAccounts");
         }
 
-        private void TabContracts_Click(object sender, MouseButtonEventArgs e)
+        private void TabAdminAuditLogs_Click(object sender, RoutedEventArgs e)
         {
+            if (this.DataContext is MainWindowViewModel vm)
+                vm.NavigateCommand.Execute("AdminAuditLogs");
         }
 
-        private void TabSystem_Click(object sender, RoutedEventArgs e)
+        private void TabAdminDeptLimits_Click(object sender, RoutedEventArgs e)
         {
+            if (this.DataContext is MainWindowViewModel vm)
+                vm.NavigateCommand.Execute("AdminDeptLimits");
         }
 
         // --- CÁC HÀM HỆ THỐNG ---
+        private void LogoutButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to log out of STAFFLY?",
+                                                      "Logout Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                UserSession.Instance.ClearSession();
+                LoginWindow loginWindow = new LoginWindow();
+                loginWindow.Show();
+                this.Close();
+            }
+        }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {

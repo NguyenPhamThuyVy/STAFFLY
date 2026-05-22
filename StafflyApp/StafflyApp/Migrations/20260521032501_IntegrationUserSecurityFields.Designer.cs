@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StafflyApp.Data;
 
@@ -11,9 +12,11 @@ using StafflyApp.Data;
 namespace StafflyApp.Migrations
 {
     [DbContext(typeof(StafflyDbContext))]
-    partial class StafflyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260521032501_IntegrationUserSecurityFields")]
+    partial class IntegrationUserSecurityFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,33 +49,6 @@ namespace StafflyApp.Migrations
                     b.HasKey("AttendanceID");
 
                     b.ToTable("Attendances");
-                });
-
-            modelBuilder.Entity("StafflyApp.Models.AuditLog", b =>
-                {
-                    b.Property<int>("LogID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LogID"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Detail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("UserID")
-                        .HasColumnType("int");
-
-                    b.HasKey("LogID");
-
-                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("StafflyApp.Models.Contract", b =>
@@ -285,9 +261,6 @@ namespace StafflyApp.Migrations
                     b.Property<bool>("IsDefaultPassword")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsResetRequested")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Password")
                         .HasColumnType("nvarchar(max)");
 
@@ -295,9 +268,6 @@ namespace StafflyApp.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("RoleName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TempPasswordPlain")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Username")
@@ -315,10 +285,8 @@ namespace StafflyApp.Migrations
                             Email = "",
                             IsActive = true,
                             IsDefaultPassword = false,
-                            IsResetRequested = false,
                             Password = "123",
                             RoleID = 1,
-                            RoleName = "Admin",
                             Username = "admin"
                         },
                         new
@@ -328,10 +296,8 @@ namespace StafflyApp.Migrations
                             Email = "",
                             IsActive = true,
                             IsDefaultPassword = false,
-                            IsResetRequested = false,
                             Password = "abc",
                             RoleID = 2,
-                            RoleName = "Manager",
                             Username = "manager"
                         },
                         new
@@ -341,10 +307,8 @@ namespace StafflyApp.Migrations
                             Email = "",
                             IsActive = true,
                             IsDefaultPassword = false,
-                            IsResetRequested = false,
                             Password = "a1b2",
                             RoleID = 3,
-                            RoleName = "Staff",
                             Username = "staff"
                         });
                 });
