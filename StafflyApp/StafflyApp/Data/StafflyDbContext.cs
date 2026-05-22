@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using StafflyApp.Models;
-using Microsoft.Extensions.Configuration;
 
 namespace StafflyApp.Data
 {

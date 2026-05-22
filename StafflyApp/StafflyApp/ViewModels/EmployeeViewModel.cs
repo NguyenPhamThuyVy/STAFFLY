@@ -140,7 +140,6 @@ namespace StafflyApp.ViewModels
             IsNotEditMode = false;
         }
 
-        [RelayColumn]
         [RelayCommand]
         private void CancelEdit()
         {
