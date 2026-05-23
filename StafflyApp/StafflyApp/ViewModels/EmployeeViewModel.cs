@@ -17,7 +17,6 @@ namespace StafflyApp.ViewModels
         private readonly EmployeeRepository _repository;
         private List<Employee> _allEmployeesMaster = new();
 
-
         [ObservableProperty] private ObservableCollection<Employee> _employees = new();
         [ObservableProperty] private ObservableCollection<Department> _departments = new();
         [ObservableProperty] private string _searchText = string.Empty;
@@ -45,7 +44,7 @@ namespace StafflyApp.ViewModels
         // ĐỒNG BỘ GIÁ TRỊ COMBOBOX LOẠI HỢP ĐỒNG
         [ObservableProperty] private string _selectedContractType = "Full-time";
 
-  
+
         public EmployeeViewModel()
         {
             _repository = new EmployeeRepository();
@@ -200,9 +199,6 @@ namespace StafflyApp.ViewModels
             }
         }
 
-        // =======================================================
-        // ĐIỀU CHUYỂN PHÒNG BAN (DÀNH RIÊNG CHO MANAGER)
-        // =======================================================
         [RelayCommand]
         private void ConfirmTransfer()
         {
@@ -213,6 +209,7 @@ namespace StafflyApp.ViewModels
         private void ExecuteTransfer()
         {
             if (SelectedTargetDept == null) return;
+
             if (SelectedTargetDept.CurrentStaffCount >= SelectedTargetDept.HeadcountLimit)
             {
                 MessageBox.Show($"{SelectedTargetDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -226,44 +223,29 @@ namespace StafflyApp.ViewModels
                     var emp = db.Employees.Find(EditingEmployee.EmployeeID);
                     var oldDept = db.Departments.FirstOrDefault(d => d.DepartmentID == emp.DepartmentID);
                     var newDept = db.Departments.FirstOrDefault(d => d.DepartmentID == SelectedTargetDept.DepartmentID);
-                    if (emp == null || newDept == null) return;
-                    if(newDept.CurrentStaffCount >= newDept.HeadcountLimit)
-            {
-                        MessageBox.Show($"{newDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
 
-                    emp.DepartmentID = newDept.DepartmentID; 
+                    if (emp == null || newDept == null) return;
+
+                    int oldDeptId = emp.DepartmentID ?? 0;
+                    emp.DepartmentID = newDept.DepartmentID;
 
                     newDept.CurrentStaffCount += 1;
+                    if (oldDept != null) oldDept.CurrentStaffCount -= 1;
 
-                    if (oldDept != null)
+                    if (db.SaveChanges() > 0)
                     {
-                        oldDept.CurrentStaffCount -= 1;
-                    }
+                        UserRepository.LogAction(
+                            StafflyApp.Helpers.UserSession.Instance.UserID,
+                            "TRANSFER_DEPARTMENT",
+                            $"Transferred Employee '{emp.FullName}' (ID: {emp.EmployeeID}) from Dept ID {oldDeptId} to '{newDept.DepartmentName}' (Dept ID: {newDept.DepartmentID})."
+                        );
 
-                    db.SaveChanges(); 
-                    if (emp != null)
-                    {
-                        // Lưu vết phòng ban cũ 
-                        int oldDeptId = emp.DepartmentID ?? 0;
-                        emp.DepartmentID = SelectedTargetDept.DepartmentID;
-                        if (db.SaveChanges() > 0)
-                        {
-                            // Ghi log điều chuyển phòng ban nội bộ
-                            UserRepository.LogAction(
-                                StafflyApp.Helpers.UserSession.Instance.UserID,
-                                "TRANSFER_DEPARTMENT",
-                                $"Transferred Employee '{emp.FullName}' (ID: {emp.EmployeeID}) from Dept ID {oldDeptId} to '{SelectedTargetDept.DepartmentName}' (Dept ID: {SelectedTargetDept.DepartmentID})."
-                            );
-                        }
                         _ = LoadData();
+                        SelectedEmployee.DepartmentName = newDept.DepartmentName;
+                        OnPropertyChanged(nameof(SelectedEmployee));
 
-                    _ = LoadData();
-                    SelectedEmployee.DepartmentName = newDept.DepartmentName;
-                    OnPropertyChanged(nameof(SelectedEmployee));
-
-                    MessageBox.Show("Employee transferred successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show("Employee transferred successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
                 }
             }
             catch (Exception ex)
@@ -303,70 +285,65 @@ namespace StafflyApp.ViewModels
 
                 using (var db = new StafflyDbContext())
                 {
-                    db.Employees.Add(EditingEmployee);
                     var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == EditingEmployee.DepartmentID);
                     if (dept != null && dept.CurrentStaffCount >= dept.HeadcountLimit)
                     {
                         MessageBox.Show($"Save failed: {dept.DepartmentName} has reached its headcount limit ({dept.HeadcountLimit})!",
                                         "Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return; 
+                        return;
                     }
 
                     db.Employees.Add(EditingEmployee);
+                    if (dept != null) dept.CurrentStaffCount += 1;
+
                     if (db.SaveChanges() > 0)
                     {
-                        // Ghi log thêm mới nhân viên
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "ADD_EMPLOYEE",
                             $"Created new employee profile: '{EditingEmployee.FullName}' assigned to Department ID: {EditingEmployee.DepartmentID}."
                         );
                     }
-                    if (dept != null) dept.CurrentStaffCount += 1; 
-                    db.SaveChanges();
                 }
+
                 IsDialogOpen = false;
                 _ = LoadData();
                 MessageBox.Show("New employee added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            catch (Exception ex) { MessageBox.Show("Database Error: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error); }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Database Error: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         [RelayCommand]
         private void DeleteEmployee(Employee emp)
         {
             if (emp == null) return;
+
             if (MessageBox.Show($"Are you sure you want to delete {emp.FullName}?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
-                // Lưu tên và ID để ghi log
-                int empId = emp.EmployeeID;
-                string empName = emp.FullName;
-                if (_repository.DeleteEmployee(emp.EmployeeID))
-                {
-                    // Ghi log xóa nhân viên
-                    UserRepository.LogAction(
-                        StafflyApp.Helpers.UserSession.Instance.UserID,
-                        "DELETE_EMPLOYEE",
-                        $"Permanently removed employee record: '{empName}' (ID: {empId}) from the operational master list."
-                    );
-                    _ = LoadData();
-                }
                 try
                 {
                     using (var db = new StafflyDbContext())
                     {
                         var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == emp.DepartmentID);
-
                         if (dept != null && dept.CurrentStaffCount > 0)
                         {
                             dept.CurrentStaffCount -= 1;
                         }
+
                         if (_repository.DeleteEmployee(emp.EmployeeID))
                         {
+                            UserRepository.LogAction(
+                                StafflyApp.Helpers.UserSession.Instance.UserID,
+                                "DELETE_EMPLOYEE",
+                                $"Permanently removed employee record: '{emp.FullName}' (ID: {emp.EmployeeID}) from the operational master list."
+                            );
+
                             db.SaveChanges();
 
                             _ = LoadData();
-
                             MessageBox.Show("Employee deleted and department count updated!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                     }
