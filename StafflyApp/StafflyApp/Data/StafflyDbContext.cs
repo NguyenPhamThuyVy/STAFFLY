@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using StafflyApp.Models;
-using Microsoft.Extensions.Configuration;
 
 namespace StafflyApp.Data
 {
@@ -37,6 +36,8 @@ namespace StafflyApp.Data
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<DepartmentPayrollStatus> DepartmentPayrollStatuses { get; set; }
+        public DbSet<EmployeePayroll> EmployeePayrolls { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -65,7 +66,6 @@ namespace StafflyApp.Data
                 new User { UserID = 3, Username = "staff", Password = "a1b2", RoleID = 3, RoleName = "Staff", EmployeeID = null, IsActive = true }
             );
 
-            // (ĐÃ XÓA TOÀN BỘ ĐOẠN modelBuilder.Entity<Employee>().HasData(...) Ở ĐÂY)
         }
     }
 }

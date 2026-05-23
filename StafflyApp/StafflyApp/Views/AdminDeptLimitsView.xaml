@@ -3,8 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:vm="clr-namespace:StafflyApp.ViewModels"
-             Background="Transparent" FontFamily="Segoe UI">
-
+             Background="Transparent" 
+             FontFamily="Segoe UI"
+             Loaded="UserControl_Loaded">
     <UserControl.DataContext>
         <vm:AdminDeptLimitsViewModel/>
     </UserControl.DataContext>
@@ -21,23 +22,26 @@
                 <TextBlock Text="Establish organizational metrics and restrict maximum active workforce sizes." Foreground="#6B7280" FontSize="14" Margin="0,5,0,0"/>
             </StackPanel>
 
-            <DataGrid Grid.Row="1" ItemsSource="{Binding DepartmentsBoundaries}" AutoGenerateColumns="False" CanUserAddRows="False"
-                      Style="{StaticResource MaterialDesignDataGrid}" BorderThickness="0" Background="White" RowHeight="48">
+            <DataGrid Grid.Row="1" 
+                      ItemsSource="{Binding AdminDeptCapacityList}" 
+                      AutoGenerateColumns="False" 
+                      CanUserAddRows="False"
+                      SelectionUnit="Cell" 
+                      SelectionMode="Single"
+                      Style="{StaticResource MaterialDesignDataGrid}" 
+                      BorderThickness="0" 
+                      Background="White" 
+                      RowHeight="48"
+                      CellEditEnding="DataGrid_CellEditEnding"
+                      PreviewKeyDown="DataGrid_PreviewKeyDown">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Dept ID" Binding="{Binding DepartmentID}" IsReadOnly="True" Width="100"/>
-                    <DataGridTextColumn Header="Department Organizational Unit Name" Binding="{Binding DepartmentName}" IsReadOnly="True" Width="400" FontWeight="SemiBold" Foreground="#1A1C29"/>
-
-                    <DataGridTextColumn Header="Headcount Limit (Double-click Cell to Edit)" 
+                    <DataGridTextColumn Header="Dept ID" Binding="{Binding DepartmentID}" IsReadOnly="True" Width="80"/>
+                    <DataGridTextColumn Header="Department Name" Binding="{Binding DepartmentName}" IsReadOnly="True" Width="250" FontWeight="SemiBold" Foreground="#1A1C29"/>
+                    <DataGridTextColumn Header="Current Staff" Binding="{Binding CurrentStaffCount}" IsReadOnly="True" Width="120" FontWeight="Bold" Foreground="#6B7280"/>
+                    <DataGridTextColumn Header="Headcount Limit (Edit here)" 
                                         Binding="{Binding HeadcountLimit, UpdateSourceTrigger=LostFocus}" 
-                                        Width="*" Foreground="#1954D1" FontWeight="Bold">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="HorizontalAlignment" Value="Left"/>
-                                <Setter Property="VerticalAlignment" Value="Center"/>
-                                <Setter Property="Margin" Value="20,0,0,0"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                                        IsReadOnly="False" 
+                                        Width="*" Foreground="#1954D1" FontWeight="Bold"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
