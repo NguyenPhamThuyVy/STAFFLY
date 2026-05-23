@@ -17,9 +17,6 @@ namespace StafflyApp.ViewModels
         private readonly EmployeeRepository _repository;
         private List<Employee> _allEmployeesMaster = new();
 
-        // =======================================================
-        // VÙNG KHAI BÁO BIẾN (TẤT CẢ ĐỀU PHẢI NẰM TRONG CLASS VÀ TRÊN CÙNG)
-        // =======================================================
         [ObservableProperty] private ObservableCollection<Employee> _employees = new();
         [ObservableProperty] private ObservableCollection<Department> _departments = new();
         [ObservableProperty] private string _searchText = string.Empty;
@@ -31,12 +28,10 @@ namespace StafflyApp.ViewModels
         [ObservableProperty] private Department? _selectedTargetDept;
         [ObservableProperty] private string _formTitle = "ADD EMPLOYEE";
 
-        // QUẢN LÝ PHÂN QUYỀN TRONG HỆ THỐNG
         [ObservableProperty] private bool _isManager;
         [ObservableProperty] private bool _isStaff;
         [ObservableProperty] private bool _canEditDepartment;
 
-        // ĐIỀU KHIỂN OVERLAY SIDE PANEL PROFILE CHI TIẾT
         [ObservableProperty] private bool _isListViewVisible = true;
         [ObservableProperty] private bool _isProfileViewVisible = false;
         [ObservableProperty] private bool _isEditMode = false;
@@ -44,12 +39,9 @@ namespace StafflyApp.ViewModels
         [ObservableProperty] private Employee _selectedEmployee = new();
         [ObservableProperty] private ObservableCollection<Employee> _departmentColleagues = new();
 
-        // ĐỒNG BỘ GIÁ TRỊ COMBOBOX LOẠI HỢP ĐỒNG
+
         [ObservableProperty] private string _selectedContractType = "Full-time";
 
-        // =======================================================
-        // CONSTRUCTOR
-        // =======================================================
         public EmployeeViewModel()
         {
             _repository = new EmployeeRepository();
@@ -61,9 +53,6 @@ namespace StafflyApp.ViewModels
             _ = LoadData();
         }
 
-        // =======================================================
-        // CÁC PHƯƠNG THỨC LOGIC
-        // =======================================================
         [RelayCommand]
         public async Task LoadData()
         {
@@ -188,7 +177,7 @@ namespace StafflyApp.ViewModels
 
                     if (await db.SaveChangesAsync() > 0)
                     {
-                        // 🔥 GIỮ LẠI LOG: Ghi log sửa thông tin nhân viên của Vy
+                        // Ghi log sửa thông tin nhân viên 
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "UPDATE_EMPLOYEE",
@@ -229,7 +218,7 @@ namespace StafflyApp.ViewModels
 
                     if (emp == null || newDept == null) return;
 
-                    // Logic Uyên: Chặn nếu phòng ban đích đã đầy giới hạn
+                    // Chặn nếu phòng ban đích đã đầy giới hạn
                     if (newDept.CurrentStaffCount >= newDept.HeadcountLimit)
                     {
                         MessageBox.Show($"{newDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -239,13 +228,13 @@ namespace StafflyApp.ViewModels
                     int oldDeptId = emp.DepartmentID ?? 0;
                     emp.DepartmentID = newDept.DepartmentID;
 
-                    // Logic Uyên: Tăng số lượng phòng mới, giảm phòng cũ
+                    // Tăng số lượng phòng mới, giảm phòng cũ
                     newDept.CurrentStaffCount += 1;
                     if (oldDept != null) oldDept.CurrentStaffCount -= 1;
 
                     if (db.SaveChanges() > 0)
                     {
-                        // 🔥 GIỮ LẠI LOG: Ghi log điều chuyển phòng ban của Vy
+                        // Ghi log điều chuyển phòng ban 
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "TRANSFER_DEPARTMENT",
@@ -299,7 +288,7 @@ namespace StafflyApp.ViewModels
                 {
                     var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == EditingEmployee.DepartmentID);
 
-                    // Logic Uyên: Chặn thêm mới nếu phòng ban được chọn đã hết chỗ
+                    // Chặn thêm mới nếu phòng ban được chọn đã hết chỗ
                     if (dept != null && dept.CurrentStaffCount >= dept.HeadcountLimit)
                     {
                         MessageBox.Show($"Save failed: {dept.DepartmentName} has reached its headcount limit ({dept.HeadcountLimit})!",
@@ -309,12 +298,12 @@ namespace StafflyApp.ViewModels
 
                     db.Employees.Add(EditingEmployee);
 
-                    // Logic Uyên: Cộng dồn nhân sự phòng ban
+                    // Cộng dồn nhân sự phòng ban
                     if (dept != null) dept.CurrentStaffCount += 1;
 
                     if (db.SaveChanges() > 0)
                     {
-                        // 🔥 GIỮ LẠI LOG: Ghi log tạo nhân viên mới của Vy
+                        // Ghi log 
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "ADD_EMPLOYEE",
@@ -339,7 +328,7 @@ namespace StafflyApp.ViewModels
                 {
                     using (var db = new StafflyDbContext())
                     {
-                        // Logic Uyên: Tìm phòng ban để trừ số lượng nhân viên hiện tại xuống
+                        // Tìm phòng ban để trừ số lượng nhân viên hiện tại xuống
                         var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == emp.DepartmentID);
                         if (dept != null && dept.CurrentStaffCount > 0)
                         {
@@ -351,9 +340,8 @@ namespace StafflyApp.ViewModels
 
                         if (_repository.DeleteEmployee(empId))
                         {
-                            db.SaveChanges(); // Lưu cập nhật số lượng phòng ban của Uyên
-
-                            // 🔥 GIỮ LẠI LOG: Ghi log xóa nhân viên của Vy
+                            db.SaveChanges(); // Lưu cập nhật số lượng phòng ban 
+                            // Ghi log
                             UserRepository.LogAction(
                                 StafflyApp.Helpers.UserSession.Instance.UserID,
                                 "DELETE_EMPLOYEE",

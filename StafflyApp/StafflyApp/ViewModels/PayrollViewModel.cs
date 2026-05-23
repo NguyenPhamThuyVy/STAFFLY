@@ -1,12 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
-using OfficeOpenXml; // Thư viện EPPlus
+using OfficeOpenXml;
 using StafflyApp.Data;
 using StafflyApp.Data.Repositories;
 using StafflyApp.Helpers;
 using StafflyApp.Models;
+using StafflyApp.Services;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -17,32 +19,70 @@ namespace StafflyApp.ViewModels
 {
     public partial class PayrollViewModel : ObservableObject
     {
+        private readonly PayrollService _payrollService = new PayrollService();
+
         [ObservableProperty] private string _filePath = "No file selected";
         [ObservableProperty] private bool _isDataLoaded = false;
+
         [ObservableProperty] private ObservableCollection<PayrollImportModel> _importedRecords = new();
 
         [ObservableProperty] private int _successCount;
         [ObservableProperty] private int _failureCount;
-        [ObservableProperty] private ObservableCollection<ImportErrorItem> _errorList = new();
+
+        [ObservableProperty] private ObservableCollection<ImportErrorCustomItem> _errorList = new();
 
         [ObservableProperty] private int _selectedMonth = DateTime.Now.Month;
         [ObservableProperty] private int _selectedYear = DateTime.Now.Year;
 
-        [RelayCommand]
-        private async Task ImportExcel()
-        {
-            int targetMonth = SelectedMonth;
-            int targetYear = SelectedYear;
+        [ObservableProperty] private ObservableCollection<Department> _departments = new();
+        [ObservableProperty] private Department? _selectedDepartment;
 
-            // Chặn không cho import file lương nhiều lần trong cùng 1 tháng sau khi đã được accept
+        public PayrollViewModel()
+        {
+            _ = LoadDepartments();
+        }
+
+        private async Task LoadDepartments()
+        {
             try
             {
                 using (var db = new StafflyDbContext())
                 {
-                    bool isLocked = db.Payrolls.Any(p => p.Month == targetMonth && p.Year == targetYear && p.Status == "Approved");
-                    if (isLocked)
+                    var list = await Task.Run(() => db.Departments.ToList());
+                    Departments.Clear();
+                    foreach (var dept in list) Departments.Add(dept);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to load departments: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        [RelayCommand]
+        private async Task ImportExcel()
+        {
+            if (SelectedDepartment == null)
+            {
+                MessageBox.Show("Please select a target department before selecting the Excel file!",
+                                "Validation Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            int targetMonth = SelectedMonth;
+            int targetYear = SelectedYear;
+            int targetDeptId = SelectedDepartment.DepartmentID;
+
+            try
+            {
+                using (var db = new StafflyDbContext())
+                {
+                    var status = db.DepartmentPayrollStatuses
+                        .FirstOrDefault(s => s.DepartmentID == targetDeptId && s.Month == targetMonth && s.Year == targetYear);
+
+                    if (status != null && status.Status == "Approved")
                     {
-                        MessageBox.Show($"The payroll for Month {targetMonth}/{targetYear} has already been approved and locked! You cannot re-import data into this period.",
+                        MessageBox.Show($"The payroll for {SelectedDepartment.DepartmentName} in Month {targetMonth}/{targetYear} has already been APPROVED and locked!\nRe-import is denied.",
                                         "Payroll Locked", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
@@ -50,99 +90,170 @@ namespace StafflyApp.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error checking payroll lock status: " + ex.Message, "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Error checking department payroll status: " + ex.Message, "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "Excel Files|*.xlsx;*.xls"
+                Filter = "Excel Files|*.xlsx;*.xls",
+                Title = "Select Payroll Excel File"
             };
 
             if (openFileDialog.ShowDialog() == true)
             {
                 FilePath = openFileDialog.FileName;
 
-                // Reset dữ liệu trước khi nạp mới
-                ImportedRecords.Clear();
-                ErrorList.Clear();
-                SuccessCount = 0;
-                FailureCount = 0;
+                int localSuccess = 0;
+                int localFailure = 0;
+                var localErrorList = new List<ImportErrorCustomItem>();
+                var tempList = new List<PayrollImportModel>();
 
                 try
                 {
-                    var tempList = new System.Collections.Generic.List<PayrollImportModel>();
-
                     await Task.Run(() =>
                     {
-                        // Cú pháp chuẩn xác 100% cho EPPlus 8 trở lên
                         OfficeOpenXml.ExcelPackage.License.SetNonCommercialPersonal("STAFFLY");
-
                         FileInfo fileInfo = new FileInfo(FilePath);
                         using (ExcelPackage package = new ExcelPackage(fileInfo))
                         {
-                            // Lấy Sheet đầu tiên
                             ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
                             int rowCount = worksheet.Dimension.Rows;
+                            int columnCount = worksheet.Dimension.Columns;
 
-                            // Chạy từ dòng 2 (bỏ qua Header)
-                            for (int row = 2; row <= rowCount; row++)
+                            // Quét tìm dòng tiêu đề thực tế (Quét tối đa 15 dòng đầu)
+                            int headerRow = 0;
+                            for (int r = 1; r <= Math.Min(rowCount, 15); r++)
                             {
-                                // Đọc dữ liệu từ các ô (Cell)
-                                string rawId = worksheet.Cells[row, 1].Value?.ToString();
-                                string empName = worksheet.Cells[row, 2].Value?.ToString(); // Cột 2 là Tên
-                                string rawSalary = worksheet.Cells[row, 3].Value?.ToString();
-                                string rawBonus = worksheet.Cells[row, 4].Value?.ToString();
-
-                                bool isRowValid = true;
-                                string note = "";
-
-                                // Validation logic 
-                                if (string.IsNullOrWhiteSpace(empName)) { isRowValid = false; note += "Name is missing; "; }
-                                if (!decimal.TryParse(rawSalary, out decimal salary)) { isRowValid = false; note += "Invalid Salary; "; }
-
-                                var record = new PayrollImportModel
+                                string? cellValue = worksheet.Cells[r, 1].Value?.ToString()?.Trim();
+                                if (!string.IsNullOrEmpty(cellValue) && cellValue.Contains("Employee ID", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    EmployeeID = int.TryParse(rawId, out int id) ? id : 0,
-                                    EmployeeName = empName ?? "Unknown",
-                                    Month = targetMonth,
-                                    Year = targetYear,
-                                    TotalSalary = salary,
-                                    TotalBonus = decimal.TryParse(rawBonus, out decimal bonus) ? bonus : 0,
-                                    IsValid = isRowValid,
-                                    ErrorNote = note
-                                };
-                                tempList.Add(record);
+                                    headerRow = r;
+                                    break;
+                                }
+                            }
+
+                            if (headerRow == 0)
+                            {
+                                localFailure++;
+                                localErrorList.Add(new ImportErrorCustomItem
+                                {
+                                    RowNumber = 1,
+                                    EmployeeName = "System",
+                                    ErrorDetail = "Template Error: Could not find 'Employee ID' header column!"
+                                });
+                                return;
+                            }
+
+                            // Định vị chỉ số cột động dựa trên tên tiêu đề tại headerRow
+                            int colBasic = 2; // Giá trị fallback mặc định
+                            int colBonus = 3;
+                            int colDeduct = 4;
+
+                            for (int c = 1; c <= columnCount; c++)
+                            {
+                                string? colHeader = worksheet.Cells[headerRow, c].Value?.ToString()?.Trim()?.ToLower();
+                                if (string.IsNullOrEmpty(colHeader)) continue;
+
+                                if (colHeader.Contains("basic")) colBasic = c;
+                                else if (colHeader.Contains("bonus")) colBonus = c;
+                                else if (colHeader.Contains("deduct")) colDeduct = c;
+                            }
+
+                            using (var db = new StafflyDbContext())
+                            {
+                                // Đọc dữ liệu thật xuất phát từ dòng (headerRow + 1)
+                                for (int row = headerRow + 1; row <= rowCount; row++)
+                                {
+                                    string? rawId = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                                    string? rawBasic = worksheet.Cells[row, colBasic].Value?.ToString()?.Trim();
+                                    string? rawBonus = worksheet.Cells[row, colBonus].Value?.ToString()?.Trim();
+                                    string? rawDeduct = worksheet.Cells[row, colDeduct].Value?.ToString()?.Trim();
+
+                                    // Bỏ qua dòng trống, dòng tổng cộng hoặc ghi chú cuối file của nhân sự
+                                    if (string.IsNullOrWhiteSpace(rawId) || rawId.Contains("Total", StringComparison.OrdinalIgnoreCase))
+                                        continue;
+
+                                    bool isRowValid = true;
+                                    string note = "";
+                                    string empNameFromDb = "Unknown";
+
+                                    var style = System.Globalization.NumberStyles.Number | System.Globalization.NumberStyles.AllowCurrencySymbol | System.Globalization.NumberStyles.AllowThousands;
+                                    var culture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
+
+                                    if (!int.TryParse(rawId, out int empId)) { isRowValid = false; note += "Invalid Employee ID; "; }
+                                    if (!decimal.TryParse(rawBasic, style, culture, out decimal basicSalary)) { isRowValid = false; note += "Invalid Basic Salary; "; }
+
+                                    decimal bonus = decimal.TryParse(rawBonus, style, culture, out decimal b) ? b : 0;
+                                    decimal deduction = decimal.TryParse(rawDeduct, style, culture, out decimal d) ? d : 0;
+
+                                    if (isRowValid)
+                                    {
+                                        var employeeInDb = db.Employees.FirstOrDefault(e => e.EmployeeID == empId && e.DepartmentID == targetDeptId);
+
+                                        if (employeeInDb == null)
+                                        {
+                                            isRowValid = false;
+                                            note += $"Employee ID {empId} does not exist or belong to {SelectedDepartment.DepartmentName}; ";
+                                        }
+                                        else
+                                        {
+                                            empNameFromDb = employeeInDb.FullName;
+                                        }
+                                    }
+
+                                    var record = new PayrollImportModel
+                                    {
+                                        EmployeeID = empId,
+                                        EmployeeName = empNameFromDb,
+                                        Month = targetMonth,
+                                        Year = targetYear,
+                                        BasicSalary = basicSalary,
+                                        TotalBonus = bonus,
+                                        Deductions = deduction,
+                                        // Tính tổng lương thực nhận nháp hiển thị
+                                        TotalSalary = basicSalary + bonus - deduction,
+                                        IsValid = isRowValid,
+                                        ErrorNote = note
+                                    };
+                                    tempList.Add(record);
+
+                                    if (isRowValid) localSuccess++;
+                                    else
+                                    {
+                                        localFailure++;
+                                        localErrorList.Add(new ImportErrorCustomItem
+                                        {
+                                            RowNumber = row,
+                                            EmployeeName = record.EmployeeName,
+                                            ErrorDetail = record.ErrorNote
+                                        });
+                                    }
+                                }
                             }
                         }
                     });
 
-                    // Đổ dữ liệu vào UI
-                    foreach (var item in tempList)
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        ImportedRecords.Add(item);
-                        if (item.IsValid) SuccessCount++;
-                        else
-                        {
-                            FailureCount++;
-                            ErrorList.Add(new ImportErrorItem
-                            {
-                                RowNumber = ImportedRecords.Count,
-                                EmployeeName = item.EmployeeName,
-                                ErrorDetail = item.ErrorNote
-                            });
-                        }
-                    }
+                        ImportedRecords.Clear();
+                        ErrorList.Clear();
 
-                    IsDataLoaded = true;
+                        SuccessCount = localSuccess;
+                        FailureCount = localFailure;
 
-                    // Hiện Dialog kết quả
+                        foreach (var item in tempList) ImportedRecords.Add(item);
+                        foreach (var err in localErrorList) ErrorList.Add(err);
+
+                        IsDataLoaded = true;
+                    });
+
                     var resultView = new Views.ImportResultView { DataContext = this };
                     await MaterialDesignThemes.Wpf.DialogHost.Show(resultView, "RootDialog");
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error reading Excel: " + ex.Message, "Import Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Error reading Excel file: " + ex.Message, "Import Failed", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -150,87 +261,41 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void SubmitToManager()
         {
-            try
+            if (SelectedDepartment == null || !ImportedRecords.Any()) return;
+
+            int targetMonth = SelectedMonth;
+            int targetYear = SelectedYear;
+            int targetDeptId = SelectedDepartment.DepartmentID;
+            int currentUserId = UserSession.Instance.UserID;
+
+            var validRecords = ImportedRecords.Where(r => r.IsValid).ToList();
+            if (!validRecords.Any())
             {
-                using (var db = new StafflyDbContext())
-                {
-                    // Chặn lần nữa
-                    int targetMonth = SelectedMonth;
-                    int targetYear = SelectedYear;
-
-                    if (db.Payrolls.Any(p => p.Month == targetMonth && p.Year == targetYear && p.Status == "Approved"))
-                    {
-                        MessageBox.Show($"Submission Denied! The payroll for Month {targetMonth}/{targetYear} is locked.", "Error", MessageBoxButton.OK, MessageBoxImage.Hand);
-                        return;
-                    }
-
-                    var validRecords = ImportedRecords.Where(r => r.IsValid).ToList();
-
-                    if (!validRecords.Any())
-                    {
-                        MessageBox.Show("No valid records to submit!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
-
-                    foreach (var importItem in validRecords)
-                    {
-                        // KIỂM TRA TRÙNG TỪNG NHÂN VIÊN TRONG THÁNG/NĂM
-                        var existingPayroll = db.Payrolls.FirstOrDefault(p => p.EmployeeID == importItem.EmployeeID && p.Month == targetMonth && p.Year == targetYear && p.Status == "Pending");
-
-                        if (existingPayroll != null)
-                        {
-                            // Nếu đã có bản ghi Pending cũ của nhân viên này -> Cập nhật đè số tiền mới lên chứ không xóa nguyên bảng
-                            existingPayroll.TotalSalary = importItem.TotalSalary;
-                            existingPayroll.TotalBonus = importItem.TotalBonus;
-                            existingPayroll.EmployeeName = importItem.EmployeeName;
-                        }
-                        else
-                        {
-                            // Nếu chưa có -> Thêm mới bản ghi cho nhân viên này
-                            db.Payrolls.Add(new Payroll
-                            {
-                                EmployeeID = importItem.EmployeeID,
-                                EmployeeName = importItem.EmployeeName,
-                                Month = targetMonth,
-                                Year = targetYear,
-                                TotalSalary = importItem.TotalSalary,
-                                TotalBonus = importItem.TotalBonus,
-                                Status = "Pending"
-                            });
-                        }
-                    }
-
-                    if (db.SaveChanges() > 0)
-                    {
-                        // Ghi log chi tiết số lượng bản ghi nộp thành công, khớp chuẩn thời gian
-                        UserRepository.LogAction(
-                            UserSession.Instance.UserID,
-                            "SUBMIT_PAYROLL",
-                            $"Submitted payroll batch for Month {targetMonth}/{targetYear} (Total: {validRecords.Count} records successfully processed)."
-                        );
-
-                        MessageBox.Show($"Successfully submitted payroll records to HR Manager!",
-                                        "Submission Successful", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                        // Reset trạng thái UI
-                        IsDataLoaded = false;
-                        FilePath = "No file selected";
-                        ImportedRecords.Clear();
-                    }
-                }
+                MessageBox.Show("There are no valid employee records in the list to submit!", "Submission Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
-            catch (Exception ex)
+
+            string? errorResult = _payrollService.ImportPayrollExcel(FilePath, targetDeptId, targetMonth, targetYear, currentUserId);
+
+            if (errorResult != null)
             {
-                MessageBox.Show("Database Save Error: " + (ex.InnerException != null ? ex.InnerException.Message : ex.Message),
-                                "Submission Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(errorResult, "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
+            else
+            {
+                UserRepository.LogAction(
+                    currentUserId,
+                    "SUBMIT_PAYROLL",
+                    $"Submitted payroll sheet for department '{SelectedDepartment.DepartmentName}' (ID: {targetDeptId}) for period {targetMonth}/{targetYear}. Total valid: {validRecords.Count} records."
+                );
 
-        public class ImportErrorItem
-        {
-            public int RowNumber { get; set; }
-            public string EmployeeName { get; set; }
-            public string ErrorDetail { get; set; }
+                MessageBox.Show($"Successfully submitted payroll records for {SelectedDepartment.DepartmentName} to the HR Manager!\nStatus is now set to 'Pending Approval'.",
+                                "Submission Successful", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                IsDataLoaded = false;
+                FilePath = "No file selected";
+                ImportedRecords.Clear();
+            }
         }
     }
 }

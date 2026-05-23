@@ -108,8 +108,8 @@
                       Style="{StaticResource MaterialDesignDataGrid}"
                       BorderThickness="0" Background="White"
                       SelectionMode="Single" SelectionUnit="FullRow"
-                      AlternatingRowBackground="#FAFBFC">
-
+                      AlternatingRowBackground="#FAFBFC"
+                      ColumnWidth="*">
                 <DataGrid.RowStyle>
                     <Style TargetType="DataGridRow" BasedOn="{StaticResource MaterialDesignDataGridRow}">
                         <Style.Triggers>
@@ -123,9 +123,9 @@
                 </DataGrid.RowStyle>
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID" Binding="{Binding EmployeeID}" Width="70"/>
+                    <DataGridTextColumn Header="ID" Binding="{Binding EmployeeID}" Width="Auto" MinWidth="60"/>
 
-                    <DataGridTemplateColumn Header="Employee Name" Width="220">
+                    <DataGridTemplateColumn Header="Employee Name" Width="2*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -138,7 +138,7 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTextColumn Header="Period" Width="100">
+                    <DataGridTextColumn Header="Period" Width="0.5*">
                         <DataGridTextColumn.Binding>
                             <MultiBinding StringFormat="{}{0:D2}/{1}">
                                 <MultiBinding.Bindings>
@@ -149,26 +149,36 @@
                         </DataGridTextColumn.Binding>
                     </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="Basic Salary" Binding="{Binding TotalSalary, StringFormat={}{0:N0} USD}" Width="140">
+                    <DataGridTextColumn Header="Basic Salary" Binding="{Binding BasicSalary, StringFormat={}{0:N0} USD}" Width="0.55*">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Right"/>
-                                <Setter Property="Margin" Value="0,0,15,0"/>
+                                <Setter Property="Margin" Value="0,0,20,0"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="Bonus" Binding="{Binding TotalBonus, StringFormat={}{0:N0} USD}" Width="120">
+                    <DataGridTextColumn Header="Bonuses" Binding="{Binding TotalBonus, StringFormat={}{0:N0} USD}" Width="0.55*">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Right"/>
-                                <Setter Property="Margin" Value="0,0,15,0"/>
+                                <Setter Property="Margin" Value="0,0,20,0"/>
                                 <Setter Property="Foreground" Value="#059669"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
-                    <DataGridTemplateColumn Header="Status" Width="*">
+                    <DataGridTextColumn Header="Deductions" Binding="{Binding Deductions, StringFormat={}{0:N0} USD}" Width="0.55*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="Margin" Value="0,0,20,0"/>
+                                <Setter Property="Foreground" Value="#E11D48"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTemplateColumn Header="Status" Width="1*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Border x:Name="StatusBadge" CornerRadius="10" Padding="10,2" HorizontalAlignment="Left">
