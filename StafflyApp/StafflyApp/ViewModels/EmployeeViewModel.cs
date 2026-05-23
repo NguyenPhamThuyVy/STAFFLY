@@ -17,9 +17,7 @@ namespace StafflyApp.ViewModels
         private readonly EmployeeRepository _repository;
         private List<Employee> _allEmployeesMaster = new();
 
-        // =======================================================
-        // VÙNG KHAI BÁO BIẾN TRÊN ĐẦU CLASS
-        // =======================================================
+
         [ObservableProperty] private ObservableCollection<Employee> _employees = new();
         [ObservableProperty] private ObservableCollection<Department> _departments = new();
         [ObservableProperty] private string _searchText = string.Empty;
@@ -47,9 +45,7 @@ namespace StafflyApp.ViewModels
         // ĐỒNG BỘ GIÁ TRỊ COMBOBOX LOẠI HỢP ĐỒNG
         [ObservableProperty] private string _selectedContractType = "Full-time";
 
-        // =======================================================
-        // CONSTRUCTOR
-        // =======================================================
+  
         public EmployeeViewModel()
         {
             _repository = new EmployeeRepository();
@@ -61,9 +57,6 @@ namespace StafflyApp.ViewModels
             _ = LoadData();
         }
 
-        // =======================================================
-        // CÁC PHƯƠNG THỨC LOGIC DỮ LIỆU
-        // =======================================================
         [RelayCommand]
         public async Task LoadData()
         {
@@ -110,9 +103,6 @@ namespace StafflyApp.ViewModels
             foreach (var emp in filtered) Employees.Add(emp);
         }
 
-        // =======================================================
-        // ĐIỀU HƯỚNG VÀ CHỈNH SỬA TRỰC TIẾP TRÊN PANEL PROFILE
-        // =======================================================
         [RelayCommand]
         private void ViewProfile(Employee emp)
         {
@@ -188,7 +178,15 @@ namespace StafflyApp.ViewModels
                     }
                     contract.ContractType = SelectedContractType;
 
-                    await db.SaveChangesAsync();
+                    if (await db.SaveChangesAsync() > 0)
+                    {
+                        // Ghi log khi chỉnh sửa thông tin nhân viên 
+                        UserRepository.LogAction(
+                            StafflyApp.Helpers.UserSession.Instance.UserID,
+                            "UPDATE_EMPLOYEE",
+                            $"Updated profile for Employee: '{SelectedEmployee.FullName}' (ID: {SelectedEmployee.EmployeeID}) with contract type: '{SelectedContractType}'."
+                        );
+                    }
                 }
 
                 IsEditMode = false;
@@ -203,7 +201,7 @@ namespace StafflyApp.ViewModels
         }
 
         // =======================================================
-        // ĐIỀU CHUYỂN PHÒNG BAN (MANAGER)
+        // ĐIỀU CHUYỂN PHÒNG BAN (DÀNH RIÊNG CHO MANAGER)
         // =======================================================
         [RelayCommand]
         private void ConfirmTransfer()
@@ -245,6 +243,21 @@ namespace StafflyApp.ViewModels
                     }
 
                     db.SaveChanges(); 
+                    if (emp != null)
+                    {
+                        // Lưu vết phòng ban cũ 
+                        int oldDeptId = emp.DepartmentID ?? 0;
+                        emp.DepartmentID = SelectedTargetDept.DepartmentID;
+                        if (db.SaveChanges() > 0)
+                        {
+                            // Ghi log điều chuyển phòng ban nội bộ
+                            UserRepository.LogAction(
+                                StafflyApp.Helpers.UserSession.Instance.UserID,
+                                "TRANSFER_DEPARTMENT",
+                                $"Transferred Employee '{emp.FullName}' (ID: {emp.EmployeeID}) from Dept ID {oldDeptId} to '{SelectedTargetDept.DepartmentName}' (Dept ID: {SelectedTargetDept.DepartmentID})."
+                            );
+                        }
+                        _ = LoadData();
 
                     _ = LoadData();
                     SelectedEmployee.DepartmentName = newDept.DepartmentName;
@@ -259,10 +272,6 @@ namespace StafflyApp.ViewModels
             }
         }
 
-        // =======================================================
-        // DIALOG THÊM MỚI NHÂN VIÊN BAN ĐẦU CỦA STAFF
-        // =======================================================
-        // 🔥 ĐÃ SỬA: Xóa bỏ dòng lỗi [RelayColumn] dư thừa ở đây
         [RelayCommand]
         private void OpenAddDialog()
         {
@@ -304,6 +313,15 @@ namespace StafflyApp.ViewModels
                     }
 
                     db.Employees.Add(EditingEmployee);
+                    if (db.SaveChanges() > 0)
+                    {
+                        // Ghi log thêm mới nhân viên
+                        UserRepository.LogAction(
+                            StafflyApp.Helpers.UserSession.Instance.UserID,
+                            "ADD_EMPLOYEE",
+                            $"Created new employee profile: '{EditingEmployee.FullName}' assigned to Department ID: {EditingEmployee.DepartmentID}."
+                        );
+                    }
                     if (dept != null) dept.CurrentStaffCount += 1; 
                     db.SaveChanges();
                 }
@@ -320,6 +338,19 @@ namespace StafflyApp.ViewModels
             if (emp == null) return;
             if (MessageBox.Show($"Are you sure you want to delete {emp.FullName}?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
+                // Lưu tên và ID để ghi log
+                int empId = emp.EmployeeID;
+                string empName = emp.FullName;
+                if (_repository.DeleteEmployee(emp.EmployeeID))
+                {
+                    // Ghi log xóa nhân viên
+                    UserRepository.LogAction(
+                        StafflyApp.Helpers.UserSession.Instance.UserID,
+                        "DELETE_EMPLOYEE",
+                        $"Permanently removed employee record: '{empName}' (ID: {empId}) from the operational master list."
+                    );
+                    _ = LoadData();
+                }
                 try
                 {
                     using (var db = new StafflyDbContext())

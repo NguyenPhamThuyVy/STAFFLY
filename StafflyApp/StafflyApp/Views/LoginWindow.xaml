@@ -90,8 +90,11 @@
                                  CaretBrush="#1954D1" SelectionBrush="#1954D1"
                                  Background="White"/>
 
-                    <TextBlock Text="Forgot password?" HorizontalAlignment="Right" Foreground="#6B7280" 
-                               Cursor="Hand" TextDecorations="Underline" Margin="0,0,0,35" FontSize="13"/>
+                    <TextBlock HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Hyperlink Command="{Binding ForgotPasswordCommand}" Foreground="#1954D1">
+                                   Forgot Password?
+                        </Hyperlink>
+                    </TextBlock>
 
                     <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" FontSize="13" 
                                HorizontalAlignment="Center" Margin="0,0,0,15" FontWeight="SemiBold"/>
