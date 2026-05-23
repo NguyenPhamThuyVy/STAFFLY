@@ -6,173 +6,113 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace StafflyApp.ViewModels
 {
     public partial class AdminAccountsViewModel : ObservableObject
     {
-        // --- 1. THUỘC TÍNH BINDING FORM ---
         [ObservableProperty] private string _newUsername = string.Empty;
-        [ObservableProperty] private string _newEmail = string.Empty; 
-        [ObservableProperty] private string _selectedRole = "Staff"; // Mặc định từ ComboBox
+        [ObservableProperty] private string _selectedRole = "Staff";
+        [ObservableProperty] private bool _isCreateAccountPopupOpen = false;
+        [ObservableProperty] private bool _isEditMode = false;
+        [ObservableProperty] private ObservableCollection<User> _accountsList = new();
         public ObservableCollection<string> RolesCollection { get; set; } = new() { "Staff", "Manager" };
 
-        // Quản lý ẩn hiện Popup
-        [ObservableProperty] private bool _isCreateAccountPopupOpen = false;
-
-        // --- 2. DANH SÁCH HIỂN THỊ DATAGRID ---
-        [ObservableProperty] private ObservableCollection<User> _accountsList = new();
-
-        public AdminAccountsViewModel()
-        {
-            LoadActiveAccounts();
-        }
+        public AdminAccountsViewModel() => LoadActiveAccounts();
 
         public void LoadActiveAccounts()
         {
-            try
+            using (var db = new StafflyDbContext())
             {
-                using (var db = new StafflyDbContext())
-                {
-                    var list = db.Users.OrderByDescending(u => u.CreatedAt).ToList();
-                    AccountsList = new ObservableCollection<User>(list);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error loading accounts: " + ex.Message, "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                AccountsList = new ObservableCollection<User>(db.Users.OrderByDescending(u => u.CreatedAt).ToList());
             }
         }
 
-        // --- 3. CÁC LỆNH ĐIỀU KHIỂN POPUP ---
         [RelayCommand]
         private void OpenCreateAccountPopup()
         {
+            NewUsername = string.Empty;
+            IsEditMode = false;
             IsCreateAccountPopupOpen = true;
         }
 
         [RelayCommand]
-        private void ClosePopup()
-        {
-            IsCreateAccountPopupOpen = false;
-            NewUsername = string.Empty;
-        }
+        private void ClosePopup() => IsCreateAccountPopupOpen = false;
 
-        // --- 4. LOGIC XỬ LÝ SWITCH BẬT / TẮT TRẠNG THÁI (TOGGLE) ---
+        // Command thay thế cho việc gọi hàm ExecuteCreateAccount thủ công
         [RelayCommand]
-        private void ToggleAccountStatus(User user)
+        private void CreateAccount(object parameter)
         {
-            if (user == null) return;
+            var passwordBox = parameter as PasswordBox;
+            string rawPassword = passwordBox?.Password ?? "";
 
-            try
-            {
-                using (var db = new StafflyDbContext())
-                {
-                    var userInDb = db.Users.FirstOrDefault(u => u.UserID == user.UserID);
-                    if (userInDb != null)
-                    {
-                        // Lấy trạng thái từ cái nút Toggle gán ngược vào DB
-                        userInDb.IsActive = user.IsActive;
-                        db.SaveChanges();
-
-                        string msg = user.IsActive ? "ENABLED" : "DISABLED";
-                        MessageBox.Show($"Account {user.Username} status updated to: {msg}", "Status Synced", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error toggling status: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        // --- 5. HÀM TẠO TÀI KHOẢN (Được gọi từ Sự kiện Click bên file Code Behind) ---
-        public bool ExecuteCreateAccount(string rawPassword)
-        {
             if (string.IsNullOrWhiteSpace(NewUsername) || string.IsNullOrWhiteSpace(rawPassword))
             {
-                MessageBox.Show("Username and Password cannot be left blank!", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
+                MessageBox.Show("Username and Password are required!", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
 
             try
             {
                 using (var db = new StafflyDbContext())
                 {
-                    bool isUsernameExist = db.Users.Any(u => u.Username.ToLower() == NewUsername.ToLower());
-                    if (isUsernameExist)
+                    if (db.Users.Any(u => u.Username.ToLower() == NewUsername.ToLower()))
                     {
-                        MessageBox.Show("This Username is already taken!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return false;
+                        MessageBox.Show("Username already exists!");
+                        return;
                     }
 
                     var newUser = new User
                     {
                         Username = NewUsername.Trim(),
-                        Email = NewUsername.Trim(),
                         RoleName = SelectedRole,
                         RoleID = SelectedRole == "Manager" ? 2 : 3,
-                        Password = BCrypt.Net.BCrypt.HashPassword(rawPassword), 
+                        Password = BCrypt.Net.BCrypt.HashPassword(rawPassword),
                         IsActive = true,
-                        IsDefaultPassword = true,
+                        IsDefaultPassword = true, // Force đổi pass
                         CreatedAt = DateTime.Now
                     };
 
                     db.Users.Add(newUser);
-                    if (db.SaveChanges() > 0)
-                    {
-                        MessageBox.Show($"Successfully provisioned credentials for {NewUsername}!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                        IsCreateAccountPopupOpen = false; // Đóng popup
-                        LoadActiveAccounts(); // Refresh bảng dữ liệu
-                        return true;
-                    }
+                    db.SaveChanges();
                 }
+
+                IsCreateAccountPopupOpen = false;
+                passwordBox.Clear();
+                LoadActiveAccounts();
+                MessageBox.Show("Account created successfully!");
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error during creation: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            return false;
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
-        // 6. RESET PASSWORD
+
+        [RelayCommand]
+        private void ToggleAccountStatus(User user)
+        {
+            if (user == null) return;
+            using (var db = new StafflyDbContext())
+            {
+                var u = db.Users.Find(user.UserID);
+                if (u != null) { u.IsActive = user.IsActive; db.SaveChanges(); }
+            }
+        }
+
         [RelayCommand]
         private void ResetPassword(User user)
         {
             if (user == null) return;
+            string tempPass = "Staffly@2026";
 
-            var confirm = MessageBox.Show($"Do you want to reset the password for account: {user.Username} to default?",
-                                          "Reset Password Confirmation", MessageBoxButton.OKCancel, MessageBoxImage.Question);
-
-            if (confirm != MessageBoxResult.OK) return;
-
-            try
+            using (var db = new StafflyDbContext())
             {
-                using (var db = new StafflyDbContext())
+                var u = db.Users.Find(user.UserID);
+                if (u != null)
                 {
-                    var userInDb = db.Users.FirstOrDefault(u => u.UserID == user.UserID);
-                    if (userInDb != null)
-                    {
-                        // Sinh mật khẩu tạm ngẫu nhiên dài 6 ký tự
-                        string tempPassword = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
-
-                        // Băm bảo mật lưu vào DB, đồng thời bật cờ ép đổi mật khẩu
-                        userInDb.Password = BCrypt.Net.BCrypt.HashPassword(tempPassword);
-                        userInDb.IsDefaultPassword = true;
-
-                        if (db.SaveChanges() > 0)
-                        {
-                            // Bắn thông báo mật khẩu tạm cho user
-                            MessageBox.Show($"Password reset successful!\n\nTemporary Password for {user.Username} is: [ {tempPassword} ]\n\nPlease copy and give it to the user. They will be forced to change it upon login.",
-                                            "Credentials Dispatched", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                            LoadActiveAccounts(); // Tải lại bảng
-                        }
-                    }
+                    u.Password = BCrypt.Net.BCrypt.HashPassword(tempPass);
+                    u.IsDefaultPassword = true;
+                    db.SaveChanges();
+                    MessageBox.Show($"Password reset to: {tempPass}. User will be forced to change it.");
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error resetting password: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

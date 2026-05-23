@@ -3,14 +3,22 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:vm="clr-namespace:StafflyApp.ViewModels"
              mc:Ignorable="d" d:DesignHeight="550" d:DesignWidth="900" Background="#F4F6F9">
+
     <UserControl.DataContext>
         <vm:PayrollApprovalViewModel/>
     </UserControl.DataContext>
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
     <Grid Margin="15">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
@@ -23,7 +31,7 @@
 
             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                 <TextBlock Text="PAYROLL APPROVAL PIPELINE" FontSize="18" FontWeight="Bold" Foreground="#FF434343"/>
-                <TextBlock Text="Review clean Excel payroll submissions from HR Staff and dispatch status updates." Foreground="#666" Margin="0,2,0,0"/>
+                <TextBlock Text="Review targeted timeline submissions from HR Staff and execute structural approvals." Foreground="#666" Margin="0,2,0,0"/>
             </StackPanel>
 
             <Button Grid.Column="1" Content="✓ Accept All Pending" 
@@ -37,15 +45,51 @@
             </Button>
         </Grid>
 
-        <DataGrid Grid.Row="1" ItemsSource="{Binding PendingPayrolls}" AutoGenerateColumns="False" 
+        <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="15" Margin="0,0,0,15" BorderBrush="#EBF0F5" BorderThickness="1">
+            <StackPanel Orientation="Horizontal">
+                <materialDesign:PackIcon Kind="FilterVariant" VerticalAlignment="Center" Foreground="#1954D1" Margin="0,0,10,0" Width="20" Height="20"/>
+                <TextBlock Text="Filter Pipeline:" VerticalAlignment="Center" FontWeight="Bold" Foreground="#4B5563" Margin="0,0,15,0"/>
+
+                <ComboBox SelectedValue="{Binding SelectedMonth, UpdateSourceTrigger=PropertyChanged}" 
+                          materialDesign:HintAssist.Hint="Month" Width="100" Margin="0,0,12,0" Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="36" Padding="8,0">
+                    <system:Int32>1</system:Int32>
+                    <system:Int32>2</system:Int32>
+                    <system:Int32>3</system:Int32>
+                    <system:Int32>4</system:Int32>
+                    <system:Int32>5</system:Int32>
+                    <system:Int32>6</system:Int32>
+                    <system:Int32>7</system:Int32>
+                    <system:Int32>8</system:Int32>
+                    <system:Int32>9</system:Int32>
+                    <system:Int32>10</system:Int32>
+                    <system:Int32>11</system:Int32>
+                    <system:Int32>12</system:Int32>
+                </ComboBox>
+
+                <ComboBox SelectedValue="{Binding SelectedYear, UpdateSourceTrigger=PropertyChanged}" 
+                          materialDesign:HintAssist.Hint="Year" Width="110" Margin="0,0,12,0" Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="36" Padding="8,0">
+                    <system:Int32>2024</system:Int32>
+                    <system:Int32>2025</system:Int32>
+                    <system:Int32>2026</system:Int32>
+                    <system:Int32>2027</system:Int32>
+                </ComboBox>
+
+                <ComboBox ItemsSource="{Binding Departments}" 
+                          SelectedItem="{Binding SelectedDepartment}" 
+                          DisplayMemberPath="DepartmentName"
+                          materialDesign:HintAssist.Hint="All Departments" Width="220" Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="36" Padding="8,0"/>
+            </StackPanel>
+        </Border>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding PendingPayrolls}" AutoGenerateColumns="False" 
                   CanUserAddRows="False" IsReadOnly="True" Background="White" RowHeight="42" 
                   GridLinesVisibility="Horizontal" BorderThickness="0">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Emp ID" Binding="{Binding EmployeeID}" Width="80"/>
+                <DataGridTextColumn Header="Emp ID" Binding="{Binding EmployeeID}" Width="90"/>
 
                 <DataGridTextColumn Header="Employee Name" Binding="{Binding EmployeeName}" Width="*" FontWeight="SemiBold"/>
 
-                <DataGridTextColumn Header="Month/Year" Width="100">
+                <DataGridTextColumn Header="Month/Year" Width="110">
                     <DataGridTextColumn.Binding>
                         <MultiBinding StringFormat="{}{0}/{1}">
                             <MultiBinding.Bindings>
@@ -59,22 +103,10 @@
                 <DataGridTextColumn Header="Bonus ($)" Binding="{Binding TotalBonus, StringFormat={}{0:N2}}" Width="120"/>
                 <DataGridTextColumn Header="Total Salary ($)" Binding="{Binding TotalSalary, StringFormat={}{0:N2}}" Width="140" Foreground="#2A62FF" FontWeight="Bold"/>
 
-                <DataGridTemplateColumn Header="Actions" Width="180">
+                <DataGridTemplateColumn Header="Actions" Width="120">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Button Content="Accept" 
-                                        Command="{Binding DataContext.AcceptPayrollCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                        CommandParameter="{Binding}"
-                                        Background="#4CAF50" Foreground="White" FontWeight="Bold" Padding="12,4" Margin="0,0,8,0" BorderThickness="0"
-                                        Height="28" VerticalAlignment="Center">
-                                    <Button.Resources>
-                                        <Style TargetType="Border">
-                                            <Setter Property="CornerRadius" Value="4"/>
-                                        </Style>
-                                    </Button.Resources>
-                                </Button>
-
                                 <Button Content="Decline" 
                                         Command="{Binding DataContext.OpenDeclinePopupCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}"

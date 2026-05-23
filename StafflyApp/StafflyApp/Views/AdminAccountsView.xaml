@@ -9,6 +9,10 @@
         <vm:AdminAccountsViewModel/>
     </UserControl.DataContext>
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
     <Border Background="White" CornerRadius="25" Padding="30" Margin="10,0,10,10">
         <Grid>
             <Grid.RowDefinitions>
@@ -33,14 +37,14 @@
             </Grid>
 
             <DataGrid Grid.Row="1" ItemsSource="{Binding AccountsList}" AutoGenerateColumns="False" CanUserAddRows="False"
-                      Style="{StaticResource MaterialDesignDataGrid}" BorderThickness="0" Background="White" RowHeight="45"
+                      Style="{StaticResource MaterialDesignDataGrid}" BorderThickness="0" Background="White" RowHeight="50"
                       AlternatingRowBackground="#FAFBFC">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="200" FontWeight="SemiBold" Foreground="#1A1C29"/>
-                    <DataGridTextColumn Header="Assigned Role" Binding="{Binding RoleName}" Width="150"/>
-                    <DataGridTextColumn Header="Created Date" Binding="{Binding CreatedDate, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Width="220"/>
+                    <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="180" FontWeight="SemiBold" Foreground="#1A1C29"/>
+                    <DataGridTextColumn Header="Assigned Role" Binding="{Binding RoleName}" Width="140"/>
+                    <DataGridTextColumn Header="Created Date" Binding="{Binding CreatedDate, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Width="180"/>
 
-                    <DataGridTemplateColumn Header="Status (IsActive)" Width="*">
+                    <DataGridTemplateColumn Header="Status (IsActive)" Width="150">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <ToggleButton IsChecked="{Binding IsActive, UpdateSourceTrigger=PropertyChanged}"
@@ -48,6 +52,19 @@
                                               CommandParameter="{Binding}"
                                               Style="{StaticResource MaterialDesignSwitchToggleButton}"
                                               VerticalAlignment="Center"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="Actions" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource MaterialDesignIconButton}" 
+                                        ToolTip="Reset to Default Password"
+                                        Command="{Binding DataContext.ResetPasswordCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}" Height="32" Width="32">
+                                    <materialDesign:PackIcon Kind="LockReset" Foreground="#D97706"/>
+                                </Button>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -63,11 +80,15 @@
                     <StackPanel>
                         <TextBlock Text="🔐 New Credentials Provision" FontSize="18" FontWeight="Bold" Foreground="#1954D1" Margin="0,0,0,20"/>
 
-                        <TextBox Text="{Binding NewUsername, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Username" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,15"/>
-                        <PasswordBox x:Name="NewPasswordBox" materialDesign:HintAssist.Hint="Secure Password" Style="{StaticResource MaterialDesignOutlinedPasswordBox}" Margin="0,0,0,15"/>
+                        <TextBox Text="{Binding NewUsername, UpdateSourceTrigger=PropertyChanged}" 
+                                 IsReadOnly="{Binding IsEditMode}"
+                                 materialDesign:HintAssist.Hint="Username" Style="{StaticResource MaterialDesignOutlinedTextBox}" Margin="0,0,0,15"/>
+
+                        <PasswordBox x:Name="NewPasswordBox" 
+                                     materialDesign:HintAssist.Hint="Password" Style="{StaticResource MaterialDesignOutlinedPasswordBox}" Margin="0,0,0,15"/>
 
                         <ComboBox ItemsSource="{Binding RolesCollection}" SelectedItem="{Binding SelectedRole}" DisplayMemberPath="RoleName" 
-                                  materialDesign:HintAssist.Hint="Select Role" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,0,25"/>
+                                  materialDesign:HintAssist.Hint="Select System Role" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,0,25"/>
 
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -75,7 +96,11 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Button Content="Cancel" Command="{Binding ClosePopupCommand}" Background="#E5E7EB" Foreground="#374151" BorderThickness="0" Height="40" Margin="0,0,5,0" materialDesign:ButtonAssist.CornerRadius="8"/>
-                            <Button Grid.Column="1" Content="Create Profile" Click="CreateAccount_Click" Background="#1954D1" Foreground="White" FontWeight="Bold" BorderThickness="0" Height="40" Margin="5,0,0,0" materialDesign:ButtonAssist.CornerRadius="8"/>
+
+                            <Button Grid.Column="1" Content="Confirm Account" 
+                                    Command="{Binding CreateAccountCommand}" 
+                                    CommandParameter="{Binding ElementName=NewPasswordBox}"
+                                    Background="#1954D1" Foreground="White" FontWeight="Bold" BorderThickness="0" Height="40" Margin="5,0,0,0" materialDesign:ButtonAssist.CornerRadius="8"/>
                         </Grid>
                     </StackPanel>
                 </Border>

@@ -55,20 +55,8 @@ namespace StafflyApp.ViewModels
             }
         }
 
-        [RelayCommand]
-        private void AcceptPayroll(Payroll payroll)
-        {
-            if (payroll == null) return;
 
-            bool isSuccess = _payrollRepo.UpdatePayrollStatus(payroll.PayrollID, "Approved", UserSession.Instance.UserID);
-
-            if (isSuccess)
-            {
-                MessageBox.Show($"Payroll for {payroll.EmployeeName} has been APPROVED and attendance data is locked!",
-                                "Notification", MessageBoxButton.OK, MessageBoxImage.Information);
-                LoadPendingData();
-            }
-        }
+     
 
         // THÊM VÀO LUỒNG NGHIỆP VỤ BATCH UPDATE: Logic xử lý phê duyệt đồng loạt
         [RelayCommand]
