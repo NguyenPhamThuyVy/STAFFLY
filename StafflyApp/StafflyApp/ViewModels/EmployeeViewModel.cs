@@ -99,12 +99,30 @@ namespace StafflyApp.ViewModels
 
         partial void OnSearchTextChanged(string value) => Search();
 
+        // =======================================================
+        // 🔥 ĐÃ SỬA: LOGIC TÌM KIẾM ĐA THÔNG TIN (MULTI-FIELD SEARCH)
+        // =======================================================
         [RelayCommand]
         private void Search()
         {
-            var filtered = string.IsNullOrWhiteSpace(SearchText)
-                ? _allEmployeesMaster
-                : _allEmployeesMaster.Where(e => (e.FullName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false) || e.EmployeeID.ToString().Contains(SearchText)).ToList();
+            if (string.IsNullOrWhiteSpace(SearchText))
+            {
+                Employees.Clear();
+                foreach (var emp in _allEmployeesMaster) Employees.Add(emp);
+                return;
+            }
+
+            string query = SearchText.Trim();
+
+            // Tìm kiếm không phân biệt hoa thường trên mọi trường thông tin hiển thị
+            var filtered = _allEmployeesMaster.Where(e =>
+                e.EmployeeID.ToString().Contains(query) ||
+                (e.FullName != null && e.FullName.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+                (e.Phone != null && e.Phone.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+                (e.Email != null && e.Email.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+                (e.DepartmentName != null && e.DepartmentName.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+                (e.Status != null && e.Status.Contains(query, StringComparison.OrdinalIgnoreCase))
+            ).ToList();
 
             Employees.Clear();
             foreach (var emp in filtered) Employees.Add(emp);
@@ -203,52 +221,8 @@ namespace StafflyApp.ViewModels
         }
 
         // =======================================================
-        // ĐIỀU CHUYỂN PHÒNG BAN (MANAGER)
-        // =======================================================
-        [RelayCommand]
-        private void ConfirmTransfer()
-        {
-            EditingEmployee = SelectedEmployee;
-            ExecuteTransfer();
-        }
-
-        private void ExecuteTransfer()
-        {
-            if (SelectedTargetDept == null) return;
-            if (SelectedTargetDept.CurrentStaffCount >= SelectedTargetDept.HeadcountLimit)
-            {
-                MessageBox.Show($"{SelectedTargetDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            try
-            {
-                using (var db = new StafflyDbContext())
-                {
-                    var emp = db.Employees.Find(EditingEmployee.EmployeeID);
-                    if (emp != null)
-                    {
-                        emp.DepartmentID = SelectedTargetDept.DepartmentID;
-                        db.SaveChanges();
-                        _ = LoadData();
-
-                        SelectedEmployee.DepartmentName = SelectedTargetDept.DepartmentName;
-                        OnPropertyChanged(nameof(SelectedEmployee));
-
-                        MessageBox.Show("Employee transferred successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Transfer Error: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        // =======================================================
         // DIALOG THÊM MỚI NHÂN VIÊN BAN ĐẦU CỦA STAFF
         // =======================================================
-        // 🔥 ĐÃ SỬA: Xóa bỏ dòng lỗi [RelayColumn] dư thừa ở đây
         [RelayCommand]
         private void OpenAddDialog()
         {
