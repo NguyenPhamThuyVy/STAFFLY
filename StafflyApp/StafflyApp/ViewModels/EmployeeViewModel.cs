@@ -17,11 +17,13 @@ namespace StafflyApp.ViewModels
     {
         private readonly EmployeeRepository _repository;
         private List<Employee> _allEmployeesMaster = new();
-
+        public List<string> ContractTypes { get; } = new List<string> { "All", "Full-time", "Part-time", "Intern", "Contract" };
 
         [ObservableProperty] private ObservableCollection<Employee> _employees = new();
         [ObservableProperty] private ObservableCollection<Department> _departments = new();
         [ObservableProperty] private string _searchText = string.Empty;
+        [ObservableProperty] private Department _selectedFilterDepartment;
+        [ObservableProperty] private string _selectedFilterContractType = "All";
         [ObservableProperty] private int _totalEmployees;
         [ObservableProperty] private int _activeEmployees;
         [ObservableProperty] private bool _isDialogOpen = false;
@@ -69,7 +71,7 @@ namespace StafflyApp.ViewModels
                 _totalEmployees = _allEmployeesMaster.Count;
                 _activeEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working");
 
-                Search();
+                ApplyFilter();
 
                 using (var db = new StafflyDbContext())
                 {
@@ -85,14 +87,43 @@ namespace StafflyApp.ViewModels
         }
 
         [RelayCommand]
-        private void Search()
+        private void ApplyFilter()
         {
-            var filtered = string.IsNullOrWhiteSpace(_searchText)
-                ? _allEmployeesMaster
-                : _allEmployeesMaster.Where(e => (e.FullName?.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ?? false) || e.EmployeeID.ToString().Contains(_searchText)).ToList();
+            // Bắt đầu với toàn bộ dữ liệu gốc
+            var query = _allEmployeesMaster.AsEnumerable();
 
+            // 1. LỌC THEO TỪ KHÓA TÌM KIẾM (Search)
+            if (!string.IsNullOrWhiteSpace(_searchText))
+            {
+                query = query.Where(e =>
+                    (e.FullName?.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    e.EmployeeID.ToString().Contains(_searchText));
+            }
+
+            // 2. LỌC THEO PHÒNG BAN (Department)
+            // Lấy những phòng ban có thật (bỏ qua giá trị null hoặc phòng ban giả định "Tất cả" nếu có ID = 0)
+            if (_selectedFilterDepartment != null && _selectedFilterDepartment.DepartmentID > 0)
+            {
+                query = query.Where(e => e.DepartmentID == _selectedFilterDepartment.DepartmentID);
+            }
+
+            // 3. LỌC THEO LOẠI HỢP ĐỒNG (Contract Type)
+            if (!string.IsNullOrEmpty(_selectedFilterContractType) && _selectedFilterContractType != "All")
+            {
+                // Lưu ý: Đảm bảo Repository của bạn đã Join bảng Contracts để lấy thuộc tính ContractType lên Employee
+                query = query.Where(e => e.ContractType == _selectedFilterContractType);
+            }
+
+            // ĐỔ DỮ LIỆU LÊN GIAO DIỆN
+            var filteredList = query.ToList();
             _employees.Clear();
-            foreach (var emp in filtered) _employees.Add(emp);
+            foreach (var emp in filteredList)
+            {
+                _employees.Add(emp);
+            }
+
+            // (Tùy chọn) Cập nhật lại con số Total hiển thị trên góc phải màn hình
+            // TotalEmployees = filteredList.Count;
         }
 
         [RelayCommand]
@@ -176,8 +207,7 @@ namespace StafflyApp.ViewModels
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "UPDATE_EMPLOYEE",
-                            $"Updated profile for Employee: '{SelectedEmployee.FullName}' (ID: {SelectedEmployee.EmployeeID}) with contract type: '{SelectedContractType}'."
-                        );
+                            $"Updated profile for Employee: '{_selectedEmployee.FullName}' (ID: {_selectedEmployee.EmployeeID}) with contract type: '{_selectedContractType}'.");
                     }
                 }
 
@@ -217,14 +247,14 @@ namespace StafflyApp.ViewModels
                     {
                         // Lưu vết phòng ban cũ 
                         int oldDeptId = emp.DepartmentID ?? 0;
-                        emp.DepartmentID = SelectedTargetDept.DepartmentID;
+                        emp.DepartmentID = _selectedTargetDept.DepartmentID;
                         if (db.SaveChanges() > 0)
                         {
                             // Ghi log điều chuyển phòng ban nội bộ
                             UserRepository.LogAction(
                                 StafflyApp.Helpers.UserSession.Instance.UserID,
                                 "TRANSFER_DEPARTMENT",
-                                $"Transferred Employee '{emp.FullName}' (ID: {emp.EmployeeID}) from Dept ID {oldDeptId} to '{SelectedTargetDept.DepartmentName}' (Dept ID: {SelectedTargetDept.DepartmentID})."
+                                $"Transferred Employee '{emp.FullName}' (ID: {emp.EmployeeID}) from Dept ID {oldDeptId} to '{_selectedTargetDept.DepartmentName}' (Dept ID: {_selectedTargetDept.DepartmentID})."
                             );
                         }
                         _ = LoadData();
@@ -273,14 +303,14 @@ namespace StafflyApp.ViewModels
 
                 using (var db = new StafflyDbContext())
                 {
-                    db.Employees.Add(EditingEmployee);
+                    db.Employees.Add(_editingEmployee);
                     if (db.SaveChanges() > 0)
                     {
                         // Ghi log thêm mới nhân viên
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "ADD_EMPLOYEE",
-                            $"Created new employee profile: '{EditingEmployee.FullName}' assigned to Department ID: {EditingEmployee.DepartmentID}."
+                            $"Created new employee profile: '{_editingEmployee.FullName}' assigned to Department ID: {_editingEmployee.DepartmentID}."
                         );
                     }
                 }

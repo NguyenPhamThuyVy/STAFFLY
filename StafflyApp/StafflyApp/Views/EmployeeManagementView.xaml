@@ -115,21 +115,49 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
+
                         <TextBox x:Name="SearchBox" Grid.Column="0" Width="280" materialDesign:HintAssist.Hint="Search employees..." 
                                  Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}">
                             <TextBox.InputBindings>
-                                <KeyBinding Key="Return" Command="{Binding SearchCommand}"/>
+                                <KeyBinding Key="Return" Command="{Binding ApplyFilterCommand}"/>
                             </TextBox.InputBindings>
                         </TextBox>
 
-                        <Button Grid.Column="1" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="15,0,0,0" Height="40" Foreground="#6B7280" BorderBrush="#D1D5DB">
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="FilterVariant" VerticalAlignment="Center" Width="18" Height="18" Margin="0,0,6,0"/>
-                                <TextBlock Text="Filter" VerticalAlignment="Center" FontWeight="Medium"/>
-                            </StackPanel>
-                        </Button>
+                        <materialDesign:PopupBox Grid.Column="1" Margin="15,0,0,0" StaysOpen="True" PlacementMode="BottomAndAlignLeftEdges">
 
-                        <Button Grid.Column="3" Content="+ Add Employee" Visibility="{Binding IsStaff, Converter={StaticResource BoolToVis}}" Command="{Binding OpenAddDialogCommand}" Background="#1954D1" Foreground="White" BorderThickness="0" Height="40" Padding="15,0" materialDesign:ButtonAssist.CornerRadius="10"/>
+                            <materialDesign:PopupBox.ToggleContent>
+                                <Border BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="4" Height="40" Padding="15,0" Background="Transparent">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="FilterVariant" VerticalAlignment="Center" Width="18" Height="18" Margin="0,0,6,0" Foreground="#6B7280"/>
+                                        <TextBlock Text="Filter" VerticalAlignment="Center" FontWeight="Medium" Foreground="#6B7280"/>
+                                    </StackPanel>
+                                </Border>
+                            </materialDesign:PopupBox.ToggleContent>
+
+                            <Border Background="White" Padding="20" Width="280" CornerRadius="8">
+                                <StackPanel>
+                                    <TextBlock Text="Filter Employees" FontWeight="Bold" FontSize="16" Foreground="#1A1C29" Margin="0,0,0,15"/>
+
+                                    <ComboBox materialDesign:HintAssist.Hint="Department" 
+                                              ItemsSource="{Binding Departments}" 
+                                              DisplayMemberPath="DepartmentName"
+                                              SelectedItem="{Binding SelectedFilterDepartment}" 
+                                              Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,0,15"/>
+
+                                    <ComboBox materialDesign:HintAssist.Hint="Contract Type" 
+                                              ItemsSource="{Binding ContractTypes}" 
+                                              SelectedItem="{Binding SelectedFilterContractType}" 
+                                              Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,0,20"/>
+
+                                    <Button Content="APPLY FILTER" Command="{Binding ApplyFilterCommand}" 
+                                            Background="#1954D1" Foreground="White" Height="40" materialDesign:ButtonAssist.CornerRadius="5"/>
+                                </StackPanel>
+                            </Border>
+                        </materialDesign:PopupBox>
+
+                        <Button Grid.Column="3" Content="+ Add Employee" Visibility="{Binding IsStaff, Converter={StaticResource BoolToVis}}" 
+                                Command="{Binding OpenAddDialogCommand}" Background="#1954D1" Foreground="White" BorderThickness="0" 
+                                Height="40" Padding="15,0" materialDesign:ButtonAssist.CornerRadius="10"/>
                     </Grid>
 
                     <Border Grid.Row="2" Background="#F9FAFB" CornerRadius="8" Padding="15,12" Margin="0,0,0,10">

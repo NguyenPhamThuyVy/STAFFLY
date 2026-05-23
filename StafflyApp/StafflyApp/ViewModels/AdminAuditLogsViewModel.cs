@@ -49,19 +49,19 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void ApplyFilter()
         {
-            if (string.IsNullOrWhiteSpace(SearchText))
+            if (string.IsNullOrWhiteSpace(_searchText))
             {
-                LogsList = new ObservableCollection<AuditLog>(_allLogsRaw);
+                _logsList = new ObservableCollection<AuditLog>(_allLogsRaw);
             }
             else
             {
-                string keyword = SearchText.Trim().ToLower();
+                string keyword = _searchText.Trim().ToLower();
                 var filtered = _allLogsRaw.Where(log =>
                     (log.Action != null && log.Action.ToLower().Contains(keyword)) ||
                     (log.Detail != null && log.Detail.ToLower().Contains(keyword))
                 ).ToList();
 
-                LogsList = new ObservableCollection<AuditLog>(filtered);
+                _logsList = new ObservableCollection<AuditLog>(filtered);
             }
         }
 
@@ -69,7 +69,7 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void ClearSearch()
         {
-            SearchText = string.Empty;
+            _searchText = string.Empty;
             ApplyFilter();
         }
     }
