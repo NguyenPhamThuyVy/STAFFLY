@@ -4,86 +4,93 @@
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+             xmlns:views="clr-namespace:StafflyApp.Views"
              Background="#F4F6F9" FontFamily="Segoe UI">
 
-    <Grid Margin="15">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <materialDesign:DialogHost IsOpen="{Binding IsImportDialogOpen}" Identifier="AttendanceDialog">
+        <materialDesign:DialogHost.DialogContent>
+            <views:AttendanceImportView DataContext="{Binding}" />
+        </materialDesign:DialogHost.DialogContent>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,15">
-            <TextBlock Text="DEPARTMENT ANALYTICS &amp; ATTENDANCE AUDIT" FontSize="18" FontWeight="Bold" Foreground="#1A365D"/>
-            <TextBlock Text="Import attendance records and monitor absence vs tardy patterns across departments." Foreground="#666"/>
-        </StackPanel>
+        <Grid Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <Grid Grid.Row="1" Margin="0,0,0,20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Row="0" Margin="0,0,0,15">
+                <TextBlock Text="DEPARTMENT ANALYTICS &amp; ATTENDANCE AUDIT" FontSize="18" FontWeight="Bold" Foreground="#1A365D"/>
+                <TextBlock Text="Import attendance records and monitor absence vs tardy patterns across departments." Foreground="#666"/>
+            </StackPanel>
 
-            <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="15,10" BorderBrush="#EBF0F5" BorderThickness="1" HorizontalAlignment="Left">
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="FilterVariant" VerticalAlignment="Center" Foreground="#1954D1" Margin="0,0,10,0" Width="20" Height="20"/>
-                    <TextBlock Text="Filter Period:" VerticalAlignment="Center" FontWeight="Bold" Foreground="#4B5563" Margin="0,0,15,0"/>
+            <Grid Grid.Row="1" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                    <ComboBox SelectedValue="{Binding SelectedMonth, UpdateSourceTrigger=PropertyChanged}" 
-                              materialDesign:HintAssist.Hint="Month" Width="100" Margin="0,0,12,0" Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="36" Padding="8,0">
-                        <system:Int32>1</system:Int32>
-                        <system:Int32>2</system:Int32>
-                        <system:Int32>3</system:Int32>
-                        <system:Int32>4</system:Int32>
-                        <system:Int32>5</system:Int32>
-                        <system:Int32>6</system:Int32>
-                        <system:Int32>7</system:Int32>
-                        <system:Int32>8</system:Int32>
-                        <system:Int32>9</system:Int32>
-                        <system:Int32>10</system:Int32>
-                        <system:Int32>11</system:Int32>
-                        <system:Int32>12</system:Int32>
-                    </ComboBox>
+                <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="15,10" BorderBrush="#EBF0F5" BorderThickness="1" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="FilterVariant" VerticalAlignment="Center" Foreground="#1954D1" Margin="0,0,10,0" Width="20" Height="20"/>
+                        <TextBlock Text="Filter Period:" VerticalAlignment="Center" FontWeight="Bold" Foreground="#4B5563" Margin="0,0,15,0"/>
 
-                    <ComboBox SelectedValue="{Binding SelectedYear, UpdateSourceTrigger=PropertyChanged}" 
-                              materialDesign:HintAssist.Hint="Year" Width="110" Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="36" Padding="8,0">
-                        <system:Int32>2024</system:Int32>
-                        <system:Int32>2025</system:Int32>
-                        <system:Int32>2026</system:Int32>
-                        <system:Int32>2027</system:Int32>
-                    </ComboBox>
-                </StackPanel>
-            </Border>
+                        <ComboBox SelectedValue="{Binding SelectedMonth, UpdateSourceTrigger=PropertyChanged}" 
+                                  materialDesign:HintAssist.Hint="Month" Width="100" Margin="0,0,12,0" Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="36" Padding="8,0">
+                            <system:Int32>1</system:Int32>
+                            <system:Int32>2</system:Int32>
+                            <system:Int32>3</system:Int32>
+                            <system:Int32>4</system:Int32>
+                            <system:Int32>5</system:Int32>
+                            <system:Int32>6</system:Int32>
+                            <system:Int32>7</system:Int32>
+                            <system:Int32>8</system:Int32>
+                            <system:Int32>9</system:Int32>
+                            <system:Int32>10</system:Int32>
+                            <system:Int32>11</system:Int32>
+                            <system:Int32>12</system:Int32>
+                        </ComboBox>
 
-            <Button Grid.Column="1" Command="{Binding OpenImportDialogCommand}" 
-                    Background="#10B981" Foreground="White" BorderThickness="0" 
-                    Height="45" Padding="20,0" materialDesign:ButtonAssist.CornerRadius="12" VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="FileExcel" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <TextBlock Text="IMPORT ATTENDANCE" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                </StackPanel>
-            </Button>
-        </Grid>
+                        <ComboBox SelectedValue="{Binding SelectedYear, UpdateSourceTrigger=PropertyChanged}" 
+                                  materialDesign:HintAssist.Hint="Year" Width="110" Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="36" Padding="8,0">
+                            <system:Int32>2024</system:Int32>
+                            <system:Int32>2025</system:Int32>
+                            <system:Int32>2026</system:Int32>
+                            <system:Int32>2027</system:Int32>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
 
-        <Border Grid.Row="2" Background="White" CornerRadius="16" Padding="20">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <TextBlock Grid.Row="0" Text="⚠️ Attendance Exceptions: Absence (Column) vs Tardy Lateness (Line)" 
-                           FontSize="14" FontWeight="Bold" Foreground="#BE123C" Margin="0,0,0,15"/>
-
-                <lvc:CartesianChart Grid.Row="1" Series="{Binding AttendanceExceptionsSeries}" LegendLocation="Right">
-                    <lvc:CartesianChart.AxisX>
-                        <lvc:Axis Title="Departments" Labels="{Binding DepartmentLabels}"/>
-                    </lvc:CartesianChart.AxisX>
-                    <lvc:CartesianChart.AxisY>
-                        <lvc:Axis Title="Count (Times)" MinValue="0"/>
-                    </lvc:CartesianChart.AxisY>
-                </lvc:CartesianChart>
+                <Button Grid.Column="1" Command="{Binding OpenImportDialogCommand}" 
+                        Background="#10B981" Foreground="White" BorderThickness="0" 
+                        Height="45" Padding="20,0" materialDesign:ButtonAssist.CornerRadius="12" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="FileExcel" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="IMPORT ATTENDANCE" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
             </Grid>
-        </Border>
-    </Grid>
+
+            <Border Grid.Row="2" Background="White" CornerRadius="16" Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="⚠️ Attendance Exceptions: Absence (Column) vs Tardy Lateness (Line)" 
+                               FontSize="14" FontWeight="Bold" Foreground="#BE123C" Margin="0,0,0,15"/>
+
+                    <lvc:CartesianChart Grid.Row="1" Series="{Binding AttendanceExceptionsSeries}" LegendLocation="Right">
+                        <lvc:CartesianChart.AxisX>
+                            <lvc:Axis Title="Departments" Labels="{Binding DepartmentLabels}"/>
+                        </lvc:CartesianChart.AxisX>
+                        <lvc:CartesianChart.AxisY>
+                            <lvc:Axis Title="Count (Times)" MinValue="0"/>
+                        </lvc:CartesianChart.AxisY>
+                    </lvc:CartesianChart>
+                </Grid>
+            </Border>
+        </Grid>
+    </materialDesign:DialogHost>
 </UserControl>
