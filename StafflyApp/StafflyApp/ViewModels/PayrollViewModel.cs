@@ -297,5 +297,41 @@ namespace StafflyApp.ViewModels
                 ImportedRecords.Clear();
             }
         }
+        [RelayCommand]
+        private void DownloadTemplate()
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Excel Files|*.xlsx",
+                FileName = "Staffly_Payroll_Template.xlsx"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    OfficeOpenXml.ExcelPackage.License.SetNonCommercialPersonal("STAFFLY");
+                    using (var package = new ExcelPackage())
+                    {
+                        var worksheet = package.Workbook.Worksheets.Add("Payroll Template");
+                        // Template
+                        worksheet.Cells[1, 1].Value = "Employee ID";
+                        worksheet.Cells[1, 2].Value = "Basic Salary";
+                        worksheet.Cells[1, 3].Value = "Bonuses";
+                        worksheet.Cells[1, 4].Value = "Deductions";
+
+                        // Tự căn chỉnh độ rộng cột
+                        worksheet.Cells.AutoFitColumns();
+
+                        File.WriteAllBytes(saveFileDialog.FileName, package.GetAsByteArray());
+                    }
+                    MessageBox.Show("Template downloaded successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Failed to export template: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
     }
 }
