@@ -34,6 +34,31 @@ namespace StafflyApp.ViewModels
             var passwordBox = parameter as PasswordBox;
             if (passwordBox == null) return;
 
+            ErrorMessage = string.Empty;
+            // Kiểm tra mật khẩu tạm thời trước khi Login
+            using (var db = new StafflyDbContext())
+            {
+                string inputUsername = Username.Trim().ToLower();
+                var userCheck = db.Users.FirstOrDefault(u => u.Username.ToLower() == inputUsername);
+
+                // Nếu tìm thấy User có mật khẩu tạm thời và ô mật khẩu hiện tại trên giao diện đang bị trống 
+                // HOẶC mật khẩu gõ vào chưa khớp với mật khẩu tạm đó
+                if (userCheck != null && !string.IsNullOrEmpty(userCheck.TempPasswordPlain) && passwordBox.Password != userCheck.TempPasswordPlain)
+                {
+                    // Tự động gán mật khẩu tạm bốc từ DB vào thẳng ô PasswordBox trên giao diện UI
+                    passwordBox.Password = userCheck.TempPasswordPlain;
+
+                    MessageBox.Show(
+                        $"The system detects that your account password has recently been reset by the Admin.\n\n" +
+                        $"The temporary password [{userCheck.TempPasswordPlain}] has been automatically filled for you.\n" +
+                        $"Please click 'Sign In' again to access the system!",
+                        "Temporary Password Detected",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                    return; 
+                }
+            }
             string password = passwordBox.Password;
 
             if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(password))
@@ -92,6 +117,44 @@ namespace StafflyApp.ViewModels
             else
             {
                 ErrorMessage = "Incorrect username or password!";
+            }
+        }
+        [RelayCommand]
+        private void ForgotPassword()
+        {
+            string inputUsername = Microsoft.VisualBasic.Interaction.InputBox(
+                "Please enter your username to request a password reset:",
+                "Forgot Password",
+                ""
+            );
+            if (!string.IsNullOrWhiteSpace(inputUsername))
+            {
+                string usernameTrimmed = inputUsername.Trim();
+
+                using (var db = new StafflyDbContext())
+                {
+                    var repo = new UserRepository(db);
+                    bool isSuccess = repo.RequestResetPassword(usernameTrimmed);
+
+                    if (isSuccess)
+                    {
+                        MessageBox.Show(
+                            "Your request has been submitted successfully.\nPlease notify the Admin to approve your password reset!",
+                            "Information",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
+                    }
+                    else
+                    {
+                        MessageBox.Show(
+                            "The username does not exist in the system!",
+                            "Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error
+                        );
+                    }
+                }
             }
         }
     }

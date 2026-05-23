@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StafflyApp.Data;
 
@@ -11,9 +12,11 @@ using StafflyApp.Data;
 namespace StafflyApp.Migrations
 {
     [DbContext(typeof(StafflyDbContext))]
-    partial class StafflyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260521152951_AddForgotPasswordFields")]
+    partial class AddForgotPasswordFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,33 +49,6 @@ namespace StafflyApp.Migrations
                     b.HasKey("AttendanceID");
 
                     b.ToTable("Attendances");
-                });
-
-            modelBuilder.Entity("StafflyApp.Models.AuditLog", b =>
-                {
-                    b.Property<int>("LogID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LogID"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Detail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("UserID")
-                        .HasColumnType("int");
-
-                    b.HasKey("LogID");
-
-                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("StafflyApp.Models.Contract", b =>
@@ -318,7 +294,6 @@ namespace StafflyApp.Migrations
                             IsResetRequested = false,
                             Password = "123",
                             RoleID = 1,
-                            RoleName = "Admin",
                             Username = "admin"
                         },
                         new
@@ -331,7 +306,6 @@ namespace StafflyApp.Migrations
                             IsResetRequested = false,
                             Password = "abc",
                             RoleID = 2,
-                            RoleName = "Manager",
                             Username = "manager"
                         },
                         new
@@ -344,7 +318,6 @@ namespace StafflyApp.Migrations
                             IsResetRequested = false,
                             Password = "a1b2",
                             RoleID = 3,
-                            RoleName = "Staff",
                             Username = "staff"
                         });
                 });

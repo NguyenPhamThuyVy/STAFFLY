@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using StafflyApp.Models;
-using Microsoft.Extensions.Configuration; 
+using Microsoft.Extensions.Configuration;
 
 namespace StafflyApp.Data
 {
@@ -36,6 +36,7 @@ namespace StafflyApp.Data
         public DbSet<Payroll> Payrolls { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<Contract> Contracts { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -44,6 +45,8 @@ namespace StafflyApp.Data
             modelBuilder.Entity<User>().HasKey(u => u.UserID);
             modelBuilder.Entity<Payroll>().HasKey(p => p.PayrollID);
             modelBuilder.Entity<Attendance>().HasKey(a => a.AttendanceID);
+            modelBuilder.Entity<AuditLog>().HasKey(log => log.LogID);
+
 
             // 2. Cấu hình quan hệ giữa User và Employee (nếu có navigation property)
 
@@ -57,12 +60,12 @@ namespace StafflyApp.Data
             );
             // Seed Data cho User (để test chức năng Login)
             modelBuilder.Entity<User>().HasData(
-                new User { UserID = 1, Username = "admin", Password = "123", RoleID = 1, EmployeeID = null, IsActive = true },
-                new User { UserID = 2, Username = "manager", Password = "abc", RoleID = 2, EmployeeID = null, IsActive = true },
-                new User { UserID = 3, Username = "staff", Password = "a1b2", RoleID = 3, EmployeeID = null, IsActive = true }
+                new User { UserID = 1, Username = "admin", Password = "123", RoleID = 1, RoleName = "Admin", EmployeeID = null, IsActive = true },
+                new User { UserID = 2, Username = "manager", Password = "abc", RoleID = 2, RoleName = "Manager", EmployeeID = null, IsActive = true },
+                new User { UserID = 3, Username = "staff", Password = "a1b2", RoleID = 3, RoleName = "Staff", EmployeeID = null, IsActive = true }
             );
 
             // (ĐÃ XÓA TOÀN BỘ ĐOẠN modelBuilder.Entity<Employee>().HasData(...) Ở ĐÂY)
         }
     }
-    }
+}

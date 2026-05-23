@@ -55,22 +55,7 @@ namespace StafflyApp.ViewModels
             }
         }
 
-        [RelayCommand]
-        private void AcceptPayroll(Payroll payroll)
-        {
-            if (payroll == null) return;
-
-            bool isSuccess = _payrollRepo.UpdatePayrollStatus(payroll.PayrollID, "Approved", UserSession.Instance.UserID);
-
-            if (isSuccess)
-            {
-                MessageBox.Show($"Payroll for {payroll.EmployeeName} has been APPROVED and attendance data is locked!",
-                                "Notification", MessageBoxButton.OK, MessageBoxImage.Information);
-                LoadPendingData();
-            }
-        }
-
-        // THÊM VÀO LUỒNG NGHIỆP VỤ BATCH UPDATE: Logic xử lý phê duyệt đồng loạt
+        // Logic xử lý phê duyệt đồng loạt
         [RelayCommand]
         private void AcceptAllPayrolls()
         {
@@ -96,6 +81,11 @@ namespace StafflyApp.ViewModels
 
                     if (recordsInDb.Any())
                     {
+                        // Lấy thông tin tháng, năm của bản ghi đầu tiên để ghi Log
+                        var sampleRecord = recordsInDb.First();
+                        int logMonth = sampleRecord.Month;
+                        int logYear = sampleRecord.Year;
+
                         foreach (var record in recordsInDb)
                         {
                             record.Status = "Approved";
@@ -106,6 +96,12 @@ namespace StafflyApp.ViewModels
                         // Thực thi lưu đồng loạt trong một phiên giao dịch duy nhất xuống SQL Server
                         if (db.SaveChanges() > 0)
                         {
+                            UserRepository.LogAction(
+                                UserSession.Instance.UserID,
+                                "APPROVE_PAYROLL",
+                                $"Approved bulk payroll for Month {logMonth}/{logYear} (Total: {recordsInDb.Count} records)."
+                            );
+
                             MessageBox.Show($"All {recordsInDb.Count} payroll records have been successfully APPROVED and finalized!",
                                             "Bulk Approval Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
@@ -165,11 +161,18 @@ namespace StafflyApp.ViewModels
 
                         if (db.SaveChanges() > 0)
                         {
+
+                            UserRepository.LogAction(
+                                UserSession.Instance.UserID,
+                                "REJECT_PAYROLL",
+                                $"Rejected payroll for Employee ID: {record.EmployeeID} (Month {record.Month}/{record.Year}). Reason: {record.RejectReason}"
+                            );
+
                             MessageBox.Show($"Payroll submission marked as [Declined]. Reason dispatched back to HR Staff.",
                                             "Feedback Dispatched", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                            IsDeclinePopupOpen = false; // Đóng popup thành công
-                            LoadPendingData(); // Refresh lưới dữ liệu sạch
+                            IsDeclinePopupOpen = false; 
+                            LoadPendingData(); 
                         }
                     }
                 }

@@ -5,9 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:vm="clr-namespace:StafflyApp.ViewModels"
              mc:Ignorable="d" d:DesignHeight="550" d:DesignWidth="900" Background="#F4F6F9">
+
     <UserControl.DataContext>
         <vm:PayrollApprovalViewModel/>
     </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
 
     <Grid Margin="15">
         <Grid.RowDefinitions>
@@ -41,11 +46,11 @@
                   CanUserAddRows="False" IsReadOnly="True" Background="White" RowHeight="42" 
                   GridLinesVisibility="Horizontal" BorderThickness="0">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Emp ID" Binding="{Binding EmployeeID}" Width="80"/>
+                <DataGridTextColumn Header="Emp ID" Binding="{Binding EmployeeID}" Width="90"/>
 
                 <DataGridTextColumn Header="Employee Name" Binding="{Binding EmployeeName}" Width="*" FontWeight="SemiBold"/>
 
-                <DataGridTextColumn Header="Month/Year" Width="100">
+                <DataGridTextColumn Header="Month/Year" Width="110">
                     <DataGridTextColumn.Binding>
                         <MultiBinding StringFormat="{}{0}/{1}">
                             <MultiBinding.Bindings>
@@ -59,22 +64,10 @@
                 <DataGridTextColumn Header="Bonus ($)" Binding="{Binding TotalBonus, StringFormat={}{0:N2}}" Width="120"/>
                 <DataGridTextColumn Header="Total Salary ($)" Binding="{Binding TotalSalary, StringFormat={}{0:N2}}" Width="140" Foreground="#2A62FF" FontWeight="Bold"/>
 
-                <DataGridTemplateColumn Header="Actions" Width="180">
+                <DataGridTemplateColumn Header="Actions" Width="120">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Button Content="Accept" 
-                                        Command="{Binding DataContext.AcceptPayrollCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                        CommandParameter="{Binding}"
-                                        Background="#4CAF50" Foreground="White" FontWeight="Bold" Padding="12,4" Margin="0,0,8,0" BorderThickness="0"
-                                        Height="28" VerticalAlignment="Center">
-                                    <Button.Resources>
-                                        <Style TargetType="Border">
-                                            <Setter Property="CornerRadius" Value="4"/>
-                                        </Style>
-                                    </Button.Resources>
-                                </Button>
-
                                 <Button Content="Decline" 
                                         Command="{Binding DataContext.OpenDeclinePopupCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}"

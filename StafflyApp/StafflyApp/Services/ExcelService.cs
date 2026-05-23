@@ -26,7 +26,7 @@ public class ExcelService
                     // Kiểm tra ID có tồn tại trong DB không
                     if (!CheckIdExists(empId))
                     {
-                        reports.Add($"Dòng {row}: Cảnh báo - EmployeeID {empId} không tồn tại!");
+                        reports.Add($"Row {row}: Warning - EmployeeID {empId} does not exist in the system!");
                     }
                 }
             }
