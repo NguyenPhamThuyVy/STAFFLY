@@ -27,16 +27,22 @@ namespace StafflyApp.ViewModels
         [ObservableProperty] private Department? _selectedDepartment;
 
         // Quản lý trạng thái Popup và nội dung phản hồi lý do từ chối
-        [ObservableProperty] private bool _isDeclinePopupOpen = false;
+        [ObservableProperty] private bool _isRejectPopupOpen = false;
         [ObservableProperty] private string _rejectReasonInput = string.Empty;
 
         // Biến tạm lưu vết bản ghi trạng thái phòng ban đang xử lý phê duyệt
         private DepartmentPayrollStatus? _currentTargetStatus;
 
+        // Quản lý chuỗi thông báo trực quan cho manager
+        [ObservableProperty] private string _bannerMessage = string.Empty;
+        [ObservableProperty] private bool _hasPendingAlert = false;
+
         public PayrollApprovalViewModel()
         {
             // Khởi tạo và nạp dữ liệu danh mục phòng ban trước
             LoadInitialData();
+            // Quét bảng ghi toàn hệ thống
+            AutoDetectFirstPendingSheet();
         }
 
         private void LoadInitialData()
@@ -75,6 +81,8 @@ namespace StafflyApp.ViewModels
             if (SelectedDepartment == null || SelectedMonth < 1 || SelectedMonth > 12 || SelectedYear < 2000)
             {
                 PendingPayrolls?.Clear();
+                BannerMessage = string.Empty; 
+                HasPendingAlert = false;      
                 return;
             }
 
@@ -86,17 +94,15 @@ namespace StafflyApp.ViewModels
                     _currentTargetStatus = db.DepartmentPayrollStatuses
                         .FirstOrDefault(s => s.DepartmentID == SelectedDepartment.DepartmentID
                                           && s.Month == SelectedMonth
-                                          && s.Year == SelectedYear
-                                          && s.Status == "Pending");
+                                          && s.Year == SelectedYear);
 
-                    if (_currentTargetStatus == null)
+                    if (_currentTargetStatus != null && _currentTargetStatus.Status == "Pending")
                     {
-                        PendingPayrolls.Clear();
-                        return;
-                    }
+                        BannerMessage = $"⚠️ ACTION REQUIRED: This payroll sheet is PENDING and waiting for your approval!";
+                        HasPendingAlert = true;
 
-                    // Dùng cú pháp Join trực tiếp từ db.EmployeePayrolls sang db.Employees dựa trên EmployeeID
-                    var details = (from ep in db.EmployeePayrolls
+                        // Dùng cú pháp Join trực tiếp từ db.EmployeePayrolls sang db.Employees dựa trên EmployeeID
+                        var details = (from ep in db.EmployeePayrolls
                                    join emp in db.Employees on ep.EmployeeID equals emp.EmployeeID
                                    where ep.DepartmentID == SelectedDepartment.DepartmentID // Lọc trực tiếp theo phòng ban của bảng lương
                                       && ep.Month == SelectedMonth
@@ -117,10 +123,56 @@ namespace StafflyApp.ViewModels
 
                     PendingPayrolls = new ObservableCollection<PayrollImportModel>(details);
                 }
+                    else
+                    {
+                        // Ngược lại nếu là Approved, Rejected hoặc chưa khởi tạo dữ liệu thì ẩn banner
+                        PendingPayrolls?.Clear();
+                        BannerMessage = string.Empty;
+                        HasPendingAlert = false;
+                    }
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine("LoadPendingPayrolls Error: " + ex.Message);
+            }
+        }
+        // Hàm tự động quét bản ghi lương đang chờ được duyệt
+        private void AutoDetectFirstPendingSheet()
+        {
+            try
+            {
+                using (var db = new StafflyDbContext())
+                {
+                    // Quét tìm bảng ghi đầu tiên đang chờ duyệt trên toàn hệ thống
+                    var firstPending = db.DepartmentPayrollStatuses
+                        .FirstOrDefault(s => s.Status == "Pending");
+
+                    if (firstPending != null)
+                    {
+                        // 1. Tìm đối tượng phòng ban tương ứng trong danh sách Departments đang có của ViewModel
+                        var targetDept = Departments.FirstOrDefault(d => d.DepartmentID == firstPending.DepartmentID);
+
+                        if (targetDept != null)
+                        {
+                            // 2. Kích hoạt cơ chế tự định vị: Gán giá trị tự động cho bộ lọc ComboBox
+                            SelectedMonth = firstPending.Month;
+                            SelectedYear = firstPending.Year;
+                            SelectedDepartment = targetDept; // Khi gán cái này, OnSelectedDepartmentChanged sẽ tự kích hoạt gọi LoadPendingPayrolls() bên dưới luôn!
+
+                            return; // Tìm thấy rồi thì thoát hàm, để hệ thống tự load dữ liệu lên
+                        }
+                    }
+
+                    // Fallback: Nếu không có bảng nào Pending cả, gán mặc định về tháng/năm hiện tại để tránh bị trống bộ lọc
+                    if (SelectedMonth == 0) SelectedMonth = DateTime.Now.Month;
+                    if (SelectedYear == 0) SelectedYear = DateTime.Now.Year;
+                    if (SelectedDepartment == null && Departments.Any()) SelectedDepartment = Departments.First();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("AutoDetect Error: " + ex.Message);
             }
         }
 
@@ -180,7 +232,7 @@ namespace StafflyApp.ViewModels
         /// 🚫 2. Luồng TỪ CHỐI TOÀN BỘ BẢNG LƯƠNG phòng ban kèm Feedback lý do
         /// </summary>
         [RelayCommand]
-        private void OpenDeclinePopup()
+        private void OpenRejectPopup()
         {
             if (_currentTargetStatus == null || !PendingPayrolls.Any())
             {
@@ -191,18 +243,18 @@ namespace StafflyApp.ViewModels
 
             // Gợi ý sẵn một câu phản hồi chuẩn để sếp đỡ mất công gõ nhiều
             RejectReasonInput = "Incorrect basic salary, bonus, or deduction calculations. Please re-verify with validated financial logs.";
-            IsDeclinePopupOpen = true;
+            IsRejectPopupOpen = true;
         }
 
         [RelayCommand]
-        private void CloseDeclinePopup()
+        private void CloseRejectPopup()
         {
-            IsDeclinePopupOpen = false;
+            IsRejectPopupOpen = false;
         }
 
         // Thực thi bấm nút xác nhận từ chối gửi lệnh xuống DB
         [RelayCommand]
-        private void ConfirmDeclinePayroll()
+        private void ConfirmRejectPayroll()
         {
             if (_currentTargetStatus == null) return;
 
@@ -237,9 +289,11 @@ namespace StafflyApp.ViewModels
 
                             MessageBox.Show($"Payroll sheet for '{deptName}' has been marked as [Declined]. Feedback has been successfully dispatched to HR Staff for corrections.",
                                             "Feedback Dispatched", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                            IsDeclinePopupOpen = false;
-                            LoadPendingPayrolls(); // Reset lưới hiển thị
+                            //Dọn sạch lưới dữ liệu và xóa vết trạng thái cũ ngay khi từ chối thành công
+                            PendingPayrolls.Clear();
+                            _currentTargetStatus = null;
+                            IsRejectPopupOpen = false;
+                            LoadPendingPayrolls(); 
                         }
                     }
                 }
