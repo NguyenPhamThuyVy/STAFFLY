@@ -51,6 +51,10 @@ namespace StafflyApp.ViewModels
                     var list = await Task.Run(() => db.Departments.ToList());
                     Departments.Clear();
                     foreach (var dept in list) Departments.Add(dept);
+                    if (Departments.Any())
+                    {
+                        SelectedDepartment = Departments.First();
+                    }
                 }
             }
             catch (Exception ex)
@@ -80,11 +84,30 @@ namespace StafflyApp.ViewModels
                     var status = db.DepartmentPayrollStatuses
                         .FirstOrDefault(s => s.DepartmentID == targetDeptId && s.Month == targetMonth && s.Year == targetYear);
 
-                    if (status != null && status.Status == "Approved")
+                    if (status != null)
                     {
-                        MessageBox.Show($"The payroll for {SelectedDepartment.DepartmentName} in Month {targetMonth}/{targetYear} has already been APPROVED and locked!\nRe-import is denied.",
-                                        "Payroll Locked", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
+                        // Nếu đã APPROVED thì không cho phép import lại
+                        if (status.Status == "Approved")
+                        {
+                            MessageBox.Show($"The payroll for {SelectedDepartment.DepartmentName} in Month {targetMonth}/{targetYear} has already been APPROVED and locked!\nRe-import is denied.",
+                                            "Payroll Locked", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            return;
+                        }
+
+                        // Đang PENDING/SUBMITTED thì không cho phép import đè
+                        if (status.Status == "Pending" || status.Status == "Submitted")
+                        {
+                            MessageBox.Show($"The payroll for {SelectedDepartment.DepartmentName} is currently PENDING approval from the Manager.\nYou cannot re-import another file until a decision is made.",
+                                            "Awaiting Approval", MessageBoxButton.OK, MessageBoxImage.Information);
+                            return;
+                        }
+
+                        // Nếu bị Declined thì cho phép import lại 
+                        if (status.Status == "Rejected" || status.Status == "Declined")
+                        {
+                            MessageBox.Show($"The previous payroll submission was REJECTED by the Manager.\nAccess granted to re-import corrected financial records.",
+                                            "Re-import Authorized", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
                     }
                 }
             }
@@ -103,6 +126,11 @@ namespace StafflyApp.ViewModels
             if (openFileDialog.ShowDialog() == true)
             {
                 FilePath = openFileDialog.FileName;
+
+                // Reset dữ liệu trước khi import
+                ImportedRecords.Clear();
+                ErrorList.Clear();
+                IsDataLoaded = false;
 
                 int localSuccess = 0;
                 int localFailure = 0;
@@ -146,7 +174,7 @@ namespace StafflyApp.ViewModels
                             }
 
                             // Định vị chỉ số cột động dựa trên tên tiêu đề tại headerRow
-                            int colBasic = 2; // Giá trị fallback mặc định
+                            int colBasic = 2;
                             int colBonus = 3;
                             int colDeduct = 4;
 
@@ -211,7 +239,6 @@ namespace StafflyApp.ViewModels
                                         BasicSalary = basicSalary,
                                         TotalBonus = bonus,
                                         Deductions = deduction,
-                                        // Tính tổng lương thực nhận nháp hiển thị
                                         TotalSalary = basicSalary + bonus - deduction,
                                         IsValid = isRowValid,
                                         ErrorNote = note
@@ -236,9 +263,6 @@ namespace StafflyApp.ViewModels
 
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        ImportedRecords.Clear();
-                        ErrorList.Clear();
-
                         SuccessCount = localSuccess;
                         FailureCount = localFailure;
 
@@ -297,6 +321,7 @@ namespace StafflyApp.ViewModels
                 ImportedRecords.Clear();
             }
         }
+
         [RelayCommand]
         private void DownloadTemplate()
         {
@@ -314,15 +339,12 @@ namespace StafflyApp.ViewModels
                     using (var package = new ExcelPackage())
                     {
                         var worksheet = package.Workbook.Worksheets.Add("Payroll Template");
-                        // Template
                         worksheet.Cells[1, 1].Value = "Employee ID";
                         worksheet.Cells[1, 2].Value = "Basic Salary";
                         worksheet.Cells[1, 3].Value = "Bonuses";
                         worksheet.Cells[1, 4].Value = "Deductions";
 
-                        // Tự căn chỉnh độ rộng cột
                         worksheet.Cells.AutoFitColumns();
-
                         File.WriteAllBytes(saveFileDialog.FileName, package.GetAsByteArray());
                     }
                     MessageBox.Show("Template downloaded successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
