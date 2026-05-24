@@ -6,6 +6,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StafflyApp.Data;
 using StafflyApp.Models;
+using StafflyApp.Data.Repositories;
+using StafflyApp.Helpers;
 
 namespace StafflyApp.ViewModels
 {
@@ -50,8 +52,15 @@ namespace StafflyApp.ViewModels
                             LoadDeptLimitsData();
                             return;
                         }
+                        int oldLimit = dbDept.HeadcountLimit;
                         dbDept.HeadcountLimit = dept.HeadcountLimit;
                         db.SaveChanges();
+                        int currentUserId = UserSession.Instance.UserID;
+                        UserRepository.LogAction(
+                            currentUserId,
+                            "UPDATE_DEPT_LIMIT",
+                            $"Updated headcount limit for department '{dbDept.DepartmentName}' (ID: {dbDept.DepartmentID}) from {oldLimit} to {dept.HeadcountLimit} slots."
+                        );
                         MessageBox.Show("Department capacity updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 }
