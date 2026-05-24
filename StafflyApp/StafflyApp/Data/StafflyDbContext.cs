@@ -48,8 +48,7 @@ namespace StafflyApp.Data
             modelBuilder.Entity<Attendance>().HasKey(a => a.AttendanceID);
             modelBuilder.Entity<AuditLog>().HasKey(log => log.LogID);
 
-
-            // 2. Cấu hình quan hệ giữa User và Employee (nếu có navigation property)
+            modelBuilder.Entity<EmployeePayroll>().Property(p => p.TotalSalary).HasComputedColumnSql("[BasicSalary] + [Bonuses] - [Deductions]");
 
             // 2.5 Seed Data: Chèn 5 phòng ban mẫu TRƯỚC khi chèn nhân viên
             modelBuilder.Entity<Department>().HasData(

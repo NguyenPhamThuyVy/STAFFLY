@@ -13,94 +13,149 @@ namespace StafflyApp.Services
         // Hàm Import lương theo Phòng ban, Tháng, Năm
         public string? ImportPayrollExcel(string filePath, int deptId, int month, int year, int currentUserId)
         {
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            OfficeOpenXml.ExcelPackage.License.SetNonCommercialPersonal("STAFFLY");
 
             using (var db = new StafflyDbContext())
             {
-                // 1. CHỐT CHẶN: Kiểm tra trạng thái duyệt lương của phòng ban này trong tháng/năm đó
-                var payrollStatus = db.DepartmentPayrollStatuses
-                    .FirstOrDefault(s => s.DepartmentID == deptId && s.Month == month && s.Year == year);
-
-                if (payrollStatus != null && payrollStatus.Status == "Approved")
+                using (var transaction = db.Database.BeginTransaction())
                 {
-                    return $"Payroll for this department in {month}/{year} has already been APPROVED and locked. Re-import denied!";
-                }
-
-                // 2. NẾU BỊ TỪ CHỐI (Rejected): Xóa sạch dữ liệu lương cũ của phòng đó tháng đó để chuẩn bị ghi đè bản mới
-                if (payrollStatus != null && payrollStatus.Status == "Rejected")
-                {
-                    var oldPayrolls = db.EmployeePayrolls
-                        .Where(p => p.DepartmentID == deptId && p.Month == month && p.Year == year);
-                    db.EmployeePayrolls.RemoveRange(oldPayrolls);
-                }
-
-                // 3. TIẾN HÀNH ĐỌC FILE EXCEL
-                try
-                {
-                    using (var package = new ExcelPackage(new FileInfo(filePath)))
+                    try
                     {
-                        var worksheet = package.Workbook.Worksheets[0];
-                        int rowCount = worksheet.Dimension.Rows;
+                        var payrollStatus = db.DepartmentPayrollStatuses
+                            .FirstOrDefault(s => s.DepartmentID == deptId && s.Month == month && s.Year == year);
+
+                        if (payrollStatus != null && payrollStatus.Status == "Approved")
+                        {
+                            return $"Payroll for this department in {month}/{year} has already been APPROVED and locked. Re-import denied!";
+                        }
+
+                        // Làm sạch dữ liệu chi tiết cũ trước khi ghi đè bản mới
+                        var oldPayrolls = db.EmployeePayrolls
+                            .Where(p => p.DepartmentID == deptId && p.Month == month && p.Year == year)
+                            .ToList();
+
+                        if (oldPayrolls.Any())
+                        {
+                            db.EmployeePayrolls.RemoveRange(oldPayrolls);
+                            db.SaveChanges();
+                        }
 
                         var newPayrolls = new List<EmployeePayroll>();
 
-                        for (int row = 2; row <= rowCount; row++)
+                        using (var package = new ExcelPackage(new FileInfo(filePath)))
                         {
-                            var idValue = worksheet.Cells[row, 1].Value;
-                            var basicValue = worksheet.Cells[row, 2].Value;
-                            var bonusValue = worksheet.Cells[row, 3].Value;
-                            var deductValue = worksheet.Cells[row, 4].Value;
+                            var worksheet = package.Workbook.Worksheets[0];
+                            int rowCount = worksheet.Dimension.Rows;
+                            int columnCount = worksheet.Dimension.Columns;
 
-                            if (idValue != null && int.TryParse(idValue.ToString(), out int empId))
+                            // 🎯 ĐÃ SỬA: Quét tìm dòng tiêu đề thực tế (Tối đa 15 dòng đầu) để định vị cột động
+                            int headerRow = 0;
+                            for (int r = 1; r <= Math.Min(rowCount, 15); r++)
                             {
-                                // Kiểm tra nhân viên đó có thực sự thuộc phòng ban đang import
-                                var emp = db.Employees.FirstOrDefault(e => e.EmployeeID == empId && e.DepartmentID == deptId);
-                                if (emp == null) continue; // Nếu không thuộc phòng này thì bỏ qua dòng đó
-
-                                var payrollItem = new EmployeePayroll
+                                string? cellValue = worksheet.Cells[r, 1].Value?.ToString()?.Trim();
+                                if (!string.IsNullOrEmpty(cellValue) && cellValue.Contains("Employee ID", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    EmployeeID = empId,
+                                    headerRow = r;
+                                    break;
+                                }
+                            }
+
+                            // Nếu không tìm thấy dòng tiêu đề chuẩn, fallback về dòng 1
+                            if (headerRow == 0) headerRow = 1;
+
+                            // Thiết lập chỉ số cột động dựa trên từ khóa tiêu đề (Khớp 100% với file Import)
+                            int colBasic = 2;
+                            int colBonus = 3;
+                            int colDeduct = 4;
+
+                            for (int c = 1; c <= columnCount; c++)
+                            {
+                                string? colHeader = worksheet.Cells[headerRow, c].Value?.ToString()?.Trim()?.ToLower();
+                                if (string.IsNullOrEmpty(colHeader)) continue;
+
+                                if (colHeader.Contains("basic")) colBasic = c;
+                                else if (colHeader.Contains("bonus")) colBonus = c;
+                                else if (colHeader.Contains("deduct")) colDeduct = c;
+                            }
+
+                            // Cấu hình định dạng đọc số tiền chuẩn quốc tế (Chấp nhận cả dấu phẩy hàng nghìn)
+                            var style = System.Globalization.NumberStyles.Number | System.Globalization.NumberStyles.AllowCurrencySymbol | System.Globalization.NumberStyles.AllowThousands;
+                            var culture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
+
+                            // Đọc dữ liệu thật bắt đầu từ dòng sau dòng tiêu đề (headerRow + 1)
+                            for (int row = headerRow + 1; row <= rowCount; row++)
+                            {
+                                var idValue = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                                var basicValue = worksheet.Cells[row, colBasic].Value?.ToString()?.Trim();
+                                var bonusValue = worksheet.Cells[row, colBonus].Value?.ToString()?.Trim();
+                                var deductValue = worksheet.Cells[row, colDeduct].Value?.ToString()?.Trim();
+
+                                // Bỏ qua dòng trống hoặc dòng tính tổng cộng cuối file Excel
+                                if (string.IsNullOrWhiteSpace(idValue) || idValue.Contains("Total", StringComparison.OrdinalIgnoreCase))
+                                    continue;
+
+                                if (int.TryParse(idValue, out int empId))
+                                {
+                                    // Kiểm tra nhân viên thuộc phòng ban
+                                    var emp = db.Employees.FirstOrDefault(e => e.EmployeeID == empId && e.DepartmentID == deptId);
+                                    if (emp == null) continue;
+
+                                    if (newPayrolls.Any(p => p.EmployeeID == empId)) continue;
+
+                                    // Ép kiểu an toàn, lỗi định dạng hoặc trống tự trả về 0 chứ không văng app
+                                    decimal basic = decimal.TryParse(basicValue, style, culture, out decimal _basic) ? _basic : 0;
+                                    decimal bonus = decimal.TryParse(bonusValue, style, culture, out decimal _bonus) ? _bonus : 0;
+                                    decimal deduct = decimal.TryParse(deductValue, style, culture, out decimal _deduct) ? _deduct : 0;
+
+                                    var payrollItem = new EmployeePayroll
+                                    {
+                                        EmployeeID = empId,
+                                        DepartmentID = deptId,
+                                        Month = month,
+                                        Year = year,
+                                        BasicSalary = basic,
+                                        Bonuses = bonus,
+                                        Deductions = deduct
+                                        // Cột TotalSalary đã được SQL Server lo tự động bằng Computed Column rồi nhé!
+                                    };
+                                    newPayrolls.Add(payrollItem);
+                                }
+                            }
+
+                            if (newPayrolls.Count == 0) return "No valid employee payroll records found in the excel file.";
+
+                            db.EmployeePayrolls.AddRange(newPayrolls);
+                            db.SaveChanges();
+
+                            if (payrollStatus == null)
+                            {
+                                payrollStatus = new DepartmentPayrollStatus
+                                {
                                     DepartmentID = deptId,
                                     Month = month,
                                     Year = year,
-                                    BasicSalary = basicValue != null ? decimal.Parse(basicValue.ToString()!) : 0,
-                                    Bonuses = bonusValue != null ? decimal.Parse(bonusValue.ToString()!) : 0,
-                                    Deductions = deductValue != null ? decimal.Parse(deductValue.ToString()!) : 0
+                                    Status = "Pending"
                                 };
-                                newPayrolls.Add(payrollItem);
+                                db.DepartmentPayrollStatuses.Add(payrollStatus);
                             }
-                        }
-
-                        if (newPayrolls.Count == 0) return "No valid employee payroll records found in the excel file.";
-
-                        // Lưu chi tiết lương vào DB
-                        db.EmployeePayrolls.AddRange(newPayrolls);
-
-                        // 4. CẬP NHẬT HOẶC TẠO MỚI TRẠNG THÁI PHÊ DUYỆT THÀNH 'Pending'
-                        if (payrollStatus == null)
-                        {
-                            payrollStatus = new DepartmentPayrollStatus
+                            else
                             {
-                                DepartmentID = deptId,
-                                Month = month,
-                                Year = year,
-                                Status = "Pending"
-                            };
-                            db.DepartmentPayrollStatuses.Add(payrollStatus);
-                        }
-                        else
-                        {
-                            payrollStatus.Status = "Pending";
-                            payrollStatus.RejectReason = null; // Xóa lý do từ chối cũ đi vì đã nộp bản mới
+                                payrollStatus.Status = "Pending";
+                                payrollStatus.RejectReason = null;
+                            }
+
+                            db.SaveChanges();
                         }
 
-                        db.SaveChanges();
+                        transaction.Commit();
+                        return null;
                     }
-                    return null; // Trả về null tức là import thành công 
-                }
-                catch (Exception ex)
-                {
-                    return "Excel Import Failed: " + ex.Message;
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        string innerMessage = ex.InnerException != null ? $"\nDetails: {ex.InnerException.Message}" : "";
+                        return "Excel Import Failed: " + ex.Message + innerMessage;
+                    }
                 }
             }
         }
