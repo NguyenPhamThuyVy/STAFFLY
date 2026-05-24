@@ -110,7 +110,6 @@ namespace StafflyApp.ViewModels
                         RejectReasonMessage = statusRecord.RejectReason ?? string.Empty;
 
                         // KHÓA HÀNH ĐỘNG: Chỉ mở khóa cho Import/Submit lại khi trạng thái là Rejected (Bị từ chối)
-                        // Nếu là Approved hoặc đang Pending chờ sếp duyệt thì KHÓA CỨNG không cho chỉnh sửa 
                         IsActionAllowed = (statusRecord.Status == "Rejected" || statusRecord.Status == "Declined");
 
                         // Nếu bảng lương đã được gửi hoặc duyệt, lôi dữ liệu chi tiết trong DB lên grid để xem lại
@@ -141,7 +140,6 @@ namespace StafflyApp.ViewModels
                     }
                     else
                     {
-                        // Chưa từng khởi tạo chu kỳ lương nào -> Mở khóa tự do cho Staff làm việc
                         CurrentStatusString = string.Empty;
                         RejectReasonMessage = string.Empty;
                         IsActionAllowed = true;
@@ -153,6 +151,7 @@ namespace StafflyApp.ViewModels
                 System.Diagnostics.Debug.WriteLine("LoadStaffPayrollOverview Error: " + ex.Message);
             }
         }
+
         /// <summary>
         /// 🔍 AUTO-DETECT LOGIC FOR STAFF: Tự động quét và định vị chu kỳ lỗi/cần xử lý ngay khi vào trang
         /// </summary>
@@ -162,32 +161,33 @@ namespace StafflyApp.ViewModels
             {
                 using (var db = new StafflyDbContext())
                 {
-                    // 1. Tìm xem có bảng lương nào bị Manager "Rejected" hoặc "Declined" không để Staff sửa trước
                     var targetSheet = db.DepartmentPayrollStatuses
                         .FirstOrDefault(s => s.Status == "Rejected" || s.Status == "Declined");
 
-                    // 2.  Nếu không có ai bị từ chối, tìm gói đang "Pending" chờ duyệt để xem lại tình trạng
                     if (targetSheet == null)
                     {
                         targetSheet = db.DepartmentPayrollStatuses.FirstOrDefault(s => s.Status == "Pending");
                     }
+                    if (targetSheet == null)
+                    {
+                        targetSheet = db.DepartmentPayrollStatuses
+                            .OrderByDescending(s => s.Year)
+                            .ThenByDescending(s => s.Month)
+                            .FirstOrDefault(s => s.Status == "Approved");
+                    }
 
-                    // 3. Thực hiện bốc bộ lọc tự động nếu tìm thấy bản ghi thỏa mãn
                     if (targetSheet != null)
                     {
                         var targetDept = Departments.FirstOrDefault(d => d.DepartmentID == targetSheet.DepartmentID);
                         if (targetDept != null)
                         {
-                            // Kích hoạt Binding gán ngược lên UI ComboBox
                             SelectedMonth = targetSheet.Month;
                             SelectedYear = targetSheet.Year;
-                            SelectedDepartment = targetDept; // Gán cái này sẽ tự kích hoạt hàm LoadStaffPayrollOverview() load dữ liệu lên luôn
-
-                            return; // Định vị thành công, thoát hàm
+                            SelectedDepartment = targetDept;
+                            return;
                         }
                     }
 
-                    // 💡 Fallback: Nếu hệ thống trống trải hoàn toàn, tự động đưa về chu kỳ thời gian thực
                     if (SelectedMonth == 0) SelectedMonth = DateTime.Now.Month;
                     if (SelectedYear == 0) SelectedYear = DateTime.Now.Year;
                     if (SelectedDepartment == null && Departments.Any()) SelectedDepartment = Departments.First();
@@ -199,7 +199,6 @@ namespace StafflyApp.ViewModels
             }
         }
 
-        // Tự động kích hoạt tải và đồng bộ lại luồng hiển thị mỗi khi Staff chỉnh ComboBox bộ lọc
         partial void OnSelectedMonthChanged(int value) => LoadStaffPayrollOverview();
         partial void OnSelectedYearChanged(int value) => LoadStaffPayrollOverview();
         partial void OnSelectedDepartmentChanged(Department? value) => LoadStaffPayrollOverview();
@@ -420,11 +419,9 @@ namespace StafflyApp.ViewModels
                 MessageBox.Show($"Successfully submitted payroll records for {SelectedDepartment.DepartmentName} to the HR Manager!\nStatus is now set to 'Pending Approval'.",
                                 "Submission Successful", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                // Chuyển màu Banner và khóa nút thao tác ngay lập tức
                 CurrentStatusString = "Pending";
                 IsActionAllowed = false;
 
-                // Tải lại luồng hiển thị tổng thể để đồng nhất cấu trúc dữ liệu sạch
                 LoadStaffPayrollOverview();
             }
         }
