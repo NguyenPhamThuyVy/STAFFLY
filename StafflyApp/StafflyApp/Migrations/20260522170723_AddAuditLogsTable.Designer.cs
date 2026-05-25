@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StafflyApp.Data;
 
@@ -11,9 +12,11 @@ using StafflyApp.Data;
 namespace StafflyApp.Migrations
 {
     [DbContext(typeof(StafflyDbContext))]
-    partial class StafflyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260522170723_AddAuditLogsTable")]
+    partial class AddAuditLogsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -164,45 +167,6 @@ namespace StafflyApp.Migrations
                         });
                 });
 
-            modelBuilder.Entity("StafflyApp.Models.DepartmentPayrollStatus", b =>
-                {
-                    b.Property<int>("PayrollStatusID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PayrollStatusID"));
-
-                    b.Property<DateTime?>("ApprovalDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ApprovedBy")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DepartmentID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Month")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RejectReason")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
-
-                    b.HasKey("PayrollStatusID");
-
-                    b.HasIndex("DepartmentID");
-
-                    b.ToTable("DepartmentPayrollStatuses");
-                });
-
             modelBuilder.Entity("StafflyApp.Models.Employee", b =>
                 {
                     b.Property<int>("EmployeeID")
@@ -233,12 +197,6 @@ namespace StafflyApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Position")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -248,45 +206,6 @@ namespace StafflyApp.Migrations
                     b.HasIndex("DepartmentID");
 
                     b.ToTable("Employees");
-                });
-
-            modelBuilder.Entity("StafflyApp.Models.EmployeePayroll", b =>
-                {
-                    b.Property<int>("PayrollID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PayrollID"));
-
-                    b.Property<decimal>("BasicSalary")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Bonuses")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Deductions")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("DepartmentID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("EmployeeID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Month")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("TotalSalary")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("decimal(18,2)")
-                        .HasComputedColumnSql("[BasicSalary] + [Bonuses] - [Deductions]");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
-
-                    b.HasKey("PayrollID");
-
-                    b.ToTable("EmployeePayrolls");
                 });
 
             modelBuilder.Entity("StafflyApp.Models.Payroll", b =>
@@ -431,17 +350,6 @@ namespace StafflyApp.Migrations
                             RoleName = "Staff",
                             Username = "staff"
                         });
-                });
-
-            modelBuilder.Entity("StafflyApp.Models.DepartmentPayrollStatus", b =>
-                {
-                    b.HasOne("StafflyApp.Models.Department", "Department")
-                        .WithMany()
-                        .HasForeignKey("DepartmentID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("StafflyApp.Models.Employee", b =>

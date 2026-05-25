@@ -52,8 +52,15 @@ namespace StafflyApp.ViewModels
                         // Mã hóa mật khẩu mới và gỡ cờ IsDefaultPassword
                         user.Password = BCrypt.Net.BCrypt.HashPassword(newPass);
                         user.IsDefaultPassword = false; // Gỡ cờ bắt buộc đổi mật khẩu
+                        user.TempPasswordPlain = null; // Xóa trắng hoàn toàn chuỗi mật khẩu tạm dưới DB để hủy luồng tự động điền ở Login View
+                        user.IsResetRequested = false; // Gỡ cờ yêu cầu reset 
 
                         db.SaveChanges();
+                        Data.Repositories.UserRepository.LogAction(
+                            user.UserID,
+                            "CHANGE_PASSWORD",
+                            $"User '{user.Username}' successfully changed their password and cleared security reset tokens."
+                        );
 
                         MessageBox.Show("Password updated successfully! Welcome to the system.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 

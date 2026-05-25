@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StafflyApp.Models
 {
+    [Table("AuditLogs")]
     public class AuditLog
     {
         public int LogID { get; set; }

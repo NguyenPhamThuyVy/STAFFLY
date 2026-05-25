@@ -9,7 +9,7 @@ namespace StafflyApp.Data.Repositories
 {
     public class EmployeeRepository : IEmployeeRepository
     {
-        // 1. Lấy danh sách 
+        // 1. Get all employees (Soft Delete filtered)
         public List<Employee> GetAllEmployees()
         {
             List<Employee> employees = new List<Employee>();
@@ -33,7 +33,7 @@ namespace StafflyApp.Data.Repositories
             return employees;
         }
 
-        // 2. Thêm mới nhân viên
+        // 2. Add new employee
         public bool AddEmployee(Employee emp)
         {
             using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
@@ -54,29 +54,64 @@ namespace StafflyApp.Data.Repositories
             }
         }
 
-        // 3. Cập nhật thông tin
+        // 3. Update employee information
         public bool UpdateEmployee(Employee emp)
         {
             using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
             {
-                string query = @"UPDATE Employees SET FullName=@Name, Email=@Email, Phone=@Phone, Address=@Address, 
-                                DateOfBirth=@DOB, DepartmentID=@DeptID, Status=@Status WHERE EmployeeID=@ID";
-                SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@ID", emp.EmployeeID);
-                cmd.Parameters.AddWithValue("@Name", emp.FullName);
-                cmd.Parameters.AddWithValue("@Email", (object)emp.Email ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@Phone", (object)emp.Phone ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@Address", (object)emp.Address ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@DOB", (object)emp.DateOfBirth ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@DeptID", (object)emp.DepartmentID ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@Status", (object)emp.Status ?? "Active");
-
                 conn.Open();
-                return cmd.ExecuteNonQuery() > 0;
+                using (SqlTransaction transaction = conn.BeginTransaction()) // Dùng Transaction để an toàn
+                {
+                    try
+                    {
+                        // 1. Lấy DepartmentID hiện tại trong Database để so sánh
+                        string selectSql = "SELECT DepartmentID FROM Employees WHERE EmployeeID = @ID";
+                        SqlCommand selectCmd = new SqlCommand(selectSql, conn, transaction);
+                        selectCmd.Parameters.AddWithValue("@ID", emp.EmployeeID);
+
+                        object oldDeptObj = selectCmd.ExecuteScalar();
+                        int oldDeptID = (oldDeptObj != null) ? Convert.ToInt32(oldDeptObj) : -1;
+
+                        // 2. Chạy lệnh Update 
+                        string updateSql = @"UPDATE Employees SET FullName=@Name, Email=@Email, Phone=@Phone, Address=@Address, 
+                                     DateOfBirth=@DOB, DepartmentID=@DeptID, Status=@Status WHERE EmployeeID=@ID";
+                        SqlCommand updateCmd = new SqlCommand(updateSql, conn, transaction);
+                        updateCmd.Parameters.AddWithValue("@ID", emp.EmployeeID);
+                        updateCmd.Parameters.AddWithValue("@Name", emp.FullName);
+                        updateCmd.Parameters.AddWithValue("@Email", (object)emp.Email ?? DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@Phone", (object)emp.Phone ?? DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@Address", (object)emp.Address ?? DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@DOB", (object)emp.DateOfBirth ?? DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@DeptID", (object)emp.DepartmentID ?? DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@Status", (object)emp.Status ?? "Active");
+
+                        int rowsAffected = updateCmd.ExecuteNonQuery();
+
+                        // 3. Nếu Update thành công VÀ có sự thay đổi phòng ban => Ghi lịch sử
+                        if (rowsAffected > 0 && oldDeptID != emp.DepartmentID)
+                        {
+                            string logSql = @"INSERT INTO TransferHistories (EmployeeID, OldDepartmentID, NewDepartmentID, EffectiveDate) 
+                                      VALUES (@ID, @OldDept, @NewDept, GETDATE())";
+                            SqlCommand logCmd = new SqlCommand(logSql, conn, transaction);
+                            logCmd.Parameters.AddWithValue("@ID", emp.EmployeeID);
+                            logCmd.Parameters.AddWithValue("@OldDept", oldDeptID);
+                            logCmd.Parameters.AddWithValue("@NewDept", emp.DepartmentID);
+                            logCmd.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit(); // Lưu tất cả thay đổi
+                        return true;
+                    }
+                    catch
+                    {
+                        transaction.Rollback(); // Nếu lỗi thì huỷ hết
+                        return false;
+                    }
+                }
             }
         }
 
-        // 4. Xóa nhân viên 
+        // 4. Delete employee (Soft Delete)
         public bool DeleteEmployee(int id)
         {
             using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
@@ -89,7 +124,7 @@ namespace StafflyApp.Data.Repositories
             }
         }
 
-        // 5. Tìm kiếm 
+        // 5. Search employees
         public List<Employee> SearchEmployees(string keyword)
         {
             List<Employee> employees = new List<Employee>();
@@ -110,13 +145,13 @@ namespace StafflyApp.Data.Repositories
             return employees;
         }
 
-        // 6. Đọc file Excel 
+        // 6. Read Excel file (Placeholder for Bulk Import)
         public List<Employee> ReadExcelFile(string filePath)
         {
             return new List<Employee>();
         }
 
-        // Hàm phụ dùng chung để Map dữ liệu 
+        // Helper method to map data reader to Employee object
         private Employee MapReaderToEmployee(SqlDataReader reader)
         {
             return new Employee

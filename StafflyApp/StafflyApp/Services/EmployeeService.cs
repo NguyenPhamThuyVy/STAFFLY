@@ -18,19 +18,19 @@ namespace StafflyApp.Services
         {
             // 1. Kiểm tra Email
             if (string.IsNullOrWhiteSpace(emp.Email) || !emp.Email.Contains("@"))
-                return "Email không hợp lệ.";
+                return "Invalid email address.";
 
             // 2. Kiểm tra tuổi
             if (emp.DateOfBirth.HasValue)
             {
                 var age = DateTime.Now.Year - emp.DateOfBirth.Value.Year;
-                if (age < 18) return "Nhân viên phải từ 18 tuổi.";
+                if (age < 18) return "Employee must be at least 18 years old.";
             }
 
             // 3. Nếu mọi thứ OK, gọi Repository để lưu
             bool success = _repository.AddEmployee(emp);
 
-            return success ? null : "Lỗi khi lưu vào cơ sở dữ liệu.";
+            return success ? null : "An error occurred while saving to the database.";
         }
     }
 }

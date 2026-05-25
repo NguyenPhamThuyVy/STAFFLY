@@ -9,9 +9,10 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </UserControl.Resources>
 
-    <Border Background="White" CornerRadius="25" Padding="30" Margin="10,0,10,10">
+    <Border Background="White" CornerRadius="20" Padding="20" Margin="10,0,10,10">
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -19,97 +20,192 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                <TextBlock Text="Payroll Statistics" FontSize="26" FontWeight="Bold" Foreground="#1A1C29"/>
-                <TextBlock Text="Configure targeted timeline, department sector, and import validated financial records." Foreground="#6B7280" FontSize="14" Margin="0,5,0,0"/>
+            <StackPanel Grid.Row="0" Margin="0,0,0,15">
+                <TextBlock Text="Payroll Statistics" FontSize="22" FontWeight="Bold" Foreground="#1A1C29"/>
+                <TextBlock Text="Configure targeted timeline, department sector, and import validated financial records." Foreground="#6B7280" FontSize="13" Margin="0,2,0,0"/>
             </StackPanel>
 
-            <Border Grid.Row="1" Background="#F8FAFC" CornerRadius="16" Padding="20" Margin="0,0,0,20" BorderBrush="#E2E8F0" BorderThickness="1">
+            <Border Grid.Row="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,15" BorderThickness="1">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentStatusString}" Value="Approved">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Setter Property="Background" Value="#DCFCE7"/>
+                                <Setter Property="BorderBrush" Value="#BBF7D0"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding CurrentStatusString}" Value="Rejected">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Setter Property="Background" Value="#FEF2F2"/>
+                                <Setter Property="BorderBrush" Value="#FEE2E2"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding CurrentStatusString}" Value="Pending">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Setter Property="Background" Value="#EFF6FF"/>
+                                <Setter Property="BorderBrush" Value="#DBEAFE"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="2*"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Margin="0,0,15,0">
-                        <TextBlock Text="Target Month" Foreground="#6B7280" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6"/>
-                        <ComboBox SelectedValue="{Binding SelectedMonth, UpdateSourceTrigger=PropertyChanged}" 
-                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="40" Padding="10,0">
-                            <system:Int32>1</system:Int32>
-                            <system:Int32>2</system:Int32>
-                            <system:Int32>3</system:Int32>
-                            <system:Int32>4</system:Int32>
-                            <system:Int32>5</system:Int32>
-                            <system:Int32>6</system:Int32>
-                            <system:Int32>7</system:Int32>
-                            <system:Int32>8</system:Int32>
-                            <system:Int32>9</system:Int32>
-                            <system:Int32>10</system:Int32>
-                            <system:Int32>11</system:Int32>
-                            <system:Int32>12</system:Int32>
-                        </ComboBox>
-                    </StackPanel>
+                    <materialDesign:PackIcon Grid.Column="0" VerticalAlignment="Top" Width="18" Height="18" Margin="0,1,10,0">
+                        <materialDesign:PackIcon.Style>
+                            <Style TargetType="materialDesign:PackIcon">
+                                <Setter Property="Kind" Value="InfoOutline"/>
+                                <Setter Property="Foreground" Value="#1E40AF"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentStatusString}" Value="Approved">
+                                        <Setter Property="Kind" Value="CheckCircleOutline"/>
+                                        <Setter Property="Foreground" Value="#166534"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentStatusString}" Value="Rejected">
+                                        <Setter Property="Kind" Value="AlertCircleOutline"/>
+                                        <Setter Property="Foreground" Value="#991B1B"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </materialDesign:PackIcon.Style>
+                    </materialDesign:PackIcon>
 
-                    <StackPanel Grid.Column="1" Margin="10,0,15,0">
-                        <TextBlock Text="Target Year" Foreground="#6B7280" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6"/>
-                        <ComboBox SelectedValue="{Binding SelectedYear, UpdateSourceTrigger=PropertyChanged}" 
-                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="40" Padding="10,0">
-                            <system:Int32>2024</system:Int32>
-                            <system:Int32>2025</system:Int32>
-                            <system:Int32>2026</system:Int32>
-                            <system:Int32>2027</system:Int32>
-                        </ComboBox>
-                    </StackPanel>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock FontSize="13" FontWeight="Bold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="ℹ️ Sheet Status Update"/>
+                                    <Setter Property="Foreground" Value="#1E40AF"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentStatusString}" Value="Approved">
+                                            <Setter Property="Text" Value="🎉 EXCELLENT: This payroll sheet has been APPROVED and locked by Manager!"/>
+                                            <Setter Property="Foreground" Value="#166534"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurrentStatusString}" Value="Rejected">
+                                            <Setter Property="Text" Value="❌ REJECTED: Manager has declined this payroll sheet. Corrections required!"/>
+                                            <Setter Property="Foreground" Value="#991B1B"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurrentStatusString}" Value="Pending">
+                                            <Setter Property="Text" Value="⏳ PENDING: Successfully submitted. Waiting for Manager's review..."/>
+                                            <Setter Property="Foreground" Value="#1E40AF"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
 
-                    <StackPanel Grid.Column="2" Margin="10,0,0,0">
-                        <TextBlock Text="Target Department" Foreground="#6B7280" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6"/>
-                        <ComboBox ItemsSource="{Binding Departments}" 
-                                  SelectedItem="{Binding SelectedDepartment}" 
-                                  DisplayMemberPath="DepartmentName"
-                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="40" Padding="10,0"/>
+                        <TextBlock Margin="0,2,0,0" FontSize="12" TextWrapping="Wrap" Foreground="#7F1D1D">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentStatusString}" Value="Rejected">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                            <Run Text="💬 Reason: " FontWeight="Bold"/>
+                            <Run Text="{Binding RejectReasonMessage, FallbackValue='No specific feedback provided.'}" FontStyle="Italic"/>
+                        </TextBlock>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <Grid Grid.Row="2" Margin="0,0,0,20">
+            <Border Grid.Row="2" Background="#F8FAFC" CornerRadius="12" Padding="15,12" Margin="0,0,0,15" BorderBrush="#E2E8F0" BorderThickness="1">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="FilterVariant" VerticalAlignment="Center" Foreground="#1954D1" Margin="0,0,10,0" Width="20" Height="20"/>
+                    <TextBlock Text="Pipeline Filters:" VerticalAlignment="Center" FontWeight="Bold" Foreground="#4B5563" FontSize="13" Margin="0,0,15,0"/>
+
+                    <ComboBox SelectedValue="{Binding SelectedMonth, UpdateSourceTrigger=PropertyChanged}" 
+                              materialDesign:HintAssist.Hint="Month" Width="120" Margin="0,0,12,0"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="38" Padding="10,0">
+                        <system:Int32>1</system:Int32>
+                        <system:Int32>2</system:Int32>
+                        <system:Int32>3</system:Int32>
+                        <system:Int32>4</system:Int32>
+                        <system:Int32>5</system:Int32>
+                        <system:Int32>6</system:Int32>
+                        <system:Int32>7</system:Int32>
+                        <system:Int32>8</system:Int32>
+                        <system:Int32>9</system:Int32>
+                        <system:Int32>10</system:Int32>
+                        <system:Int32>11</system:Int32>
+                        <system:Int32>12</system:Int32>
+                    </ComboBox>
+
+                    <ComboBox SelectedValue="{Binding SelectedYear, UpdateSourceTrigger=PropertyChanged}" 
+                              materialDesign:HintAssist.Hint="Year" Width="110" Margin="0,0,12,0"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="38" Padding="10,0">
+                        <system:Int32>2024</system:Int32>
+                        <system:Int32>2025</system:Int32>
+                        <system:Int32>2026</system:Int32>
+                        <system:Int32>2027</system:Int32>
+                    </ComboBox>
+
+                    <ComboBox ItemsSource="{Binding Departments}" 
+                              SelectedItem="{Binding SelectedDepartment}" 
+                              DisplayMemberPath="DepartmentName"
+                              materialDesign:HintAssist.Hint="Department" Width="260"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}" Height="38" Padding="10,0"/>
+                </StackPanel>
+            </Border>
+
+            <Grid Grid.Row="3" Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <Button Grid.Column="0" Command="{Binding ImportExcelCommand}" 
+                        IsEnabled="{Binding IsActionAllowed}" Margin="0,0,8,0"
                         Background="#1954D1" Foreground="White" BorderThickness="0" 
-                        Height="45" Padding="20,0" materialDesign:ButtonAssist.CornerRadius="12">
+                        Height="40" Padding="15,0" materialDesign:ButtonAssist.CornerRadius="10">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="FileExcel" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <TextBlock Text="SELECT EXCEL FILE" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        <materialDesign:PackIcon Kind="FileExcel" VerticalAlignment="Center" Margin="0,0,8,0" Width="18" Height="18"/>
+                        <TextBlock Text="SELECT EXCEL FILE" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="13"/>
                     </StackPanel>
                 </Button>
 
-                <Border Grid.Column="1" Background="#F3F4F6" CornerRadius="12" Margin="15,0" Padding="15,0">
-                    <TextBlock Text="{Binding FilePath}" VerticalAlignment="Center" Foreground="#6B7280" FontStyle="Italic" TextTrimming="CharacterEllipsis"/>
+                <Button Grid.Column="1" Command="{Binding DownloadTemplateCommand}" 
+                        Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,12,0"
+                        BorderBrush="#1954D1" Foreground="#1954D1" Height="40" Padding="12,0"
+                        materialDesign:ButtonAssist.CornerRadius="10">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="DownloadOutline" VerticalAlignment="Center" Margin="0,0,6,0" Width="16" Height="16"/>
+                        <TextBlock Text="DOWNLOAD TEMPLATE" VerticalAlignment="Center" FontSize="12" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+
+                <Border Grid.Column="2" Background="#F3F4F6" CornerRadius="10" Margin="0,0,12,0" Padding="12,0">
+                    <TextBlock Text="{Binding FilePath}" VerticalAlignment="Center" Foreground="#6B7280" FontStyle="Italic" FontSize="12" TextTrimming="CharacterEllipsis"/>
                 </Border>
 
-                <Button Grid.Column="2" Command="{Binding SubmitToManagerCommand}" 
+                <Button Grid.Column="3" Command="{Binding SubmitToManagerCommand}" 
+                        IsEnabled="{Binding IsActionAllowed}"
                         Visibility="{Binding IsDataLoaded, Converter={StaticResource BooleanToVisibilityConverter}}"
                         Background="#1A365D" Foreground="White" BorderThickness="0" 
-                        Height="45" Padding="25,0" materialDesign:ButtonAssist.CornerRadius="12">
+                        Height="40" Padding="20,0" materialDesign:ButtonAssist.CornerRadius="10">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Send" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <TextBlock Text="SUBMIT TO MANAGER" VerticalAlignment="Center" FontWeight="Bold"/>
+                        <materialDesign:PackIcon Kind="Send" VerticalAlignment="Center" Margin="0,0,8,0" Width="18" Height="18"/>
+                        <TextBlock Text="SUBMIT TO MANAGER" VerticalAlignment="Center" FontWeight="Bold" FontSize="13"/>
                     </StackPanel>
                 </Button>
             </Grid>
 
-            <DataGrid Grid.Row="3" ItemsSource="{Binding ImportedRecords}" 
+            <DataGrid Grid.Row="4" ItemsSource="{Binding ImportedRecords}" 
                       AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
-                      Style="{StaticResource MaterialDesignDataGrid}"
+                      Style="{StaticResource MaterialDesignDataGrid}" RowHeight="46"
                       BorderThickness="0" Background="White"
                       SelectionMode="Single" SelectionUnit="FullRow"
-                      AlternatingRowBackground="#FAFBFC">
-
+                      AlternatingRowBackground="#FAFBFC"
+                      ColumnWidth="*">
                 <DataGrid.RowStyle>
                     <Style TargetType="DataGridRow" BasedOn="{StaticResource MaterialDesignDataGridRow}">
                         <Style.Triggers>
@@ -123,14 +219,32 @@
                 </DataGrid.RowStyle>
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID" Binding="{Binding EmployeeID}" Width="70"/>
+                    <DataGridTextColumn Header="ID" Binding="{Binding EmployeeID}" Width="Auto" MinWidth="65">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
 
-                    <DataGridTemplateColumn Header="Employee Name" Width="220">
+                    <DataGridTemplateColumn Header="Employee Name" Width="2*">
+                        <DataGridTemplateColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                <Setter Property="Padding" Value="10,0,0,0"/>
+                            </Style>
+                        </DataGridTemplateColumn.HeaderStyle>
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <Border Width="30" Height="30" Background="#E0E7FF" CornerRadius="15" Margin="0,0,10,0">
-                                        <materialDesign:PackIcon Kind="Account" Foreground="#1954D1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" Margin="5,0,0,0">
+                                    <Border Width="28" Height="28" Background="#E0E7FF" CornerRadius="14" Margin="0,0,10,0">
+                                        <materialDesign:PackIcon Kind="Account" Foreground="#1954D1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16"/>
                                     </Border>
                                     <TextBlock Text="{Binding EmployeeName}" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#1A1C29"/>
                                 </StackPanel>
@@ -138,7 +252,12 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTextColumn Header="Period" Width="100">
+                    <DataGridTextColumn Header="Period" Width="0.8*">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
                         <DataGridTextColumn.Binding>
                             <MultiBinding StringFormat="{}{0:D2}/{1}">
                                 <MultiBinding.Bindings>
@@ -147,31 +266,84 @@
                                 </MultiBinding.Bindings>
                             </MultiBinding>
                         </DataGridTextColumn.Binding>
-                    </DataGridTextColumn>
-
-                    <DataGridTextColumn Header="Basic Salary" Binding="{Binding TotalSalary, StringFormat={}{0:N0} USD}" Width="140">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
-                                <Setter Property="HorizontalAlignment" Value="Right"/>
-                                <Setter Property="Margin" Value="0,0,15,0"/>
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="Bonus" Binding="{Binding TotalBonus, StringFormat={}{0:N0} USD}" Width="120">
+                    <DataGridTextColumn Header="Basic Salary" Binding="{Binding BasicSalary, StringFormat={}{0:N0} USD}" Width="1.2*">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Right"/>
-                                <Setter Property="Margin" Value="0,0,15,0"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="Bonuses" Binding="{Binding TotalBonus, StringFormat={}{0:N0} USD}" Width="1.2*">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
                                 <Setter Property="Foreground" Value="#059669"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
-                    <DataGridTemplateColumn Header="Status" Width="*">
+                    <DataGridTextColumn Header="Deductions" Binding="{Binding Deductions, StringFormat={}{0:N0} USD}" Width="1.2*">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Foreground" Value="#E11D48"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="Total Salary" Binding="{Binding TotalSalary, StringFormat={}{0:N0} USD}" Width="1.4*">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="Foreground" Value="#1954D1"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTemplateColumn Header="Status" Width="0.85*">
+                        <DataGridTemplateColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                <Setter Property="Padding" Value="5,0,0,0"/>
+                            </Style>
+                        </DataGridTemplateColumn.HeaderStyle>
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Border x:Name="StatusBadge" CornerRadius="10" Padding="10,2" HorizontalAlignment="Left">
+                                <Border x:Name="StatusBadge" CornerRadius="10" Padding="10,2" HorizontalAlignment="Left" VerticalAlignment="Center">
                                     <TextBlock x:Name="StatusText" FontSize="11" FontWeight="Bold"/>
                                 </Border>
                                 <DataTemplate.Triggers>
@@ -192,14 +364,28 @@
                 </DataGrid.Columns>
             </DataGrid>
 
-            <Border Grid.Row="4" Background="#F9FAFB" CornerRadius="12" Padding="15" Margin="0,20,0,0">
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="AlertCircleOutline" Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <TextBlock Foreground="#6B7280" FontSize="12" VerticalAlignment="Center">
-                        <Run Text="Note: " FontWeight="Bold"/>
-                        <Run Text="Rows with ERROR status will be automatically ignored by the system during the submission process to the Manager."/>
-                    </TextBlock>
-                </StackPanel>
+            <Border Grid.Row="5" Background="#F9FAFB" CornerRadius="10" Padding="12" Margin="0,15,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="AlertCircleOutline" Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,8,0" Width="18" Height="18"/>
+                        <TextBlock Foreground="#6B7280" FontSize="12" VerticalAlignment="Center" TextWrapping="Wrap">
+                            <Run Text="Note: " FontWeight="Bold"/>
+                            <Run Text="Rows with ERROR status will be automatically ignored during the submission process."/>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0" Visibility="{Binding IsDataLoaded, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Valid: " Foreground="#15803D" FontSize="12" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding SuccessCount}" Foreground="#15803D" FontSize="12" FontWeight="Bold" Margin="0,0,12,0"/>
+                        <TextBlock Text="Invalid: " Foreground="#BE123C" FontSize="12" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding FailureCount}" Foreground="#BE123C" FontSize="12" FontWeight="Bold"/>
+                    </StackPanel>
+                </Grid>
             </Border>
         </Grid>
     </Border>
