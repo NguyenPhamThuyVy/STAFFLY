@@ -122,15 +122,15 @@ namespace StafflyApp.ViewModels
                     fullEmp.DepartmentName = dept?.DepartmentName ?? "No Department";
 
                     _selectedContractType = contract?.ContractType ?? "Full-time";
-                    _selectedEmployee = fullEmp;
+                    SelectedEmployee = fullEmp;
 
                     var colleagues = _allEmployeesMaster.Where(e => e.DepartmentID == fullEmp.DepartmentID && e.EmployeeID != fullEmp.EmployeeID).ToList();
-                    _departmentColleagues = new ObservableCollection<Employee>(colleagues);
+                    DepartmentColleagues = new ObservableCollection<Employee>(colleagues);
                 }
 
-                _isEditMode = false;
-                _isNotEditMode = true;
-                _isProfileViewVisible = true;
+                IsEditMode = false;      
+                IsNotEditMode = true;     
+                IsProfileViewVisible = true; 
             }
             catch (Exception ex)
             {
@@ -139,21 +139,21 @@ namespace StafflyApp.ViewModels
         }
 
         [RelayCommand]
-        private void GoBack() => _isProfileViewVisible = false;
+        private void GoBack() => IsProfileViewVisible = false;
 
         [RelayCommand]
         private void EnableEditMode()
         {
-            _isEditMode = true;
-            _isNotEditMode = false;
+            IsEditMode = true;
+            IsNotEditMode = false;
         }
 
         [RelayCommand]
         private void CancelEdit()
         {
-            _isEditMode = false;
-            _isNotEditMode = true;
-            ViewProfile(_selectedEmployee);
+            IsEditMode = false;       
+            IsNotEditMode = true;     
+            ViewProfile(SelectedEmployee);
         }
 
         [RelayCommand]

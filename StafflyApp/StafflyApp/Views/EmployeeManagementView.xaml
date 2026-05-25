@@ -214,7 +214,8 @@
 
                                             <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right">
                                                 <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="View Details" Height="32" Width="32" Margin="0,0,4,0"
-                                                        Command="{Binding DataContext.ViewProfileCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
+                                                        Command="{Binding DataContext.ViewProfileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                        CommandParameter="{Binding}">
                                                     <materialDesign:PackIcon Kind="EyeOutline" Foreground="#8B5CF6"/>
                                                 </Button>
 
