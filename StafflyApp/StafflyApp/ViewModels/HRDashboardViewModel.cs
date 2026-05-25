@@ -102,21 +102,24 @@ namespace StafflyApp.ViewModels
                     // 4. Cập nhật Card số 2: Tổng chi phí quỹ lương của tháng
                     TotalPayrollBudget = runningTotalBudget;
 
-                    // 5. Cập nhật mảng nhãn phòng ban vào Trục Y của biểu đồ cột ngang
+                    // 5. Cập nhật mảng nhãn phòng ban (Sẽ hiển thị dưới Trục Hoành X)
                     DepartmentLabels = labelsList.ToArray();
 
-                    // 6. THIẾT LẬP BIỂU ĐỒ CỘT NGANG (RowSeries)
-                    var horizontalBarSeries = new RowSeries
+                    // 6. THIẾT LẬP BIỂU ĐỒ CỘT ĐỨNG (ColumnSeries)
+                    var verticalColumnSeries = new ColumnSeries
                     {
                         Title = "Total Payroll",
                         Values = budgetValues,
                         DataLabels = true,
-                        FontSize = 13,
-                        LabelPoint = point => point.X.ToString("N0") + " USD", // Hiện text số tiền trực tiếp trên đầu cột kịch khung
-                        Fill = System.Windows.Media.Brushes.RoyalBlue 
+                        FontSize = 12,
+                        LabelPoint = point => point.Y > 0
+                            ? point.Y.ToString("N0") + " USD"
+                            : string.Empty,
+
+                        Fill = System.Windows.Media.Brushes.RoyalBlue
                     };
 
-                    PayrollByDeptSeries = new SeriesCollection { horizontalBarSeries };
+                    PayrollByDeptSeries = new SeriesCollection { verticalColumnSeries };
                     StaffShareSeries = pieSeriesCollection;
                 }
             }
