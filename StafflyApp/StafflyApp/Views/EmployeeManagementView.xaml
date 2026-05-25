@@ -171,7 +171,7 @@
                                 <ColumnDefinition Width="160"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="ID" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="EMPLOYEE" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" Margin="52,0,0,0"/>
+                            <TextBlock Grid.Column="1" Text="EMPLOYEE" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" Margin="48,0,0,0"/>
                             <TextBlock Grid.Column="2" Text="PHONE" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="3" Text="EMAIL" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="4" Text="DEPARTMENT" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
@@ -193,7 +193,9 @@
                                                 <ColumnDefinition Width="1.5*"/>
                                                 <ColumnDefinition Width="160"/>
                                             </Grid.ColumnDefinitions>
+
                                             <TextBlock Text="{Binding EmployeeID}" VerticalAlignment="Center" Foreground="#6B7280" FontWeight="Medium"/>
+
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <Border Width="36" Height="36" CornerRadius="18" Background="#E0E7FF" Margin="0,0,12,0">
                                                     <materialDesign:PackIcon Kind="Account" Foreground="#1954D1" VerticalAlignment="Center" HorizontalAlignment="Center" Width="20" Height="20"/>
@@ -203,9 +205,11 @@
                                                     <TextBlock Text="{Binding Status}" FontSize="11" Foreground="#10B981" FontWeight="Medium"/>
                                                 </StackPanel>
                                             </StackPanel>
+
                                             <TextBlock Grid.Column="2" Text="{Binding Phone}" VerticalAlignment="Center" Foreground="#4B5563"/>
                                             <TextBlock Grid.Column="3" Text="{Binding Email}" VerticalAlignment="Center" Foreground="#4B5563"/>
-                                            <TextBlock Grid.Column="4" Text="{Binding DepartmentName}" VerticalAlignment="Center" Foreground="#4B5563"/>
+
+                                            <TextBlock Grid.Column="4" Text="{Binding DepartmentName}" VerticalAlignment="Center" Foreground="#1A1C29" FontWeight="Medium"/>
 
                                             <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right">
                                                 <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="View Details" Height="32" Width="32" Margin="0,0,4,0"

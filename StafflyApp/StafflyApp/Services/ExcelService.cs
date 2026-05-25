@@ -36,7 +36,6 @@ public class ExcelService
 
     private bool CheckIdExists(int id)
     {
-        // Bạn có thể viết thêm hàm GetEmployeeById trong Repository để check
         using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
         {
             string query = "SELECT COUNT(1) FROM Employees WHERE EmployeeID = @ID AND Status != 'Resigned'";
