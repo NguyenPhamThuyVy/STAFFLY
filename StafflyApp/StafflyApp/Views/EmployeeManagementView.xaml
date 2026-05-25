@@ -17,45 +17,57 @@
 
     <materialDesign:DialogHost IsOpen="{Binding IsDialogOpen}" Identifier="MainDialog">
         <materialDesign:DialogHost.DialogContent>
-            <Border Padding="30" Width="450" Background="White" CornerRadius="20">
-                <StackPanel>
-                    <Border Background="Transparent" Cursor="SizeAll" x:Name="DialogHeader" PreviewMouseLeftButtonDown="DialogHeader_PreviewMouseLeftButtonDown">
-                        <TextBlock Text="{Binding FormTitle}" FontSize="20" FontWeight="Bold" Margin="0,0,0,20" Foreground="#1954D1"/>
+            <Border Padding="25" Width="450" MaxHeight="600" Background="White" CornerRadius="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="Transparent" Cursor="SizeAll" x:Name="DialogHeader" PreviewMouseLeftButtonDown="DialogHeader_PreviewMouseLeftButtonDown" Margin="0,0,0,15">
+                        <TextBlock Text="{Binding FormTitle}" FontSize="20" FontWeight="Bold" Foreground="#1954D1"/>
                     </Border>
-                    <StackPanel>
-                        <StackPanel.Style>
-                            <Style TargetType="StackPanel">
-                                <Setter Property="Visibility" Value="Visible"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsTransferMode}" Value="True">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </StackPanel.Style>
-                        <TextBox materialDesign:HintAssist.Hint="Full Name" Text="{Binding EditingEmployee.FullName, UpdateSourceTrigger=PropertyChanged}" Margin="0,8" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                        <DatePicker materialDesign:HintAssist.Hint="Date of Birth" SelectedDate="{Binding EditingEmployee.DateOfBirth, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedDatePicker}" Margin="0,8"/>
-                        <TextBox materialDesign:HintAssist.Hint="Email Address" Text="{Binding EditingEmployee.Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,8" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                        <TextBox materialDesign:HintAssist.Hint="Phone Number" Text="{Binding EditingEmployee.Phone, UpdateSourceTrigger=PropertyChanged}" Margin="0,8" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                        <TextBox materialDesign:HintAssist.Hint="Home Address" Text="{Binding EditingEmployee.Address, UpdateSourceTrigger=PropertyChanged}" Margin="0,8" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                        <TextBox materialDesign:HintAssist.Hint="Position" Text="{Binding EditingEmployee.Position, UpdateSourceTrigger=PropertyChanged}" Margin="0,8" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                        <DatePicker materialDesign:HintAssist.Hint="Start Date" SelectedDate="{Binding EditingEmployee.StartDate, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedDatePicker}" Margin="0,8"/>
-                        <ComboBox materialDesign:HintAssist.Hint="Contract Type" Text="{Binding EditingEmployee.ContractType, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,8">
-                            <ComboBoxItem Content="Full-time"/>
-                            <ComboBoxItem Content="Part-time"/>
-                            <ComboBoxItem Content="Probationary"/>
-                        </ComboBox>
 
-                        <ComboBox materialDesign:HintAssist.Hint="Assign Department" ItemsSource="{Binding Departments}" DisplayMemberPath="DepartmentName" SelectedValuePath="DepartmentID" SelectedValue="{Binding EditingEmployee.DepartmentID, UpdateSourceTrigger=PropertyChanged}" 
-                                  IsEnabled="{Binding CanEditDepartment}" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,8"/>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,10,0">
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsTransferMode}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
 
-                        <ComboBox materialDesign:HintAssist.Hint="Status" Text="{Binding EditingEmployee.Status, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,8">
-                            <ComboBoxItem Content="Active"/>
-                            <ComboBoxItem Content="Probation"/>
-                            <ComboBoxItem Content="Inactive"/>
-                        </ComboBox>
-                    </StackPanel>
-                    <StackPanel>
+                            <TextBox materialDesign:HintAssist.Hint="Full Name" Text="{Binding EditingEmployee.FullName, UpdateSourceTrigger=PropertyChanged}" Margin="0,6" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                            <DatePicker materialDesign:HintAssist.Hint="Date of Birth" SelectedDate="{Binding EditingEmployee.DateOfBirth, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedDatePicker}" Margin="0,6"/>
+                            <TextBox materialDesign:HintAssist.Hint="Email Address" Text="{Binding EditingEmployee.Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,6" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                            <TextBox materialDesign:HintAssist.Hint="Phone Number" Text="{Binding EditingEmployee.Phone, UpdateSourceTrigger=PropertyChanged}" Margin="0,6" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                            <TextBox materialDesign:HintAssist.Hint="Home Address" Text="{Binding EditingEmployee.Address, UpdateSourceTrigger=PropertyChanged}" Margin="0,6" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                            <TextBox materialDesign:HintAssist.Hint="Position" Text="{Binding EditingEmployee.Position, UpdateSourceTrigger=PropertyChanged}" Margin="0,6" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                            <DatePicker materialDesign:HintAssist.Hint="Start Date" SelectedDate="{Binding EditingEmployee.StartDate, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedDatePicker}" Margin="0,6"/>
+
+                            <ComboBox materialDesign:HintAssist.Hint="Contract Type" Text="{Binding EditingEmployee.ContractType, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,6">
+                                <ComboBoxItem Content="Full-time"/>
+                                <ComboBoxItem Content="Part-time"/>
+                                <ComboBoxItem Content="Probationary"/>
+                            </ComboBox>
+
+                            <ComboBox materialDesign:HintAssist.Hint="Assign Department" ItemsSource="{Binding Departments}" DisplayMemberPath="DepartmentName" SelectedValuePath="DepartmentID" SelectedValue="{Binding EditingEmployee.DepartmentID, UpdateSourceTrigger=PropertyChanged}" 
+                                      IsEnabled="{Binding CanEditDepartment}" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,6"/>
+
+                            <ComboBox materialDesign:HintAssist.Hint="Status" Text="{Binding EditingEmployee.Status, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,6">
+                                <ComboBoxItem Content="Active"/>
+                                <ComboBoxItem Content="Probation"/>
+                                <ComboBoxItem Content="Inactive"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <StackPanel Grid.Row="1">
                         <StackPanel.Style>
                             <Style TargetType="StackPanel">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -69,11 +81,12 @@
                         <TextBlock Text="Select target department for employee:" Margin="0,0,0,10" Foreground="#6B7280"/>
                         <ComboBox materialDesign:HintAssist.Hint="Target Department" ItemsSource="{Binding Departments}" DisplayMemberPath="DepartmentName" SelectedItem="{Binding SelectedTargetDept}" Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,10"/>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                        <Button Content="CANCEL" Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" Style="{StaticResource MaterialDesignFlatButton}"/>
-                        <Button Content="CONFIRM" Command="{Binding ConfirmActionCommand}" Margin="10,0,0,0" Background="#1954D1" Foreground="White"/>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                        <Button Content="CANCEL" Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" Style="{StaticResource MaterialDesignFlatButton}" Margin="0,0,10,0"/>
+                        <Button Content="CONFIRM" Command="{Binding ConfirmActionCommand}" Background="#1954D1" Foreground="White" Height="36" materialDesign:ButtonAssist.CornerRadius="6"/>
                     </StackPanel>
-                </StackPanel>
+                </Grid>
             </Border>
         </materialDesign:DialogHost.DialogContent>
 
@@ -116,6 +129,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
+
                         <TextBox x:Name="SearchBox" Grid.Column="0" Width="280" materialDesign:HintAssist.Hint="Search employees..." 
                                  Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}">
                             <TextBox.InputBindings>
@@ -124,7 +138,6 @@
                         </TextBox>
 
                         <materialDesign:PopupBox Grid.Column="1" Margin="15,0,0,0" StaysOpen="True" PlacementMode="BottomAndAlignLeftEdges">
-
                             <materialDesign:PopupBox.ToggleContent>
                                 <Border BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="4" Height="40" Padding="15,0" Background="Transparent">
                                     <StackPanel Orientation="Horizontal">
@@ -137,7 +150,6 @@
                             <Border Background="White" Padding="20" Width="280" CornerRadius="8">
                                 <StackPanel>
                                     <TextBlock Text="Filter Employees" FontWeight="Bold" FontSize="16" Foreground="#1A1C29" Margin="0,0,0,15"/>
-
                                     <ComboBox materialDesign:HintAssist.Hint="Department" 
                                               ItemsSource="{Binding Departments}" 
                                               DisplayMemberPath="DepartmentName"
@@ -211,19 +223,19 @@
                                             <TextBlock Grid.Column="3" Text="{Binding Email}" VerticalAlignment="Center" Foreground="#4B5563"/>
                                             <TextBlock Grid.Column="4" Text="{Binding DepartmentName}" VerticalAlignment="Center" Foreground="#1A1C29" FontWeight="Medium"/>
 
-                                            <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Center">
                                                 <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="View Details" Height="32" Width="32" Margin="0,0,4,0"
                                                         Command="{Binding DataContext.ViewProfileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                                                         CommandParameter="{Binding}">
                                                     <materialDesign:PackIcon Kind="EyeOutline" Foreground="#8B5CF6"/>
                                                 </Button>
 
-                                                <Button Grid.Column="1" Style="{StaticResource MaterialDesignIconButton}" ToolTip="Delete" Height="32" Width="32" HorizontalAlignment="Center"
+                                                <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="Delete" Height="32" Width="32"
                                                         Visibility="{Binding DataContext.IsStaff, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"
                                                         Command="{Binding DataContext.DeleteEmployeeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
                                                     <materialDesign:PackIcon Kind="DeleteOutline" Foreground="#EF4444"/>
                                                 </Button>
-                                            </Grid>
+                                            </StackPanel>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
