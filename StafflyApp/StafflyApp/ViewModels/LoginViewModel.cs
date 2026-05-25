@@ -1,10 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StafflyApp.Data;
+using StafflyApp.Data.Repositories;
 using StafflyApp.Models;
 using StafflyApp.Helpers;
 using StafflyApp.Views;
-using StafflyApp.Data.Repositories;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -67,7 +67,6 @@ namespace StafflyApp.ViewModels
             }
 
             User? authenticatedUser = _userRepository.AuthenticateUser(Username, password);
-
             if (authenticatedUser != null)
             {
                 // Kiểm tra tài khoản có bị Admin VÔ HIỆU HÓA (Disabled) hay không

@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using StafflyApp.Models;
-using Microsoft.Extensions.Configuration;
 
 namespace StafflyApp.Data
 {
@@ -35,6 +34,8 @@ namespace StafflyApp.Data
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<DepartmentAttendance> DepartmentAttendances { get; set; }
+        public DbSet<DepartmentPayrollStatus> DepartmentPayrollStatuses { get; set; }
+        public DbSet<EmployeePayroll> EmployeePayrolls { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -44,6 +45,10 @@ namespace StafflyApp.Data
             modelBuilder.Entity<Payroll>().HasKey(p => p.PayrollID);
             modelBuilder.Entity<Attendance>().HasKey(a => a.AttendanceID);
             modelBuilder.Entity<AuditLog>().HasKey(log => log.LogID);
+
+            modelBuilder.Entity<EmployeePayroll>()
+                .Property(p => p.TotalSalary)
+                .HasComputedColumnSql("[BasicSalary] + [Bonuses] - [Deductions]");
 
             modelBuilder.Entity<Department>().HasData(
                 new Department { DepartmentID = 1, DepartmentName = "Board of Directors", HeadcountLimit = 5 },

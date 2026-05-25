@@ -18,7 +18,7 @@ public class ExcelService
             var worksheet = package.Workbook.Worksheets[0];
             int rowCount = worksheet.Dimension.Rows;
 
-            for (int row = 2; row <= rowCount; row++) 
+            for (int row = 2; row <= rowCount; row++)
             {
                 var cellValue = worksheet.Cells[row, 1].Value; // Giả sử cột 1 là ID
                 if (cellValue != null && int.TryParse(cellValue.ToString(), out int empId))
@@ -36,7 +36,6 @@ public class ExcelService
 
     private bool CheckIdExists(int id)
     {
-        // Bạn có thể viết thêm hàm GetEmployeeById trong Repository để check
         using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
         {
             string query = "SELECT COUNT(1) FROM Employees WHERE EmployeeID = @ID AND Status != 'Resigned'";

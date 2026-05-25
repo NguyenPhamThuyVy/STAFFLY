@@ -24,6 +24,8 @@ namespace StafflyApp.Models
         public string DepartmentName { get; set; }
         [NotMapped]
         public string ContractType { get; set; }
+        public string? Position { get; set; }
+        public DateTime? StartDate { get; set; }
     }
 }
 
