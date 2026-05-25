@@ -238,7 +238,7 @@ namespace StafflyApp.ViewModels
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "TRANSFER_DEPARTMENT",
-                            $"Transferred Employee '{emp.FullName}' from Dept ID {oldDeptId} to '{newDept.DepartmentName}'.");
+                            $"Transferred Employee '{emp.FullName}' from ' {oldDept.DepartmentName} ' to '{newDept.DepartmentName}'.");
                     }
 
                     LoadData();
@@ -269,7 +269,6 @@ namespace StafflyApp.ViewModels
             OnPropertyChanged(nameof(EditingEmployee));
             OnPropertyChanged(nameof(FormTitle));
 
-            // 👉 Lệnh này sẽ giúp DialogHost của bạn bật lên
             OnPropertyChanged(nameof(IsDialogOpen));
         }
 

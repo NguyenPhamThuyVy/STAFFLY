@@ -5,7 +5,6 @@ using StafflyApp.Data.Repositories;
 using StafflyApp.Models;
 using StafflyApp.Helpers;
 using StafflyApp.Views;
-using StafflyApp.Data.Repositories;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -34,11 +33,11 @@ namespace StafflyApp.ViewModels
             var passwordBox = parameter as PasswordBox;
             if (passwordBox == null) return;
 
-            _errorMessage = string.Empty;
+            ErrorMessage = string.Empty;
             // Kiểm tra mật khẩu tạm thời trước khi Login
             using (var db = new StafflyDbContext())
             {
-                string inputUsername = _username.Trim().ToLower();
+                string inputUsername = Username.Trim().ToLower();
                 var userCheck = db.Users.FirstOrDefault(u => u.Username.ToLower() == inputUsername);
 
                 // Nếu tìm thấy User có mật khẩu tạm thời và ô mật khẩu hiện tại trên giao diện đang bị trống 
@@ -61,19 +60,19 @@ namespace StafflyApp.ViewModels
             }
             string password = passwordBox.Password;
 
-            if (string.IsNullOrEmpty(_username) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(password))
             {
-                _errorMessage = "Please enter both username and password!";
+                ErrorMessage = "Please enter both username and password!";
                 return;
             }
 
-            User? authenticatedUser = _userRepository.AuthenticateUser(_username, password);
+            User? authenticatedUser = _userRepository.AuthenticateUser(Username, password);
             if (authenticatedUser != null)
             {
                 // Kiểm tra tài khoản có bị Admin VÔ HIỆU HÓA (Disabled) hay không
                 if (!authenticatedUser.IsActive)
                 {
-                    _errorMessage = "Your account has been deactivated. Please contact Admin!";
+                    ErrorMessage = "Your account has been deactivated. Please contact Admin!";
                     MessageBox.Show("This account is currently disabled by the Administrator.",
                                     "Access Denied", MessageBoxButton.OK, MessageBoxImage.Stop);
                     return;
@@ -115,7 +114,7 @@ namespace StafflyApp.ViewModels
             }
             else
             {
-                _errorMessage = "Incorrect username or password!";
+                ErrorMessage = "Incorrect username or password!";
             }
         }
         [RelayCommand]
