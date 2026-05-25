@@ -115,25 +115,22 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-
                         <TextBox x:Name="SearchBox" Grid.Column="0" Width="280" materialDesign:HintAssist.Hint="Search employees..." 
                                  Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}">
                             <TextBox.InputBindings>
                                 <KeyBinding Key="Return" Command="{Binding SearchCommand}"/>
                             </TextBox.InputBindings>
                         </TextBox>
-
                         <Button Grid.Column="1" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="15,0,0,0" Height="40" Foreground="#6B7280" BorderBrush="#D1D5DB">
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon Kind="FilterVariant" VerticalAlignment="Center" Width="18" Height="18" Margin="0,0,6,0"/>
                                 <TextBlock Text="Filter" VerticalAlignment="Center" FontWeight="Medium"/>
                             </StackPanel>
                         </Button>
-
                         <Button Grid.Column="3" Content="+ Add Employee" Visibility="{Binding IsStaff, Converter={StaticResource BoolToVis}}" Command="{Binding OpenAddDialogCommand}" Background="#1954D1" Foreground="White" BorderThickness="0" Height="40" Padding="15,0" materialDesign:ButtonAssist.CornerRadius="10"/>
                     </Grid>
 
-                    <Border Grid.Row="2" Background="#F9FAFB" CornerRadius="8" Padding="15,12" Margin="0,0,0,10">
+                    <Border Grid.Row="2" Background="#F9FAFB" CornerRadius="8" Padding="15,12,32,12" Margin="0,0,0,10">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="60"/>
@@ -141,18 +138,19 @@
                                 <ColumnDefinition Width="1.5*"/>
                                 <ColumnDefinition Width="2*"/>
                                 <ColumnDefinition Width="1.5*"/>
-                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="100"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="ID" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="1" Text="EMPLOYEE" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" Margin="48,0,0,0"/>
                             <TextBlock Grid.Column="2" Text="PHONE" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="3" Text="EMAIL" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="4" Text="DEPARTMENT" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="5" Text="ACTIONS" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,35,0"/>
+
+                            <TextBlock Grid.Column="5" Text="ACTIONS" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         </Grid>
                     </Border>
 
-                    <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Visible">
                         <ItemsControl ItemsSource="{Binding Employees}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -164,7 +162,7 @@
                                                 <ColumnDefinition Width="1.5*"/>
                                                 <ColumnDefinition Width="2*"/>
                                                 <ColumnDefinition Width="1.5*"/>
-                                                <ColumnDefinition Width="160"/>
+                                                <ColumnDefinition Width="100"/>
                                             </Grid.ColumnDefinitions>
 
                                             <TextBlock Text="{Binding EmployeeID}" VerticalAlignment="Center" Foreground="#6B7280" FontWeight="Medium"/>
@@ -181,27 +179,25 @@
 
                                             <TextBlock Grid.Column="2" Text="{Binding Phone}" VerticalAlignment="Center" Foreground="#4B5563"/>
                                             <TextBlock Grid.Column="3" Text="{Binding Email}" VerticalAlignment="Center" Foreground="#4B5563"/>
-
                                             <TextBlock Grid.Column="4" Text="{Binding DepartmentName}" VerticalAlignment="Center" Foreground="#1A1C29" FontWeight="Medium"/>
 
-                                            <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right">
-                                                <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="View Details" Height="32" Width="32" Margin="0,0,4,0"
+                                            <Grid Grid.Column="5" Width="72" HorizontalAlignment="Center">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="36"/>
+                                                    <ColumnDefinition Width="36"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Button Grid.Column="0" Style="{StaticResource MaterialDesignIconButton}" ToolTip="View Details" Height="32" Width="32" HorizontalAlignment="Center"
                                                         Command="{Binding DataContext.ViewProfileCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
                                                     <materialDesign:PackIcon Kind="EyeOutline" Foreground="#8B5CF6"/>
                                                 </Button>
 
-                                                <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="Transfer" Height="32" Width="32" 
-                                                        Visibility="{Binding DataContext.IsManager, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"
-                                                        Command="{Binding DataContext.OpenTransferDialogCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
-                                                    <materialDesign:PackIcon Kind="SwapHorizontal" Foreground="#1954D1"/>
-                                                </Button>
-
-                                                <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="Delete" Height="32" Width="32"
+                                                <Button Grid.Column="1" Style="{StaticResource MaterialDesignIconButton}" ToolTip="Delete" Height="32" Width="32" HorizontalAlignment="Center"
                                                         Visibility="{Binding DataContext.IsStaff, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}"
                                                         Command="{Binding DataContext.DeleteEmployeeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
                                                     <materialDesign:PackIcon Kind="DeleteOutline" Foreground="#EF4444"/>
                                                 </Button>
-                                            </StackPanel>
+                                            </Grid>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
