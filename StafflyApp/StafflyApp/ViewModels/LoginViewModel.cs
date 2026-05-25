@@ -34,11 +34,11 @@ namespace StafflyApp.ViewModels
             var passwordBox = parameter as PasswordBox;
             if (passwordBox == null) return;
 
-            ErrorMessage = string.Empty;
+            _errorMessage = string.Empty;
             // Kiểm tra mật khẩu tạm thời trước khi Login
             using (var db = new StafflyDbContext())
             {
-                string inputUsername = Username.Trim().ToLower();
+                string inputUsername = _username.Trim().ToLower();
                 var userCheck = db.Users.FirstOrDefault(u => u.Username.ToLower() == inputUsername);
 
                 // Nếu tìm thấy User có mật khẩu tạm thời và ô mật khẩu hiện tại trên giao diện đang bị trống 
@@ -61,20 +61,19 @@ namespace StafflyApp.ViewModels
             }
             string password = passwordBox.Password;
 
-            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(_username) || string.IsNullOrEmpty(password))
             {
-                ErrorMessage = "Please enter both username and password!";
+                _errorMessage = "Please enter both username and password!";
                 return;
             }
 
-            User? authenticatedUser = _userRepository.AuthenticateUser(Username, password);
-
+            User? authenticatedUser = _userRepository.AuthenticateUser(_username, password);
             if (authenticatedUser != null)
             {
                 // Kiểm tra tài khoản có bị Admin VÔ HIỆU HÓA (Disabled) hay không
                 if (!authenticatedUser.IsActive)
                 {
-                    ErrorMessage = "Your account has been deactivated. Please contact Admin!";
+                    _errorMessage = "Your account has been deactivated. Please contact Admin!";
                     MessageBox.Show("This account is currently disabled by the Administrator.",
                                     "Access Denied", MessageBoxButton.OK, MessageBoxImage.Stop);
                     return;
@@ -116,7 +115,7 @@ namespace StafflyApp.ViewModels
             }
             else
             {
-                ErrorMessage = "Incorrect username or password!";
+                _errorMessage = "Incorrect username or password!";
             }
         }
         [RelayCommand]

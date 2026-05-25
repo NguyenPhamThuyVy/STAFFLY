@@ -142,20 +142,11 @@ namespace StafflyApp.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Attendances");
-
-            migrationBuilder.DropTable(
-                name: "Employees");
-
-            migrationBuilder.DropTable(
-                name: "Payrolls");
-
-            migrationBuilder.DropTable(
-                name: "Users");
-
-            migrationBuilder.DropTable(
-                name: "Departments");
+            migrationBuilder.DropTable(name: "Attendances");
+            migrationBuilder.DropTable(name: "Employees");
+            migrationBuilder.DropTable(name: "Payrolls");
+            migrationBuilder.DropTable(name: "Users");
+            migrationBuilder.DropTable(name: "Departments");
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.AspNetCore.Http.Internal;
 using StafflyApp.Data;
 using StafflyApp.Data.Repositories;
 using StafflyApp.Models;
@@ -7,8 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace StafflyApp.ViewModels
 {
@@ -16,10 +17,12 @@ namespace StafflyApp.ViewModels
     {
         private readonly EmployeeRepository _repository;
         private List<Employee> _allEmployeesMaster = new();
-
+        public List<string> ContractTypes { get; } = new List<string> { "All", "Full-time", "Part-time", "Probationary" };
         [ObservableProperty] private ObservableCollection<Employee> _employees = new();
         [ObservableProperty] private ObservableCollection<Department> _departments = new();
         [ObservableProperty] private string _searchText = string.Empty;
+        [ObservableProperty] private Department _selectedFilterDepartment;
+        [ObservableProperty] private string _selectedFilterContractType = "All";
         [ObservableProperty] private int _totalEmployees;
         [ObservableProperty] private int _activeEmployees;
         [ObservableProperty] private bool _isDialogOpen = false;
@@ -38,18 +41,14 @@ namespace StafflyApp.ViewModels
         [ObservableProperty] private bool _isNotEditMode = true;
         [ObservableProperty] private Employee _selectedEmployee = new();
         [ObservableProperty] private ObservableCollection<Employee> _departmentColleagues = new();
-
-
         [ObservableProperty] private string _selectedContractType = "Full-time";
 
         public EmployeeViewModel()
         {
             _repository = new EmployeeRepository();
-
             var currentUser = StafflyApp.Helpers.UserSession.Instance;
-            IsManager = currentUser.RoleID == 2;
-            IsStaff = currentUser.RoleID == 3;
-
+            _isManager = currentUser.RoleID == 2;
+            _isStaff = currentUser.RoleID == 3;
             _ = LoadData();
         }
 
@@ -61,25 +60,21 @@ namespace StafflyApp.ViewModels
                 var list = await Task.Run(() => _repository.GetAllEmployees());
                 _allEmployeesMaster = list.Where(e => string.IsNullOrEmpty(e.Status) || !e.Status.Equals("Resigned", StringComparison.OrdinalIgnoreCase)).ToList();
 
-                TotalEmployees = _allEmployeesMaster.Count;
-                ActiveEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working");
+                _totalEmployees = _allEmployeesMaster.Count;
+                _activeEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working");
 
                 using (var db = new StafflyDbContext())
                 {
                     var deptList = await Task.Run(() => db.Departments.ToList());
-
-                    // Đổ tên phòng ban động chuẩn cấu trúc của Vy
                     foreach (var emp in _allEmployeesMaster)
                     {
                         var matchingDept = deptList.FirstOrDefault(d => d.DepartmentID == emp.DepartmentID);
                         emp.DepartmentName = matchingDept != null ? matchingDept.DepartmentName : "No Department";
                     }
-
-                    Departments.Clear();
-                    foreach (var dept in deptList) Departments.Add(dept);
+                    _departments.Clear();
+                    foreach (var dept in deptList) _departments.Add(dept);
                 }
-
-                Search();
+                ApplyFilter();
             }
             catch (Exception ex)
             {
@@ -87,17 +82,26 @@ namespace StafflyApp.ViewModels
             }
         }
 
-        partial void OnSearchTextChanged(string value) => Search();
 
         [RelayCommand]
-        private void Search()
+        private void ApplyFilter()
         {
-            var filtered = string.IsNullOrWhiteSpace(SearchText)
+            var filtered = string.IsNullOrWhiteSpace(_searchText)
                 ? _allEmployeesMaster
-                : _allEmployeesMaster.Where(e => (e.FullName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false) || e.EmployeeID.ToString().Contains(SearchText)).ToList();
+                : _allEmployeesMaster.Where(e => (e.FullName?.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ?? false) || e.EmployeeID.ToString().Contains(_searchText)).ToList();
 
-            Employees.Clear();
-            foreach (var emp in filtered) Employees.Add(emp);
+            if (_selectedFilterDepartment != null && _selectedFilterDepartment.DepartmentID > 0)
+            {
+                filtered = filtered.Where(e => e.DepartmentID == _selectedFilterDepartment.DepartmentID).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(_selectedFilterContractType) && _selectedFilterContractType != "All")
+            {
+                filtered = filtered.Where(e => e.ContractType == _selectedFilterContractType).ToList();
+            }
+
+            _employees.Clear();
+            foreach (var emp in filtered) _employees.Add(emp);
         }
 
         [RelayCommand]
@@ -117,16 +121,16 @@ namespace StafflyApp.ViewModels
 
                     fullEmp.DepartmentName = dept?.DepartmentName ?? "No Department";
 
-                    SelectedContractType = contract?.ContractType ?? "Full-time";
-                    SelectedEmployee = fullEmp;
+                    _selectedContractType = contract?.ContractType ?? "Full-time";
+                    _selectedEmployee = fullEmp;
 
                     var colleagues = _allEmployeesMaster.Where(e => e.DepartmentID == fullEmp.DepartmentID && e.EmployeeID != fullEmp.EmployeeID).ToList();
-                    DepartmentColleagues = new ObservableCollection<Employee>(colleagues);
+                    _departmentColleagues = new ObservableCollection<Employee>(colleagues);
                 }
 
-                IsEditMode = false;
-                IsNotEditMode = true;
-                IsProfileViewVisible = true;
+                _isEditMode = false;
+                _isNotEditMode = true;
+                _isProfileViewVisible = true;
             }
             catch (Exception ex)
             {
@@ -135,21 +139,21 @@ namespace StafflyApp.ViewModels
         }
 
         [RelayCommand]
-        private void GoBack() => IsProfileViewVisible = false;
+        private void GoBack() => _isProfileViewVisible = false;
 
         [RelayCommand]
         private void EnableEditMode()
         {
-            IsEditMode = true;
-            IsNotEditMode = false;
+            _isEditMode = true;
+            _isNotEditMode = false;
         }
 
         [RelayCommand]
         private void CancelEdit()
         {
-            IsEditMode = false;
-            IsNotEditMode = true;
-            ViewProfile(SelectedEmployee);
+            _isEditMode = false;
+            _isNotEditMode = true;
+            ViewProfile(_selectedEmployee);
         }
 
         [RelayCommand]
@@ -157,7 +161,7 @@ namespace StafflyApp.ViewModels
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(SelectedEmployee.FullName))
+                if (string.IsNullOrWhiteSpace(_selectedEmployee.FullName))
                 {
                     MessageBox.Show("Employee name cannot be empty!", "Validation Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
@@ -165,15 +169,15 @@ namespace StafflyApp.ViewModels
 
                 using (var db = new StafflyDbContext())
                 {
-                    db.Employees.Update(SelectedEmployee);
+                    db.Employees.Update(_selectedEmployee);
 
-                    var contract = db.Contracts.FirstOrDefault(c => c.EmployeeID == SelectedEmployee.EmployeeID);
+                    var contract = db.Contracts.FirstOrDefault(c => c.EmployeeID == _selectedEmployee.EmployeeID);
                     if (contract == null)
                     {
-                        contract = new Contract { EmployeeID = SelectedEmployee.EmployeeID };
+                        contract = new Contract { EmployeeID = _selectedEmployee.EmployeeID };
                         db.Contracts.Add(contract);
                     }
-                    contract.ContractType = SelectedContractType;
+                    contract.ContractType = _selectedContractType;
 
                     if (await db.SaveChangesAsync() > 0)
                     {
@@ -181,13 +185,12 @@ namespace StafflyApp.ViewModels
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "UPDATE_EMPLOYEE",
-                            $"Updated profile for Employee: '{SelectedEmployee.FullName}' (ID: {SelectedEmployee.EmployeeID}) with contract type: '{SelectedContractType}'."
-                        );
+                            $"Updated profile for Employee: '{_selectedEmployee.FullName}' (ID: {_selectedEmployee.EmployeeID}) with contract type: '{_selectedContractType}'.");
                     }
                 }
 
-                IsEditMode = false;
-                IsNotEditMode = true;
+                _isEditMode = false;
+                _isNotEditMode = true;
                 _ = LoadData();
                 MessageBox.Show("Employee details and contract updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -200,25 +203,24 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void ConfirmTransfer()
         {
-            EditingEmployee = SelectedEmployee;
+            _editingEmployee = _selectedEmployee;
             ExecuteTransfer();
         }
 
         private void ExecuteTransfer()
         {
-            if (SelectedTargetDept == null) return;
+            if (_selectedTargetDept == null) return;
 
             try
             {
                 using (var db = new StafflyDbContext())
                 {
-                    var emp = db.Employees.Find(EditingEmployee.EmployeeID);
+                    var emp = db.Employees.Find(_editingEmployee.EmployeeID);
+                    var newDept = db.Departments.FirstOrDefault(d => d.DepartmentID == _selectedTargetDept.DepartmentID);
                     var oldDept = db.Departments.FirstOrDefault(d => d.DepartmentID == emp.DepartmentID);
-                    var newDept = db.Departments.FirstOrDefault(d => d.DepartmentID == SelectedTargetDept.DepartmentID);
 
                     if (emp == null || newDept == null) return;
 
-                    // Chặn nếu phòng ban đích đã đầy giới hạn
                     if (newDept.CurrentStaffCount >= newDept.HeadcountLimit)
                     {
                         MessageBox.Show($"{newDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -228,24 +230,20 @@ namespace StafflyApp.ViewModels
                     int oldDeptId = emp.DepartmentID ?? 0;
                     emp.DepartmentID = newDept.DepartmentID;
 
-                    // Tăng số lượng phòng mới, giảm phòng cũ
                     newDept.CurrentStaffCount += 1;
                     if (oldDept != null) oldDept.CurrentStaffCount -= 1;
 
                     if (db.SaveChanges() > 0)
                     {
-                        // Ghi log điều chuyển phòng ban 
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "TRANSFER_DEPARTMENT",
-                            $"Transferred Employee '{emp.FullName}' (ID: {emp.EmployeeID}) from Dept ID {oldDeptId} to '{SelectedTargetDept.DepartmentName}' (Dept ID: {SelectedTargetDept.DepartmentID})."
-                        );
+                            $"Transferred Employee '{emp.FullName}' from Dept ID {oldDeptId} to '{newDept.DepartmentName}'.");
                     }
 
-                    _ = LoadData();
-                    SelectedEmployee.DepartmentName = newDept.DepartmentName;
-                    OnPropertyChanged(nameof(SelectedEmployee));
-
+                    LoadData();
+                    _selectedEmployee.DepartmentName = newDept.DepartmentName;
+                    OnPropertyChanged(nameof(_selectedEmployee));
                     MessageBox.Show("Employee transferred successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
@@ -258,11 +256,21 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void OpenAddDialog()
         {
-            IsTransferMode = false;
-            CanEditDepartment = true;
-            EditingEmployee = new Employee { Status = "Active", ContractType = "Full-time" };
-            FormTitle = "ADD NEW EMPLOYEE";
-            IsDialogOpen = true;
+            // 1. Gán giá trị vào biến private
+            _isTransferMode = false;
+            _canEditDepartment = true;
+            _editingEmployee = new Employee { Status = "Active", ContractType = "Full-time", StartDate = DateTime.Now.Date };
+            _formTitle = "ADD NEW EMPLOYEE";
+            _isDialogOpen = true;
+
+            // 2. Phát tín hiệu cho giao diện cập nhật (Gọi tên thuộc tính viết hoa)
+            OnPropertyChanged(nameof(IsTransferMode));
+            OnPropertyChanged(nameof(CanEditDepartment));
+            OnPropertyChanged(nameof(EditingEmployee));
+            OnPropertyChanged(nameof(FormTitle));
+
+            // 👉 Lệnh này sẽ giúp DialogHost của bạn bật lên
+            OnPropertyChanged(nameof(IsDialogOpen));
         }
 
         [RelayCommand]
@@ -272,13 +280,13 @@ namespace StafflyApp.ViewModels
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(EditingEmployee.FullName))
+                if (string.IsNullOrWhiteSpace(_editingEmployee.FullName))
                 {
                     MessageBox.Show("Please enter the employee's name!", "Input Required", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                if (EditingEmployee.DepartmentID == null || EditingEmployee.DepartmentID == 0)
+                if (_editingEmployee.DepartmentID == null || _editingEmployee.DepartmentID == 0)
                 {
                     MessageBox.Show("Please assign a department to this employee!", "Validation Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
@@ -286,7 +294,7 @@ namespace StafflyApp.ViewModels
 
                 using (var db = new StafflyDbContext())
                 {
-                    var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == EditingEmployee.DepartmentID);
+                    var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == _editingEmployee.DepartmentID);
 
                     // Chặn thêm mới nếu phòng ban được chọn đã hết chỗ
                     if (dept != null && dept.CurrentStaffCount >= dept.HeadcountLimit)
@@ -296,7 +304,7 @@ namespace StafflyApp.ViewModels
                         return;
                     }
 
-                    db.Employees.Add(EditingEmployee);
+                    db.Employees.Add(_editingEmployee);
 
                     // Cộng dồn nhân sự phòng ban
                     if (dept != null) dept.CurrentStaffCount += 1;
@@ -307,11 +315,11 @@ namespace StafflyApp.ViewModels
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "ADD_EMPLOYEE",
-                            $"Created new employee profile: '{EditingEmployee.FullName}' assigned to Department ID: {EditingEmployee.DepartmentID}."
+                            $"Created new employee profile: '{_editingEmployee.FullName}' assigned to Department ID: {_editingEmployee.DepartmentID}."
                         );
                     }
                 }
-                IsDialogOpen = false;
+                _isDialogOpen = false;
                 _ = LoadData();
                 MessageBox.Show("New employee added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
