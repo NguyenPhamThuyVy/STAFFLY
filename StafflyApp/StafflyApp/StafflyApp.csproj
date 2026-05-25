@@ -23,6 +23,7 @@
 		<PackageReference Include="MaterialDesignThemes" Version="5.3.1" />
 		<PackageReference Include="MaterialDesignThemes.MahApps" Version="5.3.1" />
 		<PackageReference Include="MaterialDesignThemes.Wpf" Version="1.0.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.10" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.25" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.25" />

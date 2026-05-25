@@ -17,7 +17,7 @@ namespace StafflyApp.ViewModels
     {
         private readonly EmployeeRepository _repository;
         private List<Employee> _allEmployeesMaster = new();
-
+        public List<string> ContractTypes { get; } = new List<string> { "All", "Full-time", "Part-time", "Probationary" };
         [ObservableProperty] private ObservableCollection<Employee> _employees = new();
         [ObservableProperty] private ObservableCollection<Department> _departments = new();
         [ObservableProperty] private string _searchText = string.Empty;
@@ -41,18 +41,14 @@ namespace StafflyApp.ViewModels
         [ObservableProperty] private bool _isNotEditMode = true;
         [ObservableProperty] private Employee _selectedEmployee = new();
         [ObservableProperty] private ObservableCollection<Employee> _departmentColleagues = new();
-
-
         [ObservableProperty] private string _selectedContractType = "Full-time";
 
         public EmployeeViewModel()
         {
             _repository = new EmployeeRepository();
-
             var currentUser = StafflyApp.Helpers.UserSession.Instance;
             _isManager = currentUser.RoleID == 2;
             _isStaff = currentUser.RoleID == 3;
-
             _ = LoadData();
         }
 
@@ -70,19 +66,15 @@ namespace StafflyApp.ViewModels
                 using (var db = new StafflyDbContext())
                 {
                     var deptList = await Task.Run(() => db.Departments.ToList());
-
-                    // Đổ tên phòng ban động chuẩn cấu trúc của Vy
                     foreach (var emp in _allEmployeesMaster)
                     {
                         var matchingDept = deptList.FirstOrDefault(d => d.DepartmentID == emp.DepartmentID);
                         emp.DepartmentName = matchingDept != null ? matchingDept.DepartmentName : "No Department";
                     }
-
-                    Departments.Clear();
-                    foreach (var dept in deptList) Departments.Add(dept);
+                    _departments.Clear();
+                    foreach (var dept in deptList) _departments.Add(dept);
                 }
-
-                Search();
+                ApplyFilter();
             }
             catch (Exception ex)
             {
@@ -90,39 +82,26 @@ namespace StafflyApp.ViewModels
             }
         }
 
-        partial void OnSearchTextChanged(string value) => Search();
 
         [RelayCommand]
         private void ApplyFilter()
         {
-            var filtered = string.IsNullOrWhiteSpace(SearchText)
+            var filtered = string.IsNullOrWhiteSpace(_searchText)
                 ? _allEmployeesMaster
-                : _allEmployeesMaster.Where(e => (e.FullName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false) || e.EmployeeID.ToString().Contains(SearchText)).ToList();
+                : _allEmployeesMaster.Where(e => (e.FullName?.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ?? false) || e.EmployeeID.ToString().Contains(_searchText)).ToList();
 
-            // 2. LỌC THEO PHÒNG BAN (Department)
-            // Lấy những phòng ban có thật (bỏ qua giá trị null hoặc phòng ban giả định "Tất cả" nếu có ID = 0)
             if (_selectedFilterDepartment != null && _selectedFilterDepartment.DepartmentID > 0)
             {
-                query = query.Where(e => e.DepartmentID == _selectedFilterDepartment.DepartmentID);
+                filtered = filtered.Where(e => e.DepartmentID == _selectedFilterDepartment.DepartmentID).ToList();
             }
 
-            // 3. LỌC THEO LOẠI HỢP ĐỒNG (Contract Type)
             if (!string.IsNullOrEmpty(_selectedFilterContractType) && _selectedFilterContractType != "All")
             {
-                // Lưu ý: Đảm bảo Repository của bạn đã Join bảng Contracts để lấy thuộc tính ContractType lên Employee
-                query = query.Where(e => e.ContractType == _selectedFilterContractType);
+                filtered = filtered.Where(e => e.ContractType == _selectedFilterContractType).ToList();
             }
 
-            // ĐỔ DỮ LIỆU LÊN GIAO DIỆN
-            var filteredList = query.ToList();
             _employees.Clear();
-            foreach (var emp in filteredList)
-            {
-                _employees.Add(emp);
-            }
-
-            // (Tùy chọn) Cập nhật lại con số Total hiển thị trên góc phải màn hình
-            // TotalEmployees = filteredList.Count;
+            foreach (var emp in filtered) _employees.Add(emp);
         }
 
         [RelayCommand]
@@ -231,45 +210,17 @@ namespace StafflyApp.ViewModels
         private void ExecuteTransfer()
         {
             if (_selectedTargetDept == null) return;
-            if (_selectedTargetDept.CurrentStaffCount >= _selectedTargetDept.HeadcountLimit)
-            {
-                MessageBox.Show($"{_selectedTargetDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            if (SelectedTargetDept == null) return;
 
             try
             {
                 using (var db = new StafflyDbContext())
                 {
                     var emp = db.Employees.Find(_editingEmployee.EmployeeID);
-                    if (emp != null)
-                    {
-                        // Lưu vết phòng ban cũ 
-                        int oldDeptId = emp.DepartmentID ?? 0;
-                        emp.DepartmentID = _selectedTargetDept.DepartmentID;
-                        if (db.SaveChanges() > 0)
-                        {
-                            // Ghi log điều chuyển phòng ban nội bộ
-                            UserRepository.LogAction(
-                                StafflyApp.Helpers.UserSession.Instance.UserID,
-                                "TRANSFER_DEPARTMENT",
-                                $"Transferred Employee '{emp.FullName}' (ID: {emp.EmployeeID}) from Dept ID {oldDeptId} to '{_selectedTargetDept.DepartmentName}' (Dept ID: {_selectedTargetDept.DepartmentID})."
-                            );
-                        }
-                        _ = LoadData();
-
-                        _selectedEmployee.DepartmentName = _selectedTargetDept.DepartmentName;
-                        OnPropertyChanged(nameof(_selectedEmployee));
-
-                        MessageBox.Show("Employee transferred successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                    var emp = db.Employees.Find(EditingEmployee.EmployeeID);
+                    var newDept = db.Departments.FirstOrDefault(d => d.DepartmentID == _selectedTargetDept.DepartmentID);
                     var oldDept = db.Departments.FirstOrDefault(d => d.DepartmentID == emp.DepartmentID);
-                    var newDept = db.Departments.FirstOrDefault(d => d.DepartmentID == SelectedTargetDept.DepartmentID);
 
                     if (emp == null || newDept == null) return;
 
-                    // Chặn nếu phòng ban đích đã đầy giới hạn
                     if (newDept.CurrentStaffCount >= newDept.HeadcountLimit)
                     {
                         MessageBox.Show($"{newDept.DepartmentName} has reached its headcount limit.", "Transfer Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -279,24 +230,20 @@ namespace StafflyApp.ViewModels
                     int oldDeptId = emp.DepartmentID ?? 0;
                     emp.DepartmentID = newDept.DepartmentID;
 
-                    // Tăng số lượng phòng mới, giảm phòng cũ
                     newDept.CurrentStaffCount += 1;
                     if (oldDept != null) oldDept.CurrentStaffCount -= 1;
 
                     if (db.SaveChanges() > 0)
                     {
-                        // Ghi log điều chuyển phòng ban 
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "TRANSFER_DEPARTMENT",
-                            $"Transferred Employee '{emp.FullName}' (ID: {emp.EmployeeID}) from Dept ID {oldDeptId} to '{SelectedTargetDept.DepartmentName}' (Dept ID: {SelectedTargetDept.DepartmentID})."
-                        );
+                            $"Transferred Employee '{emp.FullName}' from Dept ID {oldDeptId} to '{newDept.DepartmentName}'.");
                     }
 
-                    _ = LoadData();
-                    SelectedEmployee.DepartmentName = newDept.DepartmentName;
-                    OnPropertyChanged(nameof(SelectedEmployee));
-
+                    LoadData();
+                    _selectedEmployee.DepartmentName = newDept.DepartmentName;
+                    OnPropertyChanged(nameof(_selectedEmployee));
                     MessageBox.Show("Employee transferred successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
@@ -309,11 +256,21 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void OpenAddDialog()
         {
+            // 1. Gán giá trị vào biến private
             _isTransferMode = false;
             _canEditDepartment = true;
-            _editingEmployee = new Employee { Status = "Active", ContractType = "Full-time" };
+            _editingEmployee = new Employee { Status = "Active", ContractType = "Full-time", StartDate = DateTime.Now.Date };
             _formTitle = "ADD NEW EMPLOYEE";
             _isDialogOpen = true;
+
+            // 2. Phát tín hiệu cho giao diện cập nhật (Gọi tên thuộc tính viết hoa)
+            OnPropertyChanged(nameof(IsTransferMode));
+            OnPropertyChanged(nameof(CanEditDepartment));
+            OnPropertyChanged(nameof(EditingEmployee));
+            OnPropertyChanged(nameof(FormTitle));
+
+            // 👉 Lệnh này sẽ giúp DialogHost của bạn bật lên
+            OnPropertyChanged(nameof(IsDialogOpen));
         }
 
         [RelayCommand]
@@ -337,7 +294,7 @@ namespace StafflyApp.ViewModels
 
                 using (var db = new StafflyDbContext())
                 {
-                    var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == EditingEmployee.DepartmentID);
+                    var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == _editingEmployee.DepartmentID);
 
                     // Chặn thêm mới nếu phòng ban được chọn đã hết chỗ
                     if (dept != null && dept.CurrentStaffCount >= dept.HeadcountLimit)
@@ -347,7 +304,7 @@ namespace StafflyApp.ViewModels
                         return;
                     }
 
-                    db.Employees.Add(EditingEmployee);
+                    db.Employees.Add(_editingEmployee);
 
                     // Cộng dồn nhân sự phòng ban
                     if (dept != null) dept.CurrentStaffCount += 1;
