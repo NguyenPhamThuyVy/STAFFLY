@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StafflyApp.Data;
 
@@ -11,9 +12,11 @@ using StafflyApp.Data;
 namespace StafflyApp.Migrations
 {
     [DbContext(typeof(StafflyDbContext))]
-    partial class StafflyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260524160830_AddDepartmentAttendanceTable")]
+    partial class AddDepartmentAttendanceTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace StafflyApp.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Attendance", b =>
+            modelBuilder.Entity("StafflyApp.Models.Attendance", b =>
                 {
                     b.Property<int>("AttendanceID")
                         .ValueGeneratedOnAdd()
@@ -30,10 +33,10 @@ namespace StafflyApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttendanceID"));
 
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTime?>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("EmployeeID")
+                    b.Property<int?>("EmployeeID")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsLocked")
@@ -44,8 +47,6 @@ namespace StafflyApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("AttendanceID");
-
-                    b.HasIndex("EmployeeID");
 
                     b.ToTable("Attendances");
                 });
@@ -381,17 +382,6 @@ namespace StafflyApp.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Attendance", b =>
-                {
-                    b.HasOne("StafflyApp.Models.Employee", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmployeeID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
-                });
-
             modelBuilder.Entity("StafflyApp.Models.DepartmentAttendance", b =>
                 {
                     b.HasOne("StafflyApp.Models.Department", "Department")
@@ -405,11 +395,9 @@ namespace StafflyApp.Migrations
 
             modelBuilder.Entity("StafflyApp.Models.Employee", b =>
                 {
-                    b.HasOne("StafflyApp.Models.Department", "Department")
+                    b.HasOne("StafflyApp.Models.Department", null)
                         .WithMany("Employees")
                         .HasForeignKey("DepartmentID");
-
-                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("StafflyApp.Models.Department", b =>

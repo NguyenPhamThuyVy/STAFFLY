@@ -7,9 +7,8 @@ namespace StafflyApp.Data
 {
     public class StafflyDbContext : DbContext
     {
-        // Trong file StafflyDbContext.cs
 
-        public StafflyDbContext() { } // Thêm dòng này
+        public StafflyDbContext() { } 
         public DbSet<Department> Departments { get; set; }
         public StafflyDbContext(DbContextOptions<StafflyDbContext> options) : base(options)
         {
@@ -19,13 +18,11 @@ namespace StafflyApp.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                // Khởi tạo cấu hình để đọc từ file appsettings.json
                 IConfigurationRoot configuration = new ConfigurationBuilder()
                     .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
                     .AddJsonFile("appsettings.json")
                     .Build();
 
-                // Lấy chuỗi kết nối từ file json
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
 
                 optionsBuilder.UseSqlServer(connectionString);
@@ -37,6 +34,7 @@ namespace StafflyApp.Data
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<DepartmentAttendance> DepartmentAttendances { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -47,10 +45,6 @@ namespace StafflyApp.Data
             modelBuilder.Entity<Attendance>().HasKey(a => a.AttendanceID);
             modelBuilder.Entity<AuditLog>().HasKey(log => log.LogID);
 
-
-            // 2. Cấu hình quan hệ giữa User và Employee (nếu có navigation property)
-
-            // 2.5 Seed Data: Chèn 5 phòng ban mẫu TRƯỚC khi chèn nhân viên
             modelBuilder.Entity<Department>().HasData(
                 new Department { DepartmentID = 1, DepartmentName = "Board of Directors", HeadcountLimit = 5 },
                 new Department { DepartmentID = 2, DepartmentName = "IT & Technology Department", HeadcountLimit = 20 },
@@ -58,14 +52,13 @@ namespace StafflyApp.Data
                 new Department { DepartmentID = 4, DepartmentName = "Marketing Department", HeadcountLimit = 25 },
                 new Department { DepartmentID = 5, DepartmentName = "Accounting Department", HeadcountLimit = 10 }
             );
-            // Seed Data cho User (để test chức năng Login)
+
             modelBuilder.Entity<User>().HasData(
                 new User { UserID = 1, Username = "admin", Password = "123", RoleID = 1, RoleName = "Admin", EmployeeID = null, IsActive = true },
                 new User { UserID = 2, Username = "manager", Password = "abc", RoleID = 2, RoleName = "Manager", EmployeeID = null, IsActive = true },
                 new User { UserID = 3, Username = "staff", Password = "a1b2", RoleID = 3, RoleName = "Staff", EmployeeID = null, IsActive = true }
             );
 
-            // (ĐÃ XÓA TOÀN BỘ ĐOẠN modelBuilder.Entity<Employee>().HasData(...) Ở ĐÂY)
         }
     }
 }
