@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.AspNetCore.Http.Internal;
 using StafflyApp.Data;
@@ -19,7 +19,7 @@ namespace StafflyApp.ViewModels
         private List<Employee> _allEmployeesMaster = new();
 
         public List<string> ContractTypes { get; } = new List<string> { "All", "Full-time", "Part-time", "Probationary" };
-
+        
         [ObservableProperty] private ObservableCollection<Employee> _employees = new();
         [ObservableProperty] private ObservableCollection<Department> _departments = new();
         [ObservableProperty] private string _searchText = string.Empty;
@@ -49,8 +49,8 @@ namespace StafflyApp.ViewModels
         {
             _repository = new EmployeeRepository();
             var currentUser = StafflyApp.Helpers.UserSession.Instance;
-            _isManager = currentUser.RoleID == 2;
-            _isStaff = currentUser.RoleID == 3;
+            IsManager = currentUser.RoleID == 2;
+            IsStaff = currentUser.RoleID == 3;
             _ = LoadData();
         }
 
@@ -61,9 +61,6 @@ namespace StafflyApp.ViewModels
             {
                 var list = await Task.Run(() => _repository.GetAllEmployees());
                 _allEmployeesMaster = list.Where(e => string.IsNullOrEmpty(e.Status) || !e.Status.Equals("Resigned", StringComparison.OrdinalIgnoreCase)).ToList();
-
-                TotalEmployees = _allEmployeesMaster.Count;
-                ActiveEmployees = _allEmployeesMaster.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working");
 
                 using (var db = new StafflyDbContext())
                 {
@@ -76,6 +73,8 @@ namespace StafflyApp.ViewModels
                     Departments.Clear();
                     foreach (var dept in deptList) Departments.Add(dept);
                 }
+                
+                // Chạy hàm lọc để tính toán chính xác số lượng đếm ban đầu khi mở tab
                 ApplyFilter();
             }
             catch (Exception ex)
@@ -84,12 +83,26 @@ namespace StafflyApp.ViewModels
             }
         }
 
+        // Tự động kích hoạt lọc dữ liệu và nhảy số real-time ngay khi gõ phím Search không cần chờ nhấn Enter
+        partial void OnSearchTextChanged(string value) => ApplyFilter();
+
+        // =======================================================
+        // 🔥 ĐÃ FIX: LOGIC TÌM KIẾM ĐA PHƯƠNG THỨC & TỰ ĐỘNG NHẢY BỘ ĐẾM
+        // =======================================================
         [RelayCommand]
         private void ApplyFilter()
         {
             var filtered = string.IsNullOrWhiteSpace(SearchText)
                 ? _allEmployeesMaster
-                : _allEmployeesMaster.Where(e => (e.FullName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false) || e.EmployeeID.ToString().Contains(SearchText)).ToList();
+                : _allEmployeesMaster.Where(e => 
+                    e.EmployeeID.ToString().Contains(SearchText.Trim()) ||
+                    (e.FullName != null && e.FullName.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase)) ||
+                    (e.Phone != null && e.Phone.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase)) ||
+                    (e.Email != null && e.Email.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase)) ||
+                    (e.DepartmentName != null && e.DepartmentName.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase)) ||
+                    (e.Position != null && e.Position.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase)) || 
+                    (e.Status != null && e.Status.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase))       
+                ).ToList();
 
             if (SelectedFilterDepartment != null && SelectedFilterDepartment.DepartmentID > 0)
             {
@@ -100,10 +113,18 @@ namespace StafflyApp.ViewModels
             {
                 filtered = filtered.Where(e => e.ContractType == SelectedFilterContractType).ToList();
             }
+
             Employees.Clear();
             foreach (var emp in filtered) Employees.Add(emp);
+
+            // 🔥 ĐỒNG BỘ: Sử dụng các thuộc tính Public viết hoa để UI tự động cập nhật số liệu thời gian thực
+            TotalEmployees = filtered.Count;
+            ActiveEmployees = filtered.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working" || e.Status?.ToUpper() == "PROBATION");
         }
 
+        // =======================================================
+        // 🔥 ĐÃ FIX: NẠP VÀ ĐỒNG BỘ ĐẦY ĐỦ POSITION VÀ STARTDATE KHI MỞ PROFILE
+        // =======================================================
         [RelayCommand]
         private void ViewProfile(Employee emp)
         {
@@ -122,15 +143,20 @@ namespace StafflyApp.ViewModels
                     fullEmp.DepartmentName = dept?.DepartmentName ?? "No Department";
 
                     SelectedContractType = contract?.ContractType ?? "Full-time";
+                    
+                    // Gán vào thuộc tính Public để phát tín hiệu cập nhật lên Panel UI kế bên
                     SelectedEmployee = fullEmp;
 
                     var colleagues = _allEmployeesMaster.Where(e => e.DepartmentID == fullEmp.DepartmentID && e.EmployeeID != fullEmp.EmployeeID).ToList();
                     DepartmentColleagues = new ObservableCollection<Employee>(colleagues);
                 }
 
-                IsEditMode = false;
-                IsNotEditMode = true;
-                IsProfileViewVisible = true;
+                // Phát tín hiệu thông báo ép View XAML vẽ lại các trường thông tin chi tiết
+                OnPropertyChanged(nameof(SelectedEmployee));
+
+                IsEditMode = false;      
+                IsNotEditMode = true;     
+                IsProfileViewVisible = true; 
             }
             catch (Exception ex)
             {

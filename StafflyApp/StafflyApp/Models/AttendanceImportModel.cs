@@ -1,4 +1,4 @@
-﻿namespace StafflyApp.Models
+namespace StafflyApp.Models
 {
     public class AttendanceImportModel
     {

@@ -13,15 +13,11 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
 
-        <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
-            <v:DashboardView/>
-        </DataTemplate>
+       
         <DataTemplate DataType="{x:Type vm:EmployeeViewModel}">
             <v:EmployeeManagementView/>
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:DepartmentViewModel}">
-            <v:DepartmentView/>
-        </DataTemplate>
+    
         <DataTemplate DataType="{x:Type vm:PayrollViewModel}">
             <v:PayrollView/>
         </DataTemplate>
@@ -118,9 +114,7 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Background="White" BorderThickness="0" Width="35" Height="35" Margin="0,0,10,0" materialDesign:ElevationAssist.Elevation="Dp2">
-                            <materialDesign:PackIcon Kind="SettingsOutline" Foreground="#6B7280"/>
-                        </Button>
+                        
 
                         <materialDesign:PopupBox StaysOpen="False" PlacementMode="BottomAndAlignRightEdges" Margin="0,0,15,0">
                             <materialDesign:PopupBox.ToggleContent>
