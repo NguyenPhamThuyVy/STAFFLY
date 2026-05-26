@@ -103,9 +103,15 @@
                         </StackPanel>
 
                         <StackPanel Margin="0,0,0,22">
-                            <TextBlock Text="Status" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
-                            <TextBox Text="{Binding SelectedEmployee.Status, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="SemiBold" Foreground="#10B981"
-                                     IsReadOnly="{Binding IsNotEditMode}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                            <TextBlock Text="Status" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,6"/>
+                            <ComboBox SelectedValue="{Binding SelectedEmployee.Status, UpdateSourceTrigger=PropertyChanged}" 
+                                      SelectedValuePath="Content"
+                                      IsEnabled="{Binding IsEditMode}"
+                                      Style="{StaticResource MaterialDesignFloatingHintComboBox}" FontSize="15" FontWeight="SemiBold" Foreground="#10B981">
+                                <ComboBoxItem Content="Active" Foreground="#10B981"/>
+                                <ComboBoxItem Content="Probation" Foreground="#F59E0B"/>
+                                <ComboBoxItem Content="Inactive" Foreground="#EF4444"/>
+                            </ComboBox>
                         </StackPanel>
 
                         <StackPanel Margin="0,0,0,22">
@@ -123,11 +129,12 @@
                         <StackPanel Margin="0,0,0,22">
                             <TextBlock Text="Contract Type" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,6"/>
                             <ComboBox SelectedValue="{Binding SelectedContractType, UpdateSourceTrigger=PropertyChanged}" 
+                                      SelectedValuePath="Content"
                                       IsEnabled="{Binding IsEditMode}"
                                       Style="{StaticResource MaterialDesignFloatingHintComboBox}" FontSize="15" FontWeight="SemiBold">
-                                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Full-time</System:String>
-                                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Part-time</System:String>
-                                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Probationary</System:String>
+                                <ComboBoxItem Content="Full-time"/>
+                                <ComboBoxItem Content="Part-time"/>
+                                <ComboBoxItem Content="Probationary"/>
                             </ComboBox>
                         </StackPanel>
 
