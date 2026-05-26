@@ -188,7 +188,7 @@
                 </Border>
 
                 <Button Grid.Column="3" Command="{Binding SubmitToManagerCommand}" 
-                        IsEnabled="{Binding IsActionAllowed}"
+                        IsEnabled="{Binding IsSubmitAllowed}"
                         Visibility="{Binding IsDataLoaded, Converter={StaticResource BooleanToVisibilityConverter}}"
                         Background="#1A365D" Foreground="White" BorderThickness="0" 
                         Height="40" Padding="20,0" materialDesign:ButtonAssist.CornerRadius="10">

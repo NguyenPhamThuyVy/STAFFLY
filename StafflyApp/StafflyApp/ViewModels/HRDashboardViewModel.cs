@@ -23,17 +23,26 @@ namespace StafflyApp.ViewModels
         [ObservableProperty] private SeriesCollection _payrollByDeptSeries = new();
         [ObservableProperty] private SeriesCollection _staffShareSeries = new();
         [ObservableProperty] private string[] _departmentLabels = Array.Empty<string>();
-        
+
         // Định dạng hiển thị tiền tệ dạng "$ 1,500" trên trục tọa độ
         public Func<double, string> CurrencyFormatter { get; set; } = value => value.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-US"));
 
         public HRDashboardViewModel()
         {
+            InitializeOrRefresh();
+        }
+
+        /// <summary>
+        /// Hàm công khai để tầng View ép gọi làm mới dữ liệu
+        /// Mỗi khi chuyển sang trang Dashboard, hàm này sẽ đảm bảo quét sạch dữ liệu cũ và cập nhật số liệu vừa Approve.
+        /// </summary>
+        public void InitializeOrRefresh()
+        {
             RefreshDashboardData();
         }
 
         /// <summary>
-        /// 📊 CORE LOGIC DASHBOARD: Hàm tính toán tổng hợp dữ liệu SQL đổ lên biểu đồ thời gian thực
+        /// CORE LOGIC DASHBOARD: Hàm tính toán tổng hợp dữ liệu SQL đổ lên biểu đồ thời gian thực
         /// </summary>
         private void RefreshDashboardData()
         {
@@ -48,7 +57,6 @@ namespace StafflyApp.ViewModels
                     var allDepartments = db.Departments.ToList();
 
                     // 3. Truy vấn tính toán chi phí lương của TỪNG PHÒNG BAN trong tháng/năm được chọn
-                    // Chỉ lấy dữ liệu lương từ bảng EmployeePayrolls ứng với chu kỳ đã được sếp phê duyệt (Status = 'Approved')
                     var approvedDeptIds = db.DepartmentPayrollStatuses
                         .Where(s => s.Month == SelectedMonth && s.Year == SelectedYear && s.Status == "Approved")
                         .Select(s => s.DepartmentID)
@@ -65,9 +73,8 @@ namespace StafflyApp.ViewModels
                     {
                         labelsList.Add(dept.DepartmentName);
                         decimal deptTotalSalary = 0;
-                        int deptStaffCountInPeriod = 0; // Biến đếm nhân sự động theo chu kỳ
+                        int deptStaffCountInPeriod = 0;
 
-                        // Nếu phòng ban này đã được duyệt lương trong tháng/năm này
                         if (approvedDeptIds.Contains(dept.DepartmentID))
                         {
                             // 1. Tính tổng lương 
@@ -75,25 +82,24 @@ namespace StafflyApp.ViewModels
                                 .Where(ep => ep.DepartmentID == dept.DepartmentID && ep.Month == SelectedMonth && ep.Year == SelectedYear)
                                 .Sum(ep => (decimal?)(ep.BasicSalary + ep.Bonuses - ep.Deductions)) ?? 0;
 
-                            // 2. ĐẾM NHÂN SỰ ĐỘNG: Đếm xem chu kỳ đó có bao nhiêu dòng nhân viên được duyệt lương
+                            // 2. ĐẾM NHÂN SỰ ĐỘNG: Số dòng nhân viên được duyệt lương thực tế
                             deptStaffCountInPeriod = db.EmployeePayrolls
                                 .Count(ep => ep.DepartmentID == dept.DepartmentID && ep.Month == SelectedMonth && ep.Year == SelectedYear);
                         }
                         else
                         {
-                            // Fallback: Nếu tháng/năm đó chưa có dữ liệu lương được duyệt, 
-                            // hiển thị số lượng nhân sự hiện tại để biểu đồ tròn không bị trống trơn
+                            // Fallback nếu tháng/năm đó chưa có dữ liệu lương được duyệt
                             deptStaffCountInPeriod = dept.CurrentStaffCount;
                         }
 
                         budgetValues.Add(deptTotalSalary);
                         runningTotalBudget += deptTotalSalary;
 
-                        // Nạp dữ liệu vào biểu đồ tròn - Giờ đã động theo chu kỳ thời gian!
+                        // Nạp dữ liệu vào biểu đồ tròn
                         pieSeriesCollection.Add(new PieSeries
                         {
                             Title = dept.DepartmentName,
-                            Values = new ChartValues<int> { deptStaffCountInPeriod }, // Dùng biến động thay vì CurrentStaffCount cố định
+                            Values = new ChartValues<int> { deptStaffCountInPeriod },
                             DataLabels = true,
                             LabelPoint = chartPoint => $"{chartPoint.Y} staff ({chartPoint.Participation:P0})"
                         });
@@ -102,21 +108,24 @@ namespace StafflyApp.ViewModels
                     // 4. Cập nhật Card số 2: Tổng chi phí quỹ lương của tháng
                     TotalPayrollBudget = runningTotalBudget;
 
-                    // 5. Cập nhật mảng nhãn phòng ban vào Trục Y của biểu đồ cột ngang
+                    // 5. Cập nhật mảng nhãn phòng ban vào Trục X của biểu đồ cột đứng
                     DepartmentLabels = labelsList.ToArray();
 
-                    // 6. THIẾT LẬP BIỂU ĐỒ CỘT NGANG (RowSeries)
-                    var horizontalBarSeries = new RowSeries
+                    // 6. THIẾT LẬP BIỂU ĐỒ CỘT ĐỨNG (ColumnSeries)
+                    var verticalColumnSeries = new ColumnSeries
                     {
                         Title = "Total Payroll",
                         Values = budgetValues,
                         DataLabels = true,
-                        FontSize = 13,
-                        LabelPoint = point => point.X.ToString("N0") + " USD", // Hiện text số tiền trực tiếp trên đầu cột kịch khung
-                        Fill = System.Windows.Media.Brushes.RoyalBlue 
+                        FontSize = 12,
+                        LabelPoint = point => point.Y > 0
+                            ? point.Y.ToString("N0") + " USD"
+                            : string.Empty,
+
+                        Fill = System.Windows.Media.Brushes.RoyalBlue
                     };
 
-                    PayrollByDeptSeries = new SeriesCollection { horizontalBarSeries };
+                    PayrollByDeptSeries = new SeriesCollection { verticalColumnSeries };
                     StaffShareSeries = pieSeriesCollection;
                 }
             }

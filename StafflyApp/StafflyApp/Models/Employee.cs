@@ -16,6 +16,9 @@ namespace StafflyApp.Models
         public string Address { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public int? DepartmentID { get; set; }
+
+        [ForeignKey("DepartmentID")]
+        public virtual Department Department { get; set; }
         public string Status { get; set; } = "Active"; // Mặc định là Active
         [NotMapped]
         public string DepartmentName { get; set; }

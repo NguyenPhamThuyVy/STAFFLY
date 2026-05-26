@@ -1,8 +1,19 @@
-﻿public class AttendanceImportModel
+namespace StafflyApp.Models
 {
-    public string DepartmentName { get; set; } // Map với cột Department Name
-    public int AbsenceCount { get; set; }      // Map với cột Absences
-    public int TardyCount { get; set; }        // Map với cột Tardy
-    public bool IsValid { get; set; }          // Để hiện icon check xanh/đỏ
-    public string ErrorMessage { get; set; }   // Để hiện dòng chữ lỗi khi rà chuột vào dòng bị sai
+    public class AttendanceImportModel
+    {
+        public int EmployeeID { get; set; }
+
+        public string EmployeeName { get; set; }
+
+        public DateTime Date { get; set; }
+        public string Status { get; set; } 
+
+        public string DepartmentName { get; set; }
+
+        public int? DepartmentID { get; set; }
+
+        public bool IsValid { get; set; }
+        public string ErrorMessage { get; set; }
+    }
 }

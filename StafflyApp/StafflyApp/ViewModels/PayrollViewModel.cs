@@ -17,6 +17,10 @@ using System.Windows;
 
 namespace StafflyApp.ViewModels
 {
+    /// <summary>
+    /// 📄 VIEWMODEL QUẢN LÝ TIẾN TRÌNH LUỒNG LƯƠNG (PAYROLL PIPELINE ENGINE)
+    /// Đảm nhiệm việc đọc tệp Excel xem trước, chặn đệ trình khi phát sinh lỗi thực thể.
+    /// </summary>
     public partial class PayrollViewModel : ObservableObject
     {
         private readonly PayrollService _payrollService = new PayrollService();
@@ -24,6 +28,7 @@ namespace StafflyApp.ViewModels
         [ObservableProperty] private string _filePath = "No file selected";
         [ObservableProperty] private bool _isDataLoaded = false;
 
+        // Lưu trữ danh sách dữ liệu thô đọc từ Excel để hiển thị Preview DataGrid lên giao diện
         [ObservableProperty] private ObservableCollection<PayrollImportModel> _importedRecords = new();
 
         [ObservableProperty] private int _successCount;
@@ -37,14 +42,15 @@ namespace StafflyApp.ViewModels
         [ObservableProperty] private ObservableCollection<Department> _departments = new();
         [ObservableProperty] private Department? _selectedDepartment;
 
-        // Lưu trữ chuỗi trạng thái quét từ bảng DepartmentPayrollStatuses lên ("Approved", "Rejected", hoặc "Pending")
         [ObservableProperty] private string _currentStatusString = string.Empty;
-
-        // Lưu chuỗi nội dung giải thích lý do từ chối (bốc từ cột RejectReason của DB lên)
         [ObservableProperty] private string _rejectReasonMessage = string.Empty;
 
-        // Bật/tắt nút bấm trên giao diện 
+        // Cờ cấu hình luồng: Cho phép thao tác Import file hay không (Approved/Pending sẽ khóa)
         [ObservableProperty] private bool _isActionAllowed = true;
+
+        // Cờ kiểm soát điều kiện bấm nút đệ trình (Submit) lên cấp quản lý
+        // Nút bấm gửi đi chỉ hoạt động khi file được load lên xem trước thành công VÀ hoàn toàn không có dòng nào lỗi
+        [ObservableProperty] private bool _isSubmitAllowed = false;
 
         public PayrollViewModel()
         {
@@ -73,18 +79,15 @@ namespace StafflyApp.ViewModels
             }
         }
 
-        /// <summary>
-        /// 🎯 CORE LOGIC STAFF: Tự động quản lý chu kỳ sống dữ liệu và khóa/mở khóa tính năng dựa trên bộ lọc
-        /// </summary>
         private void LoadStaffPayrollOverview()
         {
-            // RESET dữ liệu tạm trên giao diện để tránh rác dữ liệu từ phòng ban cũ nhảy sang phòng ban mới
             FilePath = "No file selected";
             ImportedRecords.Clear();
             ErrorList.Clear();
             IsDataLoaded = false;
             SuccessCount = 0;
             FailureCount = 0;
+            IsSubmitAllowed = false; // Reset trạng thái chặn Submit ban đầu
 
             if (SelectedDepartment == null || SelectedMonth < 1 || SelectedMonth > 12 || SelectedYear < 2000)
             {
@@ -98,7 +101,6 @@ namespace StafflyApp.ViewModels
             {
                 using (var db = new StafflyDbContext())
                 {
-                    // Quét DB kiểm tra trạng thái phê duyệt của chu kỳ đang chọn
                     var statusRecord = db.DepartmentPayrollStatuses
                         .FirstOrDefault(s => s.DepartmentID == SelectedDepartment.DepartmentID
                                           && s.Month == SelectedMonth
@@ -106,13 +108,11 @@ namespace StafflyApp.ViewModels
 
                     if (statusRecord != null)
                     {
-                        CurrentStatusString = statusRecord.Status; // "Pending", "Approved", "Rejected"
+                        CurrentStatusString = statusRecord.Status;
                         RejectReasonMessage = statusRecord.RejectReason ?? string.Empty;
 
-                        // KHÓA HÀNH ĐỘNG: Chỉ mở khóa cho Import/Submit lại khi trạng thái là Rejected (Bị từ chối)
                         IsActionAllowed = (statusRecord.Status == "Rejected" || statusRecord.Status == "Declined");
 
-                        // Nếu bảng lương đã được gửi hoặc duyệt, lôi dữ liệu chi tiết trong DB lên grid để xem lại
                         if (statusRecord.Status == "Pending" || statusRecord.Status == "Approved")
                         {
                             var savedDetails = (from ep in db.EmployeePayrolls
@@ -135,7 +135,8 @@ namespace StafflyApp.ViewModels
                                                 }).ToList();
 
                             foreach (var item in savedDetails) ImportedRecords.Add(item);
-                            IsDataLoaded = true; // Bật lên để hiển thị DataGrid
+                            IsDataLoaded = true;
+                            IsSubmitAllowed = false; // Đã lưu vào DB rồi thì không cần cho Submit đè nữa
                         }
                     }
                     else
@@ -152,9 +153,6 @@ namespace StafflyApp.ViewModels
             }
         }
 
-        /// <summary>
-        /// 🔍 AUTO-DETECT LOGIC FOR STAFF: Tự động quét và định vị chu kỳ lỗi/cần xử lý ngay khi vào trang
-        /// </summary>
         private void AutoDetectStaffTargetSheet()
         {
             try
@@ -203,6 +201,10 @@ namespace StafflyApp.ViewModels
         partial void OnSelectedYearChanged(int value) => LoadStaffPayrollOverview();
         partial void OnSelectedDepartmentChanged(Department? value) => LoadStaffPayrollOverview();
 
+        /// <summary>
+        /// 📥 HÀM NHẬP EXCEL XEM TRƯỚC (CHƯA LƯU XUỐNG SQL SERVER)
+        /// Phân tích tệp, bốc tách dữ liệu thô đẩy lên DataGrid xem trước để rà soát lỗi chính tả/mã ID.
+        /// </summary>
         [RelayCommand]
         private async Task ImportExcel()
         {
@@ -237,6 +239,7 @@ namespace StafflyApp.ViewModels
                 ImportedRecords.Clear();
                 ErrorList.Clear();
                 IsDataLoaded = false;
+                IsSubmitAllowed = false; // Tạm khóa khi đang quét dữ liệu
 
                 int localSuccess = 0;
                 int localFailure = 0;
@@ -363,7 +366,7 @@ namespace StafflyApp.ViewModels
                         }
                     });
 
-                    Application.Current.Dispatcher.Invoke(() =>
+                    Application.Current.Dispatcher.Invoke(async () =>
                     {
                         SuccessCount = localSuccess;
                         FailureCount = localFailure;
@@ -372,10 +375,23 @@ namespace StafflyApp.ViewModels
                         foreach (var err in localErrorList) ErrorList.Add(err);
 
                         IsDataLoaded = true;
-                    });
 
-                    var resultView = new Views.ImportResultView { DataContext = this };
-                    await MaterialDesignThemes.Wpf.DialogHost.Show(resultView, "RootDialog");
+                        // THIẾT LẬP QUY LUẬT KHÓA NÚT SUBMIT:
+                        // Chỉ cho phép kích hoạt nút Submit gửi sếp khi có dữ liệu xem trước VÀ tổng số dòng lỗi phải bằng 0!
+                        IsSubmitAllowed = (ImportedRecords.Any() && FailureCount == 0);
+
+                        // Hiển thị bảng tóm tắt kết quả
+                        var resultView = new Views.ImportResultView { DataContext = this };
+                        await MaterialDesignThemes.Wpf.DialogHost.Show(resultView, "RootDialog");
+
+                        // CẢNH BÁO CHO USER NẾU CÓ DÒNG LỖI CHẶN SUBMIT
+                        if (FailureCount > 0)
+                        {
+                            MessageBox.Show($"This Excel file contains {FailureCount} invalid record(s) highlighted in RED!\n" +
+                                            $"Submission to manager is STOCKED until you correct all errors in the file and re-import.",
+                                            "Validation Error Detected", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -384,24 +400,30 @@ namespace StafflyApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// 📤 HÀM CHÍNH THỨC GHI FILE VÀO DATABASE VÀ GỬI CHO SẾP DUYỆT
+        /// Chỉ được gọi khi file xem trước hoàn toàn sạch lỗi. Tiến hành đổ dữ liệu xuống Database.
+        /// </summary>
         [RelayCommand]
         private void SubmitToManager()
         {
+            // Bảo vệ luồng nghiệp vụ nghiêm ngặt
             if (!IsActionAllowed) return;
-            if (SelectedDepartment == null || !ImportedRecords.Any()) return;
+
+            // CHẶN ĐỨNG HÀNH ĐỘNG NẾU FILE CÓ DÒNG LỖI
+            if (FailureCount > 0 || !ImportedRecords.Any())
+            {
+                MessageBox.Show("Cannot submit! Please ensure the file has been imported preview and contains 0 errors.",
+                                "Submission Rejected", MessageBoxButton.OK, MessageBoxImage.Stop);
+                return;
+            }
 
             int targetMonth = SelectedMonth;
             int targetYear = SelectedYear;
             int targetDeptId = SelectedDepartment.DepartmentID;
             int currentUserId = UserSession.Instance.UserID;
 
-            var validRecords = ImportedRecords.Where(r => r.IsValid).ToList();
-            if (!validRecords.Any())
-            {
-                MessageBox.Show("There are no valid employee records in the list to submit!", "Submission Denied", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
+            // Tiến hành gọi Service để thực thi băm dữ liệu đổ xuống Database SQL Server
             string? errorResult = _payrollService.ImportPayrollExcel(FilePath, targetDeptId, targetMonth, targetYear, currentUserId);
 
             if (errorResult != null)
@@ -410,17 +432,19 @@ namespace StafflyApp.ViewModels
             }
             else
             {
+                // Ghi nhận nhật ký hệ thống (Audit Log)
                 UserRepository.LogAction(
                     currentUserId,
                     "SUBMIT_PAYROLL",
-                    $"Submitted payroll sheet for department '{SelectedDepartment.DepartmentName}' (ID: {targetDeptId}) for period {targetMonth}/{targetYear}. Total valid: {validRecords.Count} records."
+                    $"Submitted payroll sheet for department '{SelectedDepartment.DepartmentName}' (ID: {targetDeptId}) for period {targetMonth}/{targetYear}. Total valid: {SuccessCount} records."
                 );
 
-                MessageBox.Show($"Successfully submitted payroll records for {SelectedDepartment.DepartmentName} to the HR Manager!\nStatus is now set to 'Pending Approval'.",
+                MessageBox.Show($"Successfully committed payroll records to database and submitted for {SelectedDepartment.DepartmentName} to the HR Manager!\nStatus is now set to 'Pending Approval'.",
                                 "Submission Successful", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 CurrentStatusString = "Pending";
                 IsActionAllowed = false;
+                IsSubmitAllowed = false; // Khóa nút sau khi nộp thành công
 
                 LoadStaffPayrollOverview();
             }

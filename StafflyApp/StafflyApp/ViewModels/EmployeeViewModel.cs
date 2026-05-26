@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.AspNetCore.Http.Internal;
 using StafflyApp.Data;
@@ -17,6 +17,7 @@ namespace StafflyApp.ViewModels
     {
         private readonly EmployeeRepository _repository;
         private List<Employee> _allEmployeesMaster = new();
+
         public List<string> ContractTypes { get; } = new List<string> { "All", "Full-time", "Part-time", "Probationary" };
         
         [ObservableProperty] private ObservableCollection<Employee> _employees = new();
@@ -116,7 +117,7 @@ namespace StafflyApp.ViewModels
             Employees.Clear();
             foreach (var emp in filtered) Employees.Add(emp);
 
-            // 🔥 ĐỒNG BỘ: Sử dụng các thuộc tính Public viết hoa để UI tự động cập nhật số liệu
+            // 🔥 ĐỒNG BỘ: Sử dụng các thuộc tính Public viết hoa để UI tự động cập nhật số liệu thời gian thực
             TotalEmployees = filtered.Count;
             ActiveEmployees = filtered.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working" || e.Status?.ToUpper() == "PROBATION");
         }
@@ -176,8 +177,8 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void CancelEdit()
         {
-            IsEditMode = false;       
-            IsNotEditMode = true;     
+            IsEditMode = false;
+            IsNotEditMode = true;
             ViewProfile(SelectedEmployee);
         }
 
@@ -209,7 +210,7 @@ namespace StafflyApp.ViewModels
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "UPDATE_EMPLOYEE",
-                            $"Updated profile for Employee: '{SelectedEmployee.FullName}' (ID: {SelectedEmployee.EmployeeID}).");
+                            $"Updated profile for Employee: '{SelectedEmployee.FullName}' (ID: {SelectedEmployee.EmployeeID}) with contract type: '{SelectedContractType}'.");
                     }
                 }
 
@@ -252,6 +253,7 @@ namespace StafflyApp.ViewModels
                     }
 
                     int oldDeptId = emp.DepartmentID ?? 0;
+                    string oldDeptName = oldDept != null ? oldDept.DepartmentName : "No Department";
                     emp.DepartmentID = newDept.DepartmentID;
 
                     newDept.CurrentStaffCount += 1;
@@ -262,13 +264,15 @@ namespace StafflyApp.ViewModels
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "TRANSFER_DEPARTMENT",
-                            $"Transferred Employee '{emp.FullName}' from Dept ID {oldDeptId} to '{newDept.DepartmentName}'.");
-                    }
+                            $"Transferred Employee '{emp.FullName}' (ID: {emp.EmployeeID}) from '{oldDeptName}' to '{newDept.DepartmentName}'."
+                        );
 
-                    _ = LoadData();
-                    SelectedEmployee.DepartmentName = newDept.DepartmentName;
-                    OnPropertyChanged(nameof(SelectedEmployee));
-                    MessageBox.Show("Employee transferred successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        _ = LoadData();
+                        SelectedEmployee.DepartmentName = newDept.DepartmentName;
+                        OnPropertyChanged(nameof(SelectedEmployee));
+
+                        MessageBox.Show("Employee transferred successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
                 }
             }
             catch (Exception ex)
@@ -336,17 +340,22 @@ namespace StafflyApp.ViewModels
                         );
                     }
                 }
+
                 IsDialogOpen = false;
                 _ = LoadData();
                 MessageBox.Show("New employee added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            catch (Exception ex) { MessageBox.Show("Database Error: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error); }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Database Error: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         [RelayCommand]
         private void DeleteEmployee(Employee emp)
         {
             if (emp == null) return;
+
             if (MessageBox.Show($"Are you sure you want to delete {emp.FullName}?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 try
@@ -365,6 +374,7 @@ namespace StafflyApp.ViewModels
                         if (_repository.DeleteEmployee(empId))
                         {
                             db.SaveChanges(); 
+
                             UserRepository.LogAction(
                                 StafflyApp.Helpers.UserSession.Instance.UserID,
                                 "DELETE_EMPLOYEE",

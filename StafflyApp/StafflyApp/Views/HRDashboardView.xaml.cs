@@ -1,28 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
+﻿using System.Windows;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Controls;
+using StafflyApp.ViewModels;
 
 namespace StafflyApp.Views
 {
-    /// <summary>
-    /// Interaction logic for HRDashboardView.xaml
-    /// </summary>
     public partial class HRDashboardView : UserControl
     {
         public HRDashboardView()
         {
             InitializeComponent();
+
+            // Lắng nghe sự kiện mỗi khi trang Dashboard được load/hiển thị lên màn hình
+            this.Loaded += HRDashboardView_Loaded;
+        }
+
+        private void HRDashboardView_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Ép DataContext ép kiểu về đúng ViewModel tổng để ra lệnh làm mới dữ liệu từ Database SQL
+            if (this.DataContext is HRDashboardViewModel viewModel)
+            {
+                viewModel.InitializeOrRefresh();
+            }
         }
     }
 }

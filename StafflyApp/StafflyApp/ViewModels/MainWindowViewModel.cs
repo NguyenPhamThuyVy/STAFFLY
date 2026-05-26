@@ -16,7 +16,6 @@ namespace StafflyApp.ViewModels
         [ObservableProperty] private bool _isStaff;
         [ObservableProperty] private bool _isNotAdmin;
 
-        // THÊM 3 CỜ NÀY ĐỂ ĐIỀU KHIỂN SÁNG TAB MẶC ĐỊNH
         [ObservableProperty] private bool _isDashboardChecked;
         [ObservableProperty] private bool _isEmployeesChecked;
         [ObservableProperty] private bool _isAdminAccountsChecked;
@@ -36,17 +35,17 @@ namespace StafflyApp.ViewModels
 
         private void LoadDefaultModule()
         {
-            if (_isAdmin)
+            if (IsAdmin)
             {
                 IsAdminAccountsChecked = true; // Bật sáng tab Accounts
                 Navigate("AdminAccounts");
             }
-            else if (_isManager)
+            else if (IsManager)
             {
                 IsDashboardChecked = true; // Bật sáng tab Dashboard
                 Navigate("Dashboard");
             }
-            else if (_isStaff)
+            else if (IsStaff)
             {
                 IsEmployeesChecked = true; // Bật sáng tab Employees
                 Navigate("Employees");
@@ -56,15 +55,14 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void Navigate(string destination)
         {
-            // ... (Khu vực switch(destination) CỦA BẠN GIỮ NGUYÊN KHÔNG ĐỔI) ...
             switch (destination)
             {
                 case "Dashboard": CurrentView = new HRDashboardViewModel(); break;
                 case "Employees": CurrentView = new EmployeeViewModel(); break;
                 case "Departments": CurrentView = new HRDepartmentViewModel(); break;
                 case "Payroll":
-                    if (_isManager) CurrentView = new PayrollApprovalViewModel();
-                    else if (_isStaff) CurrentView = new PayrollViewModel();
+                    if (IsManager) CurrentView = new PayrollApprovalViewModel();
+                    else if (IsStaff) CurrentView = new PayrollViewModel();
                     break;
                 case "AdminAccounts": CurrentView = new AdminAccountsViewModel(); break;
                 case "AdminAuditLogs": CurrentView = new AdminAuditLogsViewModel(); break;
