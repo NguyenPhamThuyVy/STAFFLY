@@ -18,8 +18,9 @@ namespace StafflyApp.ViewModels
         private readonly EmployeeRepository _repository;
         private List<Employee> _allEmployeesMaster = new();
 
+        // Danh mục chuẩn hiển thị trên ComboBox lọc hợp đồng
         public List<string> ContractTypes { get; } = new List<string> { "All", "Full-time", "Part-time", "Probationary" };
-        
+
         [ObservableProperty] private ObservableCollection<Employee> _employees = new();
         [ObservableProperty] private ObservableCollection<Department> _departments = new();
         [ObservableProperty] private string _searchText = string.Empty;
@@ -65,16 +66,17 @@ namespace StafflyApp.ViewModels
                 using (var db = new StafflyDbContext())
                 {
                     var deptList = await Task.Run(() => db.Departments.ToList());
+                    var contractList = await Task.Run(() => db.Contracts.ToList());
                     foreach (var emp in _allEmployeesMaster)
                     {
                         var matchingDept = deptList.FirstOrDefault(d => d.DepartmentID == emp.DepartmentID);
                         emp.DepartmentName = matchingDept != null ? matchingDept.DepartmentName : "No Department";
+                        var matchingContract = contractList.FirstOrDefault(c => c.EmployeeID == emp.EmployeeID);
+                        emp.ContractType = matchingContract != null ? matchingContract.ContractType : "Full-time";
                     }
                     Departments.Clear();
                     foreach (var dept in deptList) Departments.Add(dept);
                 }
-                
-                // Chạy hàm lọc để tính toán chính xác số lượng đếm ban đầu khi mở tab
                 ApplyFilter();
             }
             catch (Exception ex)
@@ -83,25 +85,23 @@ namespace StafflyApp.ViewModels
             }
         }
 
-        // Tự động kích hoạt lọc dữ liệu và nhảy số real-time ngay khi gõ phím Search không cần chờ nhấn Enter
         partial void OnSearchTextChanged(string value) => ApplyFilter();
+        partial void OnSelectedFilterDepartmentChanged(Department value) => ApplyFilter();
+        partial void OnSelectedFilterContractTypeChanged(string value) => ApplyFilter();
 
-        // =======================================================
-        // 🔥 ĐÃ FIX: LOGIC TÌM KIẾM ĐA PHƯƠNG THỨC & TỰ ĐỘNG NHẢY BỘ ĐẾM
-        // =======================================================
         [RelayCommand]
         private void ApplyFilter()
         {
             var filtered = string.IsNullOrWhiteSpace(SearchText)
                 ? _allEmployeesMaster
-                : _allEmployeesMaster.Where(e => 
+                : _allEmployeesMaster.Where(e =>
                     e.EmployeeID.ToString().Contains(SearchText.Trim()) ||
                     (e.FullName != null && e.FullName.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase)) ||
                     (e.Phone != null && e.Phone.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase)) ||
                     (e.Email != null && e.Email.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase)) ||
                     (e.DepartmentName != null && e.DepartmentName.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase)) ||
-                    (e.Position != null && e.Position.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase)) || 
-                    (e.Status != null && e.Status.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase))       
+                    (e.Position != null && e.Position.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase)) ||
+                    (e.Status != null && e.Status.Contains(SearchText.Trim(), StringComparison.OrdinalIgnoreCase))
                 ).ToList();
 
             if (SelectedFilterDepartment != null && SelectedFilterDepartment.DepartmentID > 0)
@@ -109,22 +109,42 @@ namespace StafflyApp.ViewModels
                 filtered = filtered.Where(e => e.DepartmentID == SelectedFilterDepartment.DepartmentID).ToList();
             }
 
-            if (!string.IsNullOrEmpty(SelectedFilterContractType) && SelectedFilterContractType != "All")
+            if (!string.IsNullOrEmpty(SelectedFilterContractType) && !SelectedFilterContractType.Equals("All", StringComparison.OrdinalIgnoreCase))
             {
-                filtered = filtered.Where(e => e.ContractType == SelectedFilterContractType).ToList();
+                filtered = filtered.Where(e => {
+                    if (string.IsNullOrEmpty(e.ContractType)) return false;
+                    string targetFilter = SelectedFilterContractType.Replace("ary", "");
+                    return e.ContractType.Contains(targetFilter, StringComparison.OrdinalIgnoreCase);
+                }).ToList();
             }
 
+            // Đồng bộ bộ đếm danh sách
             Employees.Clear();
             foreach (var emp in filtered) Employees.Add(emp);
 
-            // 🔥 ĐỒNG BỘ: Sử dụng các thuộc tính Public viết hoa để UI tự động cập nhật số liệu thời gian thực
             TotalEmployees = filtered.Count;
             ActiveEmployees = filtered.Count(e => e.Status?.ToUpper() == "ACTIVE" || e.Status == "Working" || e.Status?.ToUpper() == "PROBATION");
         }
+        // ===================================================================
+        // RESET TOÀN BỘ BỘ LỌC VỀ TRẠNG THÁI BAN ĐẦU
+        // Xóa sạch chữ tìm kiếm, trả ComboBox về "All" và hiển thị lại toàn bộ nhân sự
+        // ===================================================================
+        [RelayCommand]
+        private void ResetFilter()
+        {
+            // 1. Giải phóng chuỗi văn bản gõ tìm kiếm
+            SearchText = string.Empty;
 
-        // =======================================================
-        // 🔥 ĐÃ FIX: NẠP VÀ ĐỒNG BỘ ĐẦY ĐỦ POSITION VÀ STARTDATE KHI MỞ PROFILE
-        // =======================================================
+            // 2. Reset ComboBox phòng ban về trạng thái không chọn (Null)
+            SelectedFilterDepartment = null;
+
+            // 3. Đưa ComboBox loại hợp đồng về mặc định hiển thị tất cả
+            SelectedFilterContractType = "All";
+
+            // 4. Gọi lại hàm ApplyFilter() để ép ứng dụng nạp lại danh sách Master tổng
+            ApplyFilter();
+        }
+
         [RelayCommand]
         private void ViewProfile(Employee emp)
         {
@@ -143,20 +163,17 @@ namespace StafflyApp.ViewModels
                     fullEmp.DepartmentName = dept?.DepartmentName ?? "No Department";
 
                     SelectedContractType = contract?.ContractType ?? "Full-time";
-                    
-                    // Gán vào thuộc tính Public để phát tín hiệu cập nhật lên Panel UI kế bên
                     SelectedEmployee = fullEmp;
 
                     var colleagues = _allEmployeesMaster.Where(e => e.DepartmentID == fullEmp.DepartmentID && e.EmployeeID != fullEmp.EmployeeID).ToList();
                     DepartmentColleagues = new ObservableCollection<Employee>(colleagues);
                 }
 
-                // Phát tín hiệu thông báo ép View XAML vẽ lại các trường thông tin chi tiết
                 OnPropertyChanged(nameof(SelectedEmployee));
 
-                IsEditMode = false;      
-                IsNotEditMode = true;     
-                IsProfileViewVisible = true; 
+                IsEditMode = false;
+                IsNotEditMode = true;
+                IsProfileViewVisible = true;
             }
             catch (Exception ex)
             {
@@ -300,6 +317,9 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void ConfirmAction() => SaveEmployee();
 
+        // ===================================================================
+        // ĐỒNG BỘ LƯU HỢP ĐỒNG SANG BẢNG CONTRACTS KHI TẠO MỚI
+        // ===================================================================
         private void SaveEmployee()
         {
             try
@@ -327,23 +347,37 @@ namespace StafflyApp.ViewModels
                         return;
                     }
 
-                    db.Employees.Add(EditingEmployee);
+                    // Lưu trữ tạm loại hợp đồng được chọn từ Form XAML trước khi ghi đè
+                    string selectedContractFromForm = EditingEmployee.ContractType ?? "Full-time";
 
+                    // 1. Thêm nhân viên vào bảng Employees trước để SQL Server cấp phát ID tự tăng (Identity)
+                    db.Employees.Add(EditingEmployee);
                     if (dept != null) dept.CurrentStaffCount += 1;
 
+                    // Thực thi lưu tầng một
                     if (db.SaveChanges() > 0)
                     {
+                        // 2. Khởi tạo bản ghi hợp đồng đồng bộ sang bảng Contracts
+                        var newContract = new Contract
+                        {
+                            EmployeeID = EditingEmployee.EmployeeID, // Lấy ID vừa sinh tự động ở trên
+                            ContractType = selectedContractFromForm, // Lưu đúng giá trị (Part-time, Probationary,...)
+                            BasicSalary = 5000000, // Mức lương cơ bản mặc định khi tạo mới
+                            SignDate = DateTime.Now.Date
+                        };
+                        db.Contracts.Add(newContract);
+                        db.SaveChanges(); 
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "ADD_EMPLOYEE",
-                            $"Created new employee profile: '{EditingEmployee.FullName}' assigned to Department ID: {EditingEmployee.DepartmentID}."
+                            $"Created new employee profile: '{EditingEmployee.FullName}' assigned to Dept ID: {EditingEmployee.DepartmentID} with contract type: '{selectedContractFromForm}'."
                         );
                     }
                 }
 
                 IsDialogOpen = false;
                 _ = LoadData();
-                MessageBox.Show("New employee added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("New employee added successfully with their contract initialized!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
@@ -373,7 +407,7 @@ namespace StafflyApp.ViewModels
 
                         if (_repository.DeleteEmployee(empId))
                         {
-                            db.SaveChanges(); 
+                            db.SaveChanges();
 
                             UserRepository.LogAction(
                                 StafflyApp.Helpers.UserSession.Instance.UserID,

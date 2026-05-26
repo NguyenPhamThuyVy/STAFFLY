@@ -150,19 +150,29 @@
                             <Border Background="White" Padding="20" Width="280" CornerRadius="8">
                                 <StackPanel>
                                     <TextBlock Text="Filter Employees" FontWeight="Bold" FontSize="16" Foreground="#1A1C29" Margin="0,0,0,15"/>
+
                                     <ComboBox materialDesign:HintAssist.Hint="Department" 
                                               ItemsSource="{Binding Departments}" 
                                               DisplayMemberPath="DepartmentName"
-                                              SelectedItem="{Binding SelectedFilterDepartment}" 
+                                              SelectedItem="{Binding SelectedFilterDepartment, UpdateSourceTrigger=PropertyChanged}" 
                                               Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,0,15"/>
 
                                     <ComboBox materialDesign:HintAssist.Hint="Contract Type" 
                                               ItemsSource="{Binding ContractTypes}" 
-                                              SelectedItem="{Binding SelectedFilterContractType}" 
+                                              SelectedItem="{Binding SelectedFilterContractType, UpdateSourceTrigger=PropertyChanged}" 
                                               Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,0,20"/>
 
-                                    <Button Content="APPLY FILTER" Command="{Binding ApplyFilterCommand}" 
-                                            Background="#1954D1" Foreground="White" Height="40" materialDesign:ButtonAssist.CornerRadius="5"/>
+                                    <UniformGrid Columns="2">
+                                        <Button Content="RESET" 
+                                                Command="{Binding ResetFilterCommand}" 
+                                                Background="#F3F4F6" Foreground="#4B5563" BorderThickness="0"
+                                                Height="40" Margin="0,0,5,0" materialDesign:ButtonAssist.CornerRadius="5"/>
+
+                                        <Button Content="APPLY" 
+                                                Command="{Binding ApplyFilterCommand}" 
+                                                Background="#1954D1" Foreground="White" BorderThickness="0"
+                                                Height="40" Margin="5,0,0,0" materialDesign:ButtonAssist.CornerRadius="5"/>
+                                    </UniformGrid>
                                 </StackPanel>
                             </Border>
                         </materialDesign:PopupBox>
@@ -187,7 +197,6 @@
                             <TextBlock Grid.Column="2" Text="PHONE" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="3" Text="EMAIL" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="4" Text="DEPARTMENT" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
-
                             <TextBlock Grid.Column="5" Text="ACTIONS" Foreground="#9CA3AF" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         </Grid>
                     </Border>
