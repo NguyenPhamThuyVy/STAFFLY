@@ -11,19 +11,15 @@ namespace StafflyApp.Data.Repositories
     {
         private readonly StafflyDbContext _context;
 
-        // Constructor dùng chung cho các hàm Async sử dụng DI _context
         public PayrollRepository(StafflyDbContext context)
         {
             _context = context;
         }
-
-        // Hoặc tạo thêm Constructor rỗng phòng trường hợp các chỗ khác trong code gọi New không truyền tham số
         public PayrollRepository()
         {
             _context = new StafflyDbContext();
         }
 
-        // 1. Hàm cập nhật trạng thái phê duyệt/từ chối bảng lương 
         public bool UpdatePayrollStatus(int payrollId, string status, int approvedById)
         {
             try
@@ -50,8 +46,6 @@ namespace StafflyApp.Data.Repositories
                 return false;
             }
         }
-
-        // 2. Hàm nội bộ dùng để thực hiện khóa dữ liệu ngày công 
         private void LockPayrollData(StafflyDbContext db, int payrollId)
         {
             var payroll = db.Payrolls.Find(payrollId);
@@ -59,9 +53,8 @@ namespace StafflyApp.Data.Repositories
             {
                 var attendances = db.Attendances
                                     .Where(a => a.EmployeeID == payroll.EmployeeID
-                                             && a.Date.HasValue
-                                             && a.Date.Value.Month == payroll.Month
-                                             && a.Date.Value.Year == payroll.Year)
+                                             && a.Date.Month == payroll.Month
+                                             && a.Date.Year == payroll.Year)
                                     .ToList();
 
                 foreach (var attendance in attendances)
@@ -71,7 +64,6 @@ namespace StafflyApp.Data.Repositories
             }
         }
 
-        // 3. Hàm kiểm tra xem một chu kỳ lương đã bị khóa (Approved) chưa
         public bool IsPayrollLocked(int employeeId, int month, int year)
         {
             try
@@ -90,7 +82,6 @@ namespace StafflyApp.Data.Repositories
             }
         }
 
-        // 4. Hàm lưu danh sách bảng lương sau khi Staff Import Excel thành công
         public async Task<bool> SavePayrollRangeAsync(List<Payroll> payrolls)
         {
             try
@@ -110,7 +101,6 @@ namespace StafflyApp.Data.Repositories
             }
         }
 
-        // 5. Đồng bộ check chu kỳ theo Month/Year thật của Model 
         public async Task<bool> IsPayrollPeriodExistedAsync(int employeeId, int month, int year)
         {
             return await _context.Payrolls.AnyAsync(p =>
@@ -119,17 +109,13 @@ namespace StafflyApp.Data.Repositories
                 p.Year == year);
         }
 
-        // 6. Đồng bộ cột ngày chấm công thành a.Date cho khớp Model Attendance
         public async Task<bool> CheckAttendanceLockStatusAsync(int employeeId, DateTime? date)
         {
-            if (date == null) return false;
-
             var attendance = await _context.Attendances
                 .FirstOrDefaultAsync(a => a.EmployeeID == employeeId && a.Date == date);
 
             if (attendance == null) return false;
 
-            // Kiểm tra cờ IsLocked của ngày công
             return attendance.IsLocked;
         }
     }

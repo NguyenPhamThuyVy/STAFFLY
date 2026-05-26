@@ -9,6 +9,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -45,7 +46,25 @@
             </StackPanel>
         </Border>
 
-        <UniformGrid Grid.Row="1" Columns="2" Margin="0,0,0,15">
+        <Border Grid.Row="1" Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,15">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsHeadcountWarningVisible}" Value="False">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <StackPanel Orientation="Horizontal">
+                <materialDesign:PackIcon Kind="BellRing" Foreground="#D97706" Width="20" Height="20" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <materialDesign:PackIcon Kind="AlertOutline" Foreground="#D97706" Width="20" Height="20" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBlock Text="{Binding HeadcountWarningMessage}" Foreground="#B45309" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <UniformGrid Grid.Row="2" Columns="2" Margin="0,0,0,15">
             <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,10,0">
                 <StackPanel>
                     <TextBlock Text="TOTAL ACTIVE WORKFORCE" FontSize="12" Foreground="#6B7280" FontWeight="SemiBold"/>
@@ -60,7 +79,7 @@
             </Border>
         </UniformGrid>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="6*"/>
                 <ColumnDefinition Width="4*"/>
@@ -73,9 +92,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Text="📊 Monthly Payroll Budget Distribution by Department" FontSize="14" FontWeight="Bold" Foreground="#333" Margin="0,0,0,15"/>
-
                     <lvc:CartesianChart Grid.Row="1" Series="{Binding PayrollByDeptSeries}" LegendLocation="None">
-
                         <lvc:CartesianChart.AxisX>
                             <lvc:Axis Labels="{Binding DepartmentLabels}" LabelsRotation="45">
                                 <lvc:Axis.Separator>
@@ -83,11 +100,9 @@
                                 </lvc:Axis.Separator>
                             </lvc:Axis>
                         </lvc:CartesianChart.AxisX>
-
                         <lvc:CartesianChart.AxisY>
                             <lvc:Axis LabelFormatter="{Binding CurrencyFormatter}"/>
                         </lvc:CartesianChart.AxisY>
-
                     </lvc:CartesianChart>
                 </Grid>
             </Border>
@@ -99,7 +114,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Text="🍕 Headcount Allocation Share" FontSize="14" FontWeight="Bold" Foreground="#333" Margin="0,0,0,15"/>
-                    <lvc:PieChart Grid.Row="1" Series="{Binding StaffShareSeries}" LegendLocation="Bottom"/>
+                    <lvc:PieChart Grid.Row="1" Series="{Binding StaffShareSeries}" LegendLocation="Bottom" MinHeight="350"/>
                 </Grid>
             </Border>
         </Grid>
