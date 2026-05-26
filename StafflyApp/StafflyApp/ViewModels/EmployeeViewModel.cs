@@ -390,7 +390,15 @@ namespace StafflyApp.ViewModels
         {
             if (emp == null) return;
 
-            if (MessageBox.Show($"Are you sure you want to delete {emp.FullName}?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (!string.IsNullOrEmpty(emp.Status) && (emp.Status.Equals("Active", StringComparison.OrdinalIgnoreCase) || emp.Status.Equals("Working", StringComparison.OrdinalIgnoreCase)))
+            {
+                MessageBox.Show($"Cannot delete '{emp.FullName}' because their current status is marked as [{emp.Status}]!\n\n" +
+                                "To remove this record, you must change their status to 'Inactive' or 'Resigned' in their Profile settings first.",
+                                "Action Prohibited", MessageBoxButton.OK, MessageBoxImage.Stop);
+                return;
+            }
+
+            if (MessageBox.Show($"Are you sure you want to permanently delete {emp.FullName} from the master database?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 try
                 {
