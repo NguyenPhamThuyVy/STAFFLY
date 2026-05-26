@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:views="clr-namespace:StafflyApp.Views" 
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              Background="Transparent" FontFamily="Segoe UI"
              KeyDown="UserControl_KeyDown">
 
@@ -143,15 +144,24 @@
                                               ItemsSource="{Binding Departments}" 
                                               DisplayMemberPath="DepartmentName"
                                               SelectedItem="{Binding SelectedFilterDepartment}" 
-                                              Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,0,15"/>
+                                              Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,0,15">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="SelectionChanged">
+                                                <i:InvokeCommandAction Command="{Binding ApplyFilterCommand}"/>
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                    </ComboBox>
 
                                     <ComboBox materialDesign:HintAssist.Hint="Contract Type" 
                                               ItemsSource="{Binding ContractTypes}" 
                                               SelectedItem="{Binding SelectedFilterContractType}" 
-                                              Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,0,20"/>
-
-                                    <Button Content="APPLY FILTER" Command="{Binding ApplyFilterCommand}" 
-                                            Background="#1954D1" Foreground="White" Height="40" materialDesign:ButtonAssist.CornerRadius="5"/>
+                                              Style="{StaticResource MaterialDesignOutlinedComboBox}" Margin="0,0,0,5">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="SelectionChanged">
+                                                <i:InvokeCommandAction Command="{Binding ApplyFilterCommand}"/>
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                    </ComboBox>
                                 </StackPanel>
                             </Border>
                         </materialDesign:PopupBox>

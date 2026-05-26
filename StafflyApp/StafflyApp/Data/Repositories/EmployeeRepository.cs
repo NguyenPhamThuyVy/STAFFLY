@@ -9,15 +9,18 @@ namespace StafflyApp.Data.Repositories
 {
     public class EmployeeRepository : IEmployeeRepository
     {
-        // 1. Get all employees (Soft Delete filtered)
+        // 1. Get all employees (Soft Delete filtered + Lấy kèm ContractType)
         public List<Employee> GetAllEmployees()
         {
             List<Employee> employees = new List<Employee>();
             using (SqlConnection conn = new SqlConnection(DatabaseConfig.ConnectionString))
             {
                 conn.Open();
-                string query = "SELECT EmployeeID, FullName, Email, Phone, Address, DateOfBirth, DepartmentID, Status " +
-                               "FROM Employees WHERE Status != 'Resigned' OR Status IS NULL";
+                // SỬA SQL: Dùng LEFT JOIN kết nối sang bảng Contracts dựa trên EmployeeID để lấy cột ContractType
+                string query = @"SELECT e.EmployeeID, e.FullName, e.Email, e.Phone, e.Address, e.DateOfBirth, e.DepartmentID, e.Status, c.ContractType 
+                                 FROM Employees e 
+                                 LEFT JOIN Contracts c ON e.EmployeeID = c.EmployeeID 
+                                 WHERE e.Status != 'Resigned' OR e.Status IS NULL";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -163,7 +166,8 @@ namespace StafflyApp.Data.Repositories
                 Address = reader["Address"] != DBNull.Value ? reader["Address"].ToString() : null,
                 DateOfBirth = reader["DateOfBirth"] != DBNull.Value ? Convert.ToDateTime(reader["DateOfBirth"]) : (DateTime?)null,
                 DepartmentID = reader["DepartmentID"] != DBNull.Value ? Convert.ToInt32(reader["DepartmentID"]) : (int?)null,
-                Status = reader["Status"] != DBNull.Value ? reader["Status"].ToString() : null
+                Status = reader["Status"] != DBNull.Value ? reader["Status"].ToString() : null,
+                ContractType = reader.HasRows && reader["ContractType"] != DBNull.Value ? reader["ContractType"].ToString() : null
             };
         }
     }

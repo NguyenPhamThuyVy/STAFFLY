@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace StafflyApp.ViewModels
 {
@@ -87,19 +88,40 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void ApplyFilter()
         {
+            // 1. Tìm kiếm theo tên hoặc ID nhân viên trên Master List
             var filtered = string.IsNullOrWhiteSpace(SearchText)
                 ? _allEmployeesMaster
                 : _allEmployeesMaster.Where(e => (e.FullName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false) || e.EmployeeID.ToString().Contains(SearchText)).ToList();
 
+            // 2. Lọc theo phòng ban
             if (SelectedFilterDepartment != null && SelectedFilterDepartment.DepartmentID > 0)
             {
                 filtered = filtered.Where(e => e.DepartmentID == SelectedFilterDepartment.DepartmentID).ToList();
             }
 
+            // 3. LỌC THEO LOẠI HỢP ĐỒNG (Xử lý trực tiếp qua DbContext)
             if (!string.IsNullOrEmpty(SelectedFilterContractType) && SelectedFilterContractType != "All")
             {
-                filtered = filtered.Where(e => e.ContractType == SelectedFilterContractType).ToList();
+                string cleanFilter = SelectedFilterContractType.Replace("-", "").Replace(" ", "").Trim().ToLower();
+
+                using (var db = new StafflyDbContext())
+                {
+                    // Lấy toàn bộ danh sách hợp đồng hợp lệ dưới DB lên bộ nhớ để chuẩn hóa chuỗi
+                    var contractList = db.Contracts.ToList();
+
+                    // Tìm các EmployeeID có loại hợp đồng khớp với bộ lọc
+                    var validEmployeeIds = contractList
+                        .Where(c => c.EmployeeID.HasValue && !string.IsNullOrEmpty(c.ContractType))
+                        .Where(c => c.ContractType.Replace("-", "").Replace(" ", "").Trim().ToLower().Contains(cleanFilter))
+                        .Select(c => c.EmployeeID.Value)
+                        .ToList();
+
+                    // Giữ lại các nhân viên thỏa mãn danh sách ID hợp đồng trên
+                    filtered = filtered.Where(e => validEmployeeIds.Contains(e.EmployeeID)).ToList();
+                }
             }
+
+            // 4. Đổ lại dữ liệu sạch lên giao diện hiển thị bảng
             Employees.Clear();
             foreach (var emp in filtered) Employees.Add(emp);
         }
@@ -301,23 +323,41 @@ namespace StafflyApp.ViewModels
                         return;
                     }
 
+                    // 1. Lưu nhân viên vào bảng Employees trước để SQL tự sinh ra EmployeeID
                     db.Employees.Add(EditingEmployee);
-
                     if (dept != null) dept.CurrentStaffCount += 1;
 
+                    // Chạy lệnh Save thay đổi lần 1 để lấy được ID nhân viên vừa tạo
+                    db.SaveChanges();
+
+                    // 2. TỰ ĐỘNG TẠO HỢP ĐỒNG SANG BẢNG CONTRACTS
+                    // Lấy loại hợp đồng đang được chọn từ UI (hoặc mặc định nếu rỗng)
+                    string currentContractType = string.IsNullOrEmpty(EditingEmployee.ContractType) ? "Full-time" : EditingEmployee.ContractType;
+
+                    var newContract = new Contract
+                    {
+                        EmployeeID = EditingEmployee.EmployeeID, // Gán ID vừa tự sinh ở trên vào đây
+                        ContractType = currentContractType,
+                        BasicSalary = 5000000, // Mức lương cơ bản mặc định khi tạo mới
+                        SignDate = DateTime.Now.Date
+                    };
+
+                    db.Contracts.Add(newContract);
+
+                    // Lưu thay đổi lần 2 để hoàn tất việc tạo hợp đồng đi kèm
                     if (db.SaveChanges() > 0)
                     {
                         UserRepository.LogAction(
                             StafflyApp.Helpers.UserSession.Instance.UserID,
                             "ADD_EMPLOYEE",
-                            $"Created new employee profile: '{EditingEmployee.FullName}' assigned to Department ID: {EditingEmployee.DepartmentID}."
+                            $"Created new employee profile: '{EditingEmployee.FullName}' with contract type '{currentContractType}' assigned to Department ID: {EditingEmployee.DepartmentID}."
                         );
                     }
                 }
 
                 IsDialogOpen = false;
                 _ = LoadData();
-                MessageBox.Show("New employee added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("New employee and contract added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {

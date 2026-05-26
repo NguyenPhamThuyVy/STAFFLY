@@ -95,7 +95,19 @@
                             <TextBlock Text="Department" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
                             <TextBlock Text="{Binding SelectedEmployee.DepartmentName}" FontSize="15" FontWeight="Bold" Foreground="#1954D1" VerticalAlignment="Center" Margin="0,4,0,0"/>
                         </StackPanel>
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Position" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding SelectedEmployee.Position, UpdateSourceTrigger=PropertyChanged, TargetNullValue='No Position'}" 
+             FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+             IsReadOnly="{Binding IsNotEditMode}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        </StackPanel>
 
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Start Date" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <DatePicker SelectedDate="{Binding SelectedEmployee.StartDate, UpdateSourceTrigger=PropertyChanged}" 
+                FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+                IsEnabled="{Binding IsEditMode}" BorderThickness="0" Padding="0,4"/>
+                        </StackPanel>
                         <StackPanel Margin="0,0,0,22">
                             <TextBlock Text="Status" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
                             <TextBox Text="{Binding SelectedEmployee.Status, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="SemiBold" Foreground="#10B981"
