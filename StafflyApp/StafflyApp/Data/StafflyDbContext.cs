@@ -46,6 +46,14 @@ namespace StafflyApp.Data
             modelBuilder.Entity<Attendance>().HasKey(a => a.AttendanceID);
             modelBuilder.Entity<AuditLog>().HasKey(log => log.LogID);
 
+            modelBuilder.Entity<Employee>()
+                .HasIndex(e => e.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<Employee>()
+                .HasIndex(e => e.Phone)
+                .IsUnique();
+
             modelBuilder.Entity<EmployeePayroll>()
                 .Property(p => p.TotalSalary)
                 .HasComputedColumnSql("[BasicSalary] + [Bonuses] - [Deductions]");

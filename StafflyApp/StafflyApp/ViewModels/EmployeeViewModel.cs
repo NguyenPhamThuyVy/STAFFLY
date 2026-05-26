@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.EntityFrameworkCore;
 using StafflyApp.Data;
 using StafflyApp.Data.Repositories;
 using StafflyApp.Models;
@@ -338,50 +339,87 @@ namespace StafflyApp.ViewModels
 
                 using (var db = new StafflyDbContext())
                 {
-                    var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == EditingEmployee.DepartmentID);
-
-                    if (dept != null && dept.CurrentStaffCount >= dept.HeadcountLimit)
+                    using (var transaction = db.Database.BeginTransaction())
                     {
-                        MessageBox.Show($"Save failed: {dept.DepartmentName} has reached its headcount limit ({dept.HeadcountLimit})!",
-                                        "Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-
-                    // Lưu trữ tạm loại hợp đồng được chọn từ Form XAML trước khi ghi đè
-                    string selectedContractFromForm = EditingEmployee.ContractType ?? "Full-time";
-
-                    // 1. Thêm nhân viên vào bảng Employees trước để SQL Server cấp phát ID tự tăng (Identity)
-                    db.Employees.Add(EditingEmployee);
-                    if (dept != null) dept.CurrentStaffCount += 1;
-
-                    // Thực thi lưu tầng một
-                    if (db.SaveChanges() > 0)
-                    {
-                        // 2. Khởi tạo bản ghi hợp đồng đồng bộ sang bảng Contracts
-                        var newContract = new Contract
+                        try
                         {
-                            EmployeeID = EditingEmployee.EmployeeID, // Lấy ID vừa sinh tự động ở trên
-                            ContractType = selectedContractFromForm, // Lưu đúng giá trị (Part-time, Probationary,...)
-                            BasicSalary = 5000000, // Mức lương cơ bản mặc định khi tạo mới
-                            SignDate = DateTime.Now.Date
-                        };
-                        db.Contracts.Add(newContract);
-                        db.SaveChanges(); 
-                        UserRepository.LogAction(
-                            StafflyApp.Helpers.UserSession.Instance.UserID,
-                            "ADD_EMPLOYEE",
-                            $"Created new employee profile: '{EditingEmployee.FullName}' assigned to Dept ID: {EditingEmployee.DepartmentID} with contract type: '{selectedContractFromForm}'."
-                        );
+                            var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == EditingEmployee.DepartmentID);
+
+                            if (dept != null && dept.CurrentStaffCount >= dept.HeadcountLimit)
+                            {
+                                MessageBox.Show($"Save failed: {dept.DepartmentName} has reached its headcount limit ({dept.HeadcountLimit})!",
+                                                "Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                                return;
+                            }
+
+                            EditingEmployee.Department = null;
+
+                            string selectedContractFromForm = EditingEmployee.ContractType ?? "Full-time";
+
+                            db.Employees.Add(EditingEmployee);
+                            if (dept != null) dept.CurrentStaffCount += 1;
+                            db.SaveChanges();
+
+                            var newContract = new Contract
+                            {
+                                EmployeeID = EditingEmployee.EmployeeID,
+                                ContractType = selectedContractFromForm,
+                                BasicSalary = 5000000,
+                                SignDate = DateTime.Now.Date
+                            };
+                            db.Contracts.Add(newContract);
+                            db.SaveChanges();
+
+                            transaction.Commit();
+
+                            UserRepository.LogAction(
+                                StafflyApp.Helpers.UserSession.Instance.UserID,
+                                "ADD_EMPLOYEE",
+                                $"Created new employee: '{EditingEmployee.FullName}' (ID: {EditingEmployee.EmployeeID})."
+                            );
+
+                            IsDialogOpen = false;
+                            _ = LoadData();
+                            MessageBox.Show("New employee added successfully with their contract initialized!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        catch (DbUpdateException ex)
+                        {
+                            transaction.Rollback();
+                            HandleDatabaseError(ex);
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            MessageBox.Show("System error: " + ex.Message);
+                        }
                     }
                 }
-
-                IsDialogOpen = false;
-                _ = LoadData();
-                MessageBox.Show("New employee added successfully with their contract initialized!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Database Error: " + ex.Message, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Critical error: " + ex.Message);
+            }
+        }
+
+        private void HandleDatabaseError(DbUpdateException ex)
+        {
+            // Lấy thông báo lỗi chi tiết nhất từ SQL
+            string msg = ex.InnerException?.Message ?? ex.Message;
+
+            // Thay vì tìm chữ UNIQUE KEY, ta tìm trực tiếp tên Index em đã đặt
+            if (msg.Contains("IX_Employees_Email") || msg.Contains("IX_Employees_Phone"))
+            {
+                List<string> conflicts = new List<string>();
+                if (msg.Contains("IX_Employees_Email")) conflicts.Add("Email");
+                if (msg.Contains("IX_Employees_Phone")) conflicts.Add("Phone Number");
+
+                string errorMessage = string.Join(" and ", conflicts) + " already exists in the system.";
+                MessageBox.Show(errorMessage, "Duplicate Entry", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            else
+            {
+                // Nếu không phải lỗi trùng, hiện lỗi gốc để debug
+                MessageBox.Show("Database error: " + msg, "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
