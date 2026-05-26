@@ -13,15 +13,11 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
 
-        <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
-            <v:DashboardView/>
-        </DataTemplate>
+       
         <DataTemplate DataType="{x:Type vm:EmployeeViewModel}">
             <v:EmployeeManagementView/>
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:DepartmentViewModel}">
-            <v:DepartmentView/>
-        </DataTemplate>
+    
         <DataTemplate DataType="{x:Type vm:PayrollViewModel}">
             <v:PayrollView/>
         </DataTemplate>
