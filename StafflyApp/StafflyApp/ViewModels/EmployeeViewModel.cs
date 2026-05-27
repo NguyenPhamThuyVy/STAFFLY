@@ -406,7 +406,7 @@ namespace StafflyApp.ViewModels
             // Lấy thông báo lỗi chi tiết nhất từ SQL
             string msg = ex.InnerException?.Message ?? ex.Message;
 
-            // Thay vì tìm chữ UNIQUE KEY, ta tìm trực tiếp tên Index em đã đặt
+            // Thay vì tìm chữ UNIQUE KEY, ta tìm trực tiếp tên Index đã đặt
             if (msg.Contains("IX_Employees_Email") || msg.Contains("IX_Employees_Phone"))
             {
                 List<string> conflicts = new List<string>();
