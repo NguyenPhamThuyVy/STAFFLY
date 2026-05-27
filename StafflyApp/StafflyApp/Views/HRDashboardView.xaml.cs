@@ -10,14 +10,11 @@ namespace StafflyApp.Views
         public HRDashboardView()
         {
             InitializeComponent();
-
-            // Lắng nghe sự kiện mỗi khi trang Dashboard được load/hiển thị lên màn hình
             this.Loaded += HRDashboardView_Loaded;
-            // this.DataContext = new DashboardViewModel();
+            this.DataContext = new DashboardViewModel();
         }
         private void HRDashboardView_Loaded(object sender, RoutedEventArgs e)
         {
-            // Ép DataContext ép kiểu về đúng ViewModel tổng để ra lệnh làm mới dữ liệu từ Database SQL
             if (this.DataContext is HRDashboardViewModel viewModel)
             {
                 viewModel.InitializeOrRefresh();

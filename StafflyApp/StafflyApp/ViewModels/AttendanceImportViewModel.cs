@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Win32;
@@ -16,6 +16,8 @@ namespace StafflyApp.ViewModels
 {
     public partial class AttendanceImportViewModel : ObservableObject
     {
+        public event Action OnImportSuccess;
+
         [ObservableProperty] private string _excelFilePath = "No file selected...";
         [ObservableProperty] private bool _isDataLoaded = false;
         [ObservableProperty] private int _selectedMonth = DateTime.Now.Month;
@@ -81,21 +83,49 @@ namespace StafflyApp.ViewModels
         [RelayCommand]
         private void SaveAttendance()
         {
-            using (var db = new StafflyDbContext())
+            try
             {
-                foreach (var item in ImportedAttendanceRecords.Where(r => r.IsValid))
+                using (var db = new StafflyDbContext())
                 {
-                    bool exists = db.Attendances.Any(a => a.EmployeeID == item.EmployeeID && a.Date == item.Date);
-                    if (!exists)
+                    var validRecords = ImportedAttendanceRecords.Where(r => r.IsValid).ToList();
+
+                    if (validRecords.Any())
                     {
-                        db.Attendances.Add(new Attendance { EmployeeID = item.EmployeeID, Date = item.Date, Status = item.Status });
+                        var targetMonths = validRecords.Select(r => new { r.Date.Month, r.Date.Year }).Distinct().ToList();
+
+                        foreach (var target in targetMonths)
+                        {
+                            var oldRecords = db.Attendances.Where(a => a.Date.Month == target.Month && a.Date.Year == target.Year);
+                            db.Attendances.RemoveRange(oldRecords);
+                        }
+
+                        foreach (var item in validRecords)
+                        {
+                            db.Attendances.Add(new Attendance
+                            {
+                                EmployeeID = item.EmployeeID,
+                                Date = item.Date.Date,
+                                Status = item.Status?.Trim() 
+                            });
+                        }
+
+                        db.SaveChanges();
                     }
                 }
-                db.SaveChanges();
+
+                MessageBox.Show("Attendance records imported successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                ImportedAttendanceRecords.Clear();
+                IsDataLoaded = false;
+
+                OnImportSuccess?.Invoke();
+
+                MaterialDesignThemes.Wpf.DialogHost.CloseDialogCommand.Execute(null, null);
             }
-            MessageBox.Show("Attendance records imported successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-            ImportedAttendanceRecords.Clear();
-            IsDataLoaded = false;
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error saving data: " + ex.Message, "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }
