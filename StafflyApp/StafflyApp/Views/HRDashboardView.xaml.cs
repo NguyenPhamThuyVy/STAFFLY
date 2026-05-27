@@ -11,7 +11,7 @@ namespace StafflyApp.Views
         {
             InitializeComponent();
             this.Loaded += HRDashboardView_Loaded;
-            this.DataContext = new DashboardViewModel();
+            // this.DataContext = new DashboardViewModel();
         }
         private void HRDashboardView_Loaded(object sender, RoutedEventArgs e)
         {
