@@ -24,7 +24,6 @@ namespace StafflyApp.ViewModels
         [ObservableProperty] private List<string> _departmentLabels = new();
         [ObservableProperty] private bool _isImportDialogOpen = false;
 
-        // Dòng này cực quan trọng để kết nối với file Import mới
         public AttendanceImportViewModel ImportVM { get; set; } = new AttendanceImportViewModel();
         public ObservableCollection<dynamic> TopRiskyList { get; set; } = new();
 
@@ -33,6 +32,13 @@ namespace StafflyApp.ViewModels
         public HRDepartmentViewModel()
         {
             LiveCharts.Charting.For<AttendancePoint>(Mappers.Xy<AttendancePoint>().X((p, i) => i).Y(p => p.Value));
+
+            ImportVM.OnImportSuccess += () =>
+            {
+                RefreshData();          
+                IsImportDialogOpen = false; 
+            };
+
             RefreshData();
         }
 
@@ -127,6 +133,7 @@ namespace StafflyApp.ViewModels
             }
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine(ex.Message); }
         }
+
         public void LoadTopRiskyList()
         {
             using (var db = new StafflyDbContext())
