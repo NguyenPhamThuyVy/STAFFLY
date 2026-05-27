@@ -404,27 +404,35 @@ namespace StafflyApp.ViewModels
                 {
                     using (var db = new StafflyDbContext())
                     {
-                        var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == emp.DepartmentID);
-                        if (dept != null && dept.CurrentStaffCount > 0)
+                        var employeeInDb = db.Employees.FirstOrDefault(e => e.EmployeeID == emp.EmployeeID);
+                        if (employeeInDb != null)
                         {
-                            dept.CurrentStaffCount -= 1;
-                        }
+                            // Tìm phòng ban tương ứng của nhân viên đó để trừ bộ đếm số lượng
+                            var dept = db.Departments.FirstOrDefault(d => d.DepartmentID == employeeInDb.DepartmentID);
+                            if (dept != null && dept.CurrentStaffCount > 0)
+                            {
+                                dept.CurrentStaffCount -= 1; // Giảm định biên phòng ban thực tế xuống 1 đơn vị
+                            }
 
-                        int empId = emp.EmployeeID;
-                        string empName = emp.FullName;
+                            int empId = employeeInDb.EmployeeID;
+                            string empName = employeeInDb.FullName;
 
-                        if (_repository.DeleteEmployee(empId))
-                        {
+                            // Thực hiện xóa dòng nhân viên ra khỏi bảng ngay trong cùng kết nối cục bộ
+                            db.Employees.Remove(employeeInDb);
+
+                            // Thực hiện lưu đồng loạt cả hành vi XÓA NHÂN VIÊN và CẬP NHẬT PHÒNG BAN xuống SQL Server
                             db.SaveChanges();
 
+                            // 3. Ghi Nhật ký Hệ thống (Audit Logs)
                             UserRepository.LogAction(
                                 StafflyApp.Helpers.UserSession.Instance.UserID,
                                 "DELETE_EMPLOYEE",
                                 $"Permanently removed employee record: '{empName}' (ID: {empId}) from the operational master list."
                             );
 
+                            // 4. Làm mới lại danh sách DataGrid trên giao diện
                             _ = LoadData();
-                            MessageBox.Show("Employee deleted and department count updated!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show("Employee deleted and department headcount updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                     }
                 }
