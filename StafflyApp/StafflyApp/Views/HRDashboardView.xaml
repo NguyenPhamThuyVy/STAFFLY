@@ -114,7 +114,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Text="🍕 Headcount Allocation Share" FontSize="14" FontWeight="Bold" Foreground="#333" Margin="0,0,0,15"/>
-                    <lvc:PieChart Grid.Row="1" Series="{Binding StaffShareSeries}" LegendLocation="Bottom" MinHeight="350"/>
+                    <lvc:PieChart Grid.Row="1" Series="{Binding StaffShareSeries}" LegendLocation="Right" MinHeight="350"/>
                 </Grid>
             </Border>
         </Grid>
