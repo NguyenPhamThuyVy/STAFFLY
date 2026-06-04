@@ -95,10 +95,12 @@ To maintain maximum code stability and prevent repository corruption, always adh
 git add .
 git commit -m "Your descriptive change log message"
 ```
-3. Pull down the latest verified version of the cloud repo:
-Bash
+2. Pull down the latest verified version of the cloud repo:
+```bash
 git pull origin main
+```
 4. Resolve any textual collisions (Merge Conflicts) inside Visual Studio's layout merge grid before executing compilation.
 5. Push your compiled, bug-free codebase directly back onto the remote repository:
-Bash
+```bash
 git push origin main
+```
