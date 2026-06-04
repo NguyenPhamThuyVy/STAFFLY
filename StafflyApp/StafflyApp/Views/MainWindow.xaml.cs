@@ -1,7 +1,8 @@
-﻿using System.Windows;
-using System.Windows.Input;
-using System.Windows.Media; // Phải có cái này để dùng màu (Brush)
+﻿using StafflyApp.Helpers;
+using StafflyApp.ViewModels;
 using StafflyApp.Views;
+using System.Windows;
+using System.Windows.Input;
 
 namespace StafflyApp
 {
@@ -10,48 +11,66 @@ namespace StafflyApp
         public MainWindow()
         {
             InitializeComponent();
-
-            // Mở lên là nạp Dashboard và tô sáng nút Dashboard luôn
-            SetActiveMenu(MenuBorder_Dashboard);
-            MainContentArea.Content = new DashboardView();
+            this.DataContext = new MainWindowViewModel();
         }
 
-        // ================= HÀM XỬ LÝ HIỆU ỨNG MENU =================
-        private void SetActiveMenu(System.Windows.Controls.Border activeBorder)
+        // --- HÀM CỦA HR / MANAGER ---
+        private void TabDashboard_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Tắt đèn: Xóa màu của TẤT CẢ các Menu (cho thành Trong suốt)
-            var transparentBrush = new SolidColorBrush(Colors.Transparent);
-            MenuBorder_Dashboard.Background = transparentBrush;
-            MenuBorder_Employees.Background = transparentBrush;
-            MenuBorder_Attendance.Background = transparentBrush;
-            MenuBorder_Payroll.Background = transparentBrush;
-            MenuBorder_Contracts.Background = transparentBrush;
-            MenuBorder_Departments.Background = transparentBrush;
-
-            // 2. Bật đèn: Tô màu Tím nhạt cho Menu đang được chọn
-            var activeColor = new BrushConverter().ConvertFrom("#8571FF") as SolidColorBrush;
-            activeBorder.Background = activeColor;
+            if (this.DataContext is MainWindowViewModel vm)
+                vm.NavigateCommand.Execute("Dashboard");
         }
 
-        // ================= XỬ LÝ CLICK TỪNG MENU =================
-        private void MenuDashboard_Click(object sender, RoutedEventArgs e)
+        private void TabEmployees_Click(object sender, RoutedEventArgs e)
         {
-            SetActiveMenu(MenuBorder_Dashboard);
-            MainContentArea.Content = new DashboardView();
+            if (this.DataContext is MainWindowViewModel vm)
+                vm.NavigateCommand.Execute("Employees");
         }
 
-        private void MenuEmployees_Click(object sender, RoutedEventArgs e)
+        private void TabDepartments_Click(object sender, RoutedEventArgs e)
         {
-            SetActiveMenu(MenuBorder_Employees);
-            MainContentArea.Content = new EmployeeManagementView();
+            if (this.DataContext is MainWindowViewModel vm)
+                vm.NavigateCommand.Execute("Departments");
         }
 
-        // ================= XỬ LÝ HỆ THỐNG =================
-        private void Logout_Click(object sender, RoutedEventArgs e)
+        private void TabPayroll_Click(object sender, RoutedEventArgs e)
         {
-            LoginWindow loginWin = new LoginWindow();
-            loginWin.Show();
-            this.Close();
+            if (this.DataContext is MainWindowViewModel vm)
+                vm.NavigateCommand.Execute("Payroll");
+        }
+
+        // --- HÀM CỦA ADMIN ---
+        private void TabAdminAccounts_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is MainWindowViewModel vm)
+                vm.NavigateCommand.Execute("AdminAccounts");
+        }
+
+        private void TabAdminAuditLogs_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is MainWindowViewModel vm)
+                vm.NavigateCommand.Execute("AdminAuditLogs");
+        }
+
+        private void TabAdminDeptLimits_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is MainWindowViewModel vm)
+                vm.NavigateCommand.Execute("AdminDeptLimits");
+        }
+
+        // --- CÁC HÀM HỆ THỐNG ---
+        private void LogoutButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to log out of STAFFLY?",
+                                                      "Logout Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                UserSession.Instance.ClearSession();
+                LoginWindow loginWindow = new LoginWindow();
+                loginWindow.Show();
+                this.Close();
+            }
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)

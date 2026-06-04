@@ -1,30 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StafflyApp.Helpers
 {
-    public static class UserSession
+    // Áp dụng Design Pattern Singleton để duy nhất 1 phiên đăng nhập tồn tại trong suốt vòng đời App
+    public class UserSession
     {
-        // ID của người dùng (để truy vấn dữ liệu liên quan)
-        public static int UserID { get; set; }
+        private static UserSession _instance;
+        public static UserSession Instance => _instance ??= new UserSession();
 
-        // Tên hiển thị trên Dashboard 
-        public static string? Username { get; set; }
+        public int UserID { get; set; }
+        public string Username { get; set; }
+        public int RoleID { get; set; } // 1: Admin, 2: Manager, 3: Staff
+        public string RoleName { get; set; }
 
-        // Vai trò để phân quyền (Admin, HR_Manager, HR_Staff)
-        public static int RoleID { get; set; }
-        public static string? RoleName { get; set; }
+        private UserSession() { }
 
-        // Hàm để xóa dữ liệu khi Logout
-        public static void Logout()
+        // Hàm gọi khi đăng xuất
+        public void ClearSession()
         {
             UserID = 0;
-            Username = null;
+            Username = string.Empty;
             RoleID = 0;
-            RoleName = null;
+            RoleName = string.Empty;
         }
     }
 }

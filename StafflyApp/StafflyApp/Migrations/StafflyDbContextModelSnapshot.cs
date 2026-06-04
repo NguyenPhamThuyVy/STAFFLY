@@ -17,10 +17,223 @@ namespace StafflyApp.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "8.0.25")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Attendance", b =>
+                {
+                    b.Property<int>("AttendanceID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttendanceID"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EmployeeID")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("AttendanceID");
+
+                    b.HasIndex("EmployeeID");
+
+                    b.ToTable("Attendances");
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.AuditLog", b =>
+                {
+                    b.Property<int>("LogID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LogID"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Detail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UserID")
+                        .HasColumnType("int");
+
+                    b.HasKey("LogID");
+
+                    b.ToTable("AuditLogs");
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.Contract", b =>
+                {
+                    b.Property<int>("ContractID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContractID"));
+
+                    b.Property<decimal>("BasicSalary")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ContractType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EmployeeID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SignDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ContractID");
+
+                    b.ToTable("Contracts");
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.Department", b =>
+                {
+                    b.Property<int>("DepartmentID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DepartmentID"));
+
+                    b.Property<int>("CurrentStaffCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DepartmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HeadcountLimit")
+                        .HasColumnType("int");
+
+                    b.HasKey("DepartmentID");
+
+                    b.ToTable("Departments");
+
+                    b.HasData(
+                        new
+                        {
+                            DepartmentID = 1,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Board of Directors",
+                            HeadcountLimit = 5
+                        },
+                        new
+                        {
+                            DepartmentID = 2,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "IT & Technology Department",
+                            HeadcountLimit = 20
+                        },
+                        new
+                        {
+                            DepartmentID = 3,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Human Resources Department (HR)",
+                            HeadcountLimit = 15
+                        },
+                        new
+                        {
+                            DepartmentID = 4,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Marketing Department",
+                            HeadcountLimit = 25
+                        },
+                        new
+                        {
+                            DepartmentID = 5,
+                            CurrentStaffCount = 0,
+                            DepartmentName = "Accounting Department",
+                            HeadcountLimit = 10
+                        });
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.DepartmentAttendance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DepartmentID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalAbsences")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalTardiness")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartmentID");
+
+                    b.ToTable("DepartmentAttendances");
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.DepartmentPayrollStatus", b =>
+                {
+                    b.Property<int>("PayrollStatusID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PayrollStatusID"));
+
+                    b.Property<DateTime?>("ApprovalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ApprovedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DepartmentID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("PayrollStatusID");
+
+                    b.HasIndex("DepartmentID");
+
+                    b.ToTable("DepartmentPayrollStatuses");
+                });
 
             modelBuilder.Entity("StafflyApp.Models.Employee", b =>
                 {
@@ -42,7 +255,7 @@ namespace StafflyApp.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -50,7 +263,13 @@ namespace StafflyApp.Migrations
 
                     b.Property<string>("Phone")
                         .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Position")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -58,159 +277,110 @@ namespace StafflyApp.Migrations
 
                     b.HasKey("EmployeeID");
 
-                    b.ToTable("Employees");
+                    b.HasIndex("DepartmentID");
 
-                    b.HasData(
-                        new
-                        {
-                            EmployeeID = 1,
-                            Address = "TP.HCM",
-                            DepartmentID = 1,
-                            Email = "kieuvy611@staffly.com",
-                            FullName = "Lê Nguyễn Kiều Vy",
-                            Phone = "0901234567",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            EmployeeID = 2,
-                            Address = "Hà Nội",
-                            DepartmentID = 1,
-                            Email = "a.tv@staffly.com",
-                            FullName = "Trần Văn A",
-                            Phone = "0901112223",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            EmployeeID = 3,
-                            Address = "Đà Nẵng",
-                            DepartmentID = 2,
-                            Email = "b.lt@staffly.com",
-                            FullName = "Lê Thị B",
-                            Phone = "0903334445",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            EmployeeID = 4,
-                            Address = "Cần Thơ",
-                            DepartmentID = 2,
-                            Email = "c.pv@staffly.com",
-                            FullName = "Phạm Văn C",
-                            Phone = "0905556667",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            EmployeeID = 5,
-                            Address = "TP.HCM",
-                            DepartmentID = 3,
-                            Email = "d.ht@staffly.com",
-                            FullName = "Hoàng Thị D",
-                            Phone = "0907778889",
-                            Status = "Inactive"
-                        },
-                        new
-                        {
-                            EmployeeID = 6,
-                            Address = "Bình Dương",
-                            DepartmentID = 1,
-                            Email = "e.dv@staffly.com",
-                            FullName = "Đỗ Văn E",
-                            Phone = "0909990001",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            EmployeeID = 7,
-                            Address = "Đồng Nai",
-                            DepartmentID = 2,
-                            Email = "f.bt@staffly.com",
-                            FullName = "Bùi Thị F",
-                            Phone = "0911223344",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            EmployeeID = 8,
-                            Address = "Long An",
-                            DepartmentID = 4,
-                            Email = "g.vv@staffly.com",
-                            FullName = "Vũ Văn G",
-                            Phone = "0912233445",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            EmployeeID = 9,
-                            Address = "Vũng Tàu",
-                            DepartmentID = 3,
-                            Email = "h.pt@staffly.com",
-                            FullName = "Phan Thị H",
-                            Phone = "0913344556",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            EmployeeID = 10,
-                            Address = "Tiền Giang",
-                            DepartmentID = 5,
-                            Email = "i.lv@staffly.com",
-                            FullName = "Lý Văn I",
-                            Phone = "0914455667",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            EmployeeID = 11,
-                            Address = "Kiên Giang",
-                            DepartmentID = 1,
-                            Email = "k.tt@staffly.com",
-                            FullName = "Trịnh Thị K",
-                            Phone = "0915566778",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            EmployeeID = 12,
-                            Address = "An Giang",
-                            DepartmentID = 1,
-                            Email = "l.lv@staffly.com",
-                            FullName = "Lưu Văn L",
-                            Phone = "0916677889",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            EmployeeID = 13,
-                            Address = "TP.HCM",
-                            DepartmentID = 2,
-                            Email = "m.mt@staffly.com",
-                            FullName = "Mai Thị M",
-                            Phone = "0917788990",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            EmployeeID = 14,
-                            Address = "Bến Tre",
-                            DepartmentID = 1,
-                            Email = "n.dv@staffly.com",
-                            FullName = "Đào Văn N",
-                            Phone = "0918899001",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            EmployeeID = 15,
-                            Address = "TP.HCM",
-                            DepartmentID = 4,
-                            Email = "o.dt@staffly.com",
-                            FullName = "Đặng Thị O",
-                            Phone = "0919900112",
-                            Status = "Active"
-                        });
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Phone")
+                        .IsUnique();
+
+                    b.ToTable("Employees");
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.EmployeePayroll", b =>
+                {
+                    b.Property<int>("PayrollID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PayrollID"));
+
+                    b.Property<decimal>("BasicSalary")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Bonuses")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Deductions")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("DepartmentID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EmployeeID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalSalary")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("decimal(18,2)")
+                        .HasComputedColumnSql("[BasicSalary] + [Bonuses] - [Deductions]");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("PayrollID");
+
+                    b.ToTable("EmployeePayrolls");
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.Payroll", b =>
+                {
+                    b.Property<int>("PayrollID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PayrollID"));
+
+                    b.Property<DateTime?>("ApprovalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ApprovedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EmployeeID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ErrorNote")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsValid")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RejectReason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalBonus")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalSalary")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("PayrollID");
+
+                    b.ToTable("Payrolls");
                 });
 
             modelBuilder.Entity("StafflyApp.Models.User", b =>
@@ -221,21 +391,38 @@ namespace StafflyApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("EmployeeID")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsDefaultPassword")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsResetRequested")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Password")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("RoleID")
                         .HasColumnType("int");
 
+                    b.Property<string>("RoleName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TempPasswordPlain")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Username")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserID");
@@ -246,12 +433,89 @@ namespace StafflyApp.Migrations
                         new
                         {
                             UserID = 1,
-                            EmployeeID = 1,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "",
                             IsActive = true,
+                            IsDefaultPassword = false,
+                            IsResetRequested = false,
                             Password = "123",
                             RoleID = 1,
+                            RoleName = "Admin",
                             Username = "admin"
+                        },
+                        new
+                        {
+                            UserID = 2,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "",
+                            IsActive = true,
+                            IsDefaultPassword = false,
+                            IsResetRequested = false,
+                            Password = "abc",
+                            RoleID = 2,
+                            RoleName = "Manager",
+                            Username = "manager"
+                        },
+                        new
+                        {
+                            UserID = 3,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "",
+                            IsActive = true,
+                            IsDefaultPassword = false,
+                            IsResetRequested = false,
+                            Password = "a1b2",
+                            RoleID = 3,
+                            RoleName = "Staff",
+                            Username = "staff"
                         });
+                });
+
+            modelBuilder.Entity("Attendance", b =>
+                {
+                    b.HasOne("StafflyApp.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.DepartmentAttendance", b =>
+                {
+                    b.HasOne("StafflyApp.Models.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.DepartmentPayrollStatus", b =>
+                {
+                    b.HasOne("StafflyApp.Models.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.Employee", b =>
+                {
+                    b.HasOne("StafflyApp.Models.Department", "Department")
+                        .WithMany("Employees")
+                        .HasForeignKey("DepartmentID");
+
+                    b.Navigation("Department");
+                });
+
+            modelBuilder.Entity("StafflyApp.Models.Department", b =>
+                {
+                    b.Navigation("Employees");
                 });
 #pragma warning restore 612, 618
         }

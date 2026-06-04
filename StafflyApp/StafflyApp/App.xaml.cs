@@ -13,9 +13,6 @@ using System.Windows;
 
 namespace StafflyApp
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
         public static IServiceProvider ServiceProvider { get; private set; }
@@ -34,6 +31,31 @@ namespace StafflyApp
             ConfigureServices(serviceCollection);
             ServiceProvider = serviceCollection.BuildServiceProvider();
         }
+        private void SyncDepartmentStaffCount()
+        {
+            try
+            {
+                using (var scope = ServiceProvider.CreateScope())
+                {
+                    var db = scope.ServiceProvider.GetRequiredService<StafflyDbContext>();
+
+                    // Lệnh này đảm bảo mọi máy tính đều có dữ liệu CurrentStaffCount chính xác
+                    db.Database.ExecuteSqlRaw(@"
+                UPDATE Departments 
+                SET CurrentStaffCount = (
+                    SELECT COUNT(*) 
+                    FROM Employees 
+                    WHERE Employees.DepartmentID = Departments.DepartmentID 
+                    AND (Employees.Status != 'Resigned' OR Employees.Status IS NULL)
+                )");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Sync Data Error: " + ex.Message);
+            }
+        }
+
         private void ConfigureServices(IServiceCollection services)
         {
             // 3. Lấy Connection String từ file appsettings.json
@@ -60,6 +82,7 @@ namespace StafflyApp
         {
             base.OnStartup(e);
             // Yêu cầu ServiceProvider lấy ra thực thể LoginWindow đã được cấu hình DI
+            SyncDepartmentStaffCount();
             var loginWindow = ServiceProvider.GetRequiredService<LoginWindow>();
             loginWindow.Show();
         }

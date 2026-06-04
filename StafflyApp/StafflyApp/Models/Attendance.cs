@@ -1,16 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using StafflyApp.Models;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace StafflyApp.Models
+public class Attendance
 {
-    public class Attendance
-    {
-        public int AttendanceID { get; set; }
-        public int? EmployeeID { get; set; }
-        public DateTime? Date { get; set; }
-        public string Status { get; set; }
-    }
+    [Key]
+    public int AttendanceID { get; set; }
+
+    [Required]
+    public int EmployeeID { get; set; }
+
+    [Required]
+    public DateTime Date { get; set; }
+
+    [Required]
+    public string Status { get; set; } // "Absent", "Late"
+
+    public bool IsLocked { get; set; }
+
+    [ForeignKey("EmployeeID")]
+    public virtual Employee Employee { get; set; }
 }

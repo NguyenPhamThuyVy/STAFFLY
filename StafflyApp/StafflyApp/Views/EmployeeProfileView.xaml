@@ -1,0 +1,169 @@
+﻿<UserControl x:Class="StafflyApp.Views.EmployeeProfileView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             Background="Transparent" FontFamily="Segoe UI">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <Border Padding="30" Background="Transparent">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Margin="0,0,25,0">
+                <Button HorizontalAlignment="Left" Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding GoBackCommand}" Foreground="#6B7280" Margin="0,0,0,20" Padding="0">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="ArrowLeft" VerticalAlignment="Center"/>
+                        <TextBlock Text="Back to List" Margin="8,0,0,0" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+
+                <Border Background="#F9FAFB" CornerRadius="20" Padding="25" Margin="0,0,0,20" BorderBrush="#F3F4F6" BorderThickness="1">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Border Width="110" Height="110" CornerRadius="55" Background="#E0E7FF" Margin="0,0,0,15">
+                            <materialDesign:PackIcon Kind="AccountTie" Width="65" Height="65" Foreground="#1954D1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="{Binding SelectedEmployee.FullName}" FontSize="18" FontWeight="Bold" Foreground="#1A1C29" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding SelectedEmployee.EmployeeID, StringFormat='ID: {0}'}" Foreground="#6B7280" HorizontalAlignment="Center" FontSize="13" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="White" CornerRadius="20" Padding="15" BorderBrush="#F3F4F6" BorderThickness="1" Height="280">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="DEPARTMENT COLLEAGUES" FontSize="12" FontWeight="Bold" Foreground="#9CA3AF" Margin="0,0,0,12"/>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding DepartmentColleagues}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#F9FAFB" CornerRadius="8" Padding="10" Margin="0,0,0,6">
+                                            <TextBlock Text="{Binding FullName}" FontWeight="SemiBold" FontSize="13" Foreground="#4B5563" TextWrapping="Wrap"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <Grid Grid.Column="1" Margin="20,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="EMPLOYEE DETAILS" FontSize="20" FontWeight="Bold" Foreground="#1954D1" Margin="0,5,0,25"/>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,0,15,0">
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Full Name" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding SelectedEmployee.FullName, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+                                     IsReadOnly="{Binding IsNotEditMode}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Date of Birth" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <DatePicker SelectedDate="{Binding SelectedEmployee.DateOfBirth, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+                                        IsEnabled="{Binding IsEditMode}" BorderThickness="0" Padding="0,4"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Email Address" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding SelectedEmployee.Email, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+                                     IsReadOnly="{Binding IsNotEditMode}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Phone Number" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding SelectedEmployee.Phone, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+                                     IsReadOnly="{Binding IsNotEditMode}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Department" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding SelectedEmployee.DepartmentName}" FontSize="15" FontWeight="Bold" Foreground="#1954D1" VerticalAlignment="Center" Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Position" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding SelectedEmployee.Position, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+                                     IsReadOnly="{Binding IsNotEditMode}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Status" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,6"/>
+                            <ComboBox SelectedValue="{Binding SelectedEmployee.Status, UpdateSourceTrigger=PropertyChanged}" 
+                                      SelectedValuePath="Content"
+                                      IsEnabled="{Binding IsEditMode}"
+                                      Style="{StaticResource MaterialDesignFloatingHintComboBox}" FontSize="15" FontWeight="SemiBold" Foreground="#10B981">
+                                <ComboBoxItem Content="Active" Foreground="#10B981"/>
+                                <ComboBoxItem Content="Probation" Foreground="#F59E0B"/>
+                                <ComboBoxItem Content="Inactive" Foreground="#EF4444"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Home Address" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding SelectedEmployee.Address, UpdateSourceTrigger=PropertyChanged, TargetNullValue='No address'}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+                                     IsReadOnly="{Binding IsNotEditMode}" TextWrapping="Wrap" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Start Date" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,4"/>
+                            <DatePicker SelectedDate="{Binding SelectedEmployee.StartDate, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="SemiBold" Foreground="#1A1C29"
+                                        IsEnabled="{Binding IsEditMode}" BorderThickness="0" Padding="0,4"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="0,0,0,22">
+                            <TextBlock Text="Contract Type" Foreground="#9CA3AF" FontSize="12" Margin="0,0,0,6"/>
+                            <ComboBox SelectedValue="{Binding SelectedContractType, UpdateSourceTrigger=PropertyChanged}" 
+                                      SelectedValuePath="Content"
+                                      IsEnabled="{Binding IsEditMode}"
+                                      Style="{StaticResource MaterialDesignFloatingHintComboBox}" FontSize="15" FontWeight="SemiBold">
+                                <ComboBoxItem Content="Full-time"/>
+                                <ComboBoxItem Content="Part-time"/>
+                                <ComboBoxItem Content="Probationary"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding IsManager, Converter={StaticResource BoolToVis}}" Margin="0,10,0,0">
+                            <Separator Margin="0,0,0,20"/>
+                            <TextBlock Text="MANAGER ACTIONS: TRANSFER" FontWeight="Bold" Foreground="#EF4444" Margin="0,0,0,10"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox ItemsSource="{Binding Departments}" DisplayMemberPath="DepartmentName" SelectedItem="{Binding SelectedTargetDept}" 
+                                          materialDesign:HintAssist.Hint="Select New Department" Margin="0,0,15,0" Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                                <Button Grid.Column="1" Content="Transfer" Command="{Binding ConfirmTransferCommand}" Background="#EF4444" BorderThickness="0" Height="45" Padding="20,0"/>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0" Visibility="{Binding IsStaff, Converter={StaticResource BoolToVis}}">
+                    <Button Content="EDIT PROFILE" Command="{Binding EnableEditModeCommand}" Width="130" Background="#1954D1" Foreground="White"
+                            Visibility="{Binding IsNotEditMode, Converter={StaticResource BoolToVis}}"/>
+
+                    <Button Content="CANCEL" Command="{Binding CancelEditCommand}" Style="{StaticResource MaterialDesignFlatButton}" Foreground="#EF4444" Margin="0,0,10,0"
+                            Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVis}}"/>
+                    <Button Content="SAVE CHANGES" Command="{Binding SaveChangesCommand}" Width="150" Background="#10B981" Foreground="White" BorderThickness="0"
+                            Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVis}}"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

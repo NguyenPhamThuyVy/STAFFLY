@@ -12,5 +12,7 @@ namespace StafflyApp.Models
         public string DepartmentName { get; set; }
         public int HeadcountLimit { get; set; }
         public int CurrentStaffCount { get; set; }
+        // Giúp Entity Framework hiểu một phòng ban có nhiều nhân viên
+        public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
     }
 }
