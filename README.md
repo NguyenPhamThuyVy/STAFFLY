@@ -52,7 +52,7 @@ Staffly/
 ├── Database/           # DbContext Configurations & Migration Scripts
 ├── Converters/         # UI Content Value Converters (XAML Data Formatters)
 └── App.config          # Core Context Global Configuration Metadata
-
+```
 ---
 
 ## Local Installation & Database Setup Guide
