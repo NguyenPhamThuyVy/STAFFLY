@@ -99,8 +99,8 @@ git commit -m "Your descriptive change log message"
 ```bash
 git pull origin main
 ```
-4. Resolve any textual collisions (Merge Conflicts) inside Visual Studio's layout merge grid before executing compilation.
-5. Push your compiled, bug-free codebase directly back onto the remote repository:
+3. Resolve any textual collisions (Merge Conflicts) inside Visual Studio's layout merge grid before executing compilation.
+4. Push your compiled, bug-free codebase directly back onto the remote repository:
 ```bash
 git push origin main
 ```
