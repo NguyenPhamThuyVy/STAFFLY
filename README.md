@@ -41,7 +41,7 @@ The STAFFLY system architecture is engineered to provide robust features distrib
 ## Project Structural Directory (MVVM Pattern)
 
 The project workspace layout strictly conforms to software engineering separation of concerns:
-
+```text
 Staffly/
 │
 ├── Models/             # Database Entities & Data Structures (EF Core Mappings)
@@ -82,9 +82,9 @@ Before initializing the monthly attendance workflows or generating structural pa
 
 ## Default System CredentialsFor assessment 
 For assessment and local demo validation purposes, you can use the default automated seed profiles below to log into the respective system interface roles:
-System Admin: username: admin // password: 123
-HR Manager: username: manager // password: abc
-HR Staff: username: staff // password: a1b2
+- System Admin: username: admin // password: 123
+- HR Manager: username: manager // password: abc
+- HR Staff: username: staff // password: a1b2
 
 ---
 
