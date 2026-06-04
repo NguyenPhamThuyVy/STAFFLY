@@ -91,13 +91,14 @@ For assessment and local demo validation purposes, you can use the default autom
 ## Git Branch Convergence Safety Routine
 To maintain maximum code stability and prevent repository corruption, always adhere to this collaborative delivery routine when merging work streams into the main product line:
 1. Stage and commit local code updates safely on your active branch:
-Bash
+```bash 
 git add .
 git commit -m "Your descriptive change log message"
-2. Pull down the latest verified version of the cloud repo:
+```
+3. Pull down the latest verified version of the cloud repo:
 Bash
 git pull origin main
-3. Resolve any textual collisions (Merge Conflicts) inside Visual Studio's layout merge grid before executing compilation.
-4. Push your compiled, bug-free codebase directly back onto the remote repository:
+4. Resolve any textual collisions (Merge Conflicts) inside Visual Studio's layout merge grid before executing compilation.
+5. Push your compiled, bug-free codebase directly back onto the remote repository:
 Bash
 git push origin main
